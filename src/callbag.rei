@@ -60,6 +60,12 @@ let combine:
   ) =>
   unit;
 
+/* Takes a max number and a source, and creates a sink & source.
+   It will emit values that the sink receives until the passed maximum number
+   of values is reached, at which point it will end the source and the
+   returned, new source. */
+let take: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+
 /* -- sink factories */
 
 /* Takes a function and a source, and creates a sink.

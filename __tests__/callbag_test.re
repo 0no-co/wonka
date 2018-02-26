@@ -306,6 +306,40 @@ describe("operator factories", () => {
       expect(res) |> toEqual([| (1, 2), (2, 2), (2, 4) |]);
     });
   });
+
+  describe("take", () => {
+    open Expect;
+
+    it("only lets a maximum number of values through", () => {
+      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let num = ref(1);
+
+      let source = Callbag.take(2, sink => sink(Start(signal => {
+        switch (signal) {
+        | Pull => {
+          let i = num^;
+          num := num^ + 1;
+          sink(Push(i));
+        }
+        | _ => ()
+        }
+      })));
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      expect(res) |> toEqual([| Push(1), Push(2), End |]);
+    });
+  });
 });
 
 describe("sink factories", () => {

@@ -237,6 +237,33 @@ let combine = (sourceA, sourceB, sink) => {
   }));
 };
 
+let take = (max, source, sink) => {
+  let taken = ref(0);
+  let talkback = ref((_: talkbackT) => ());
+
+  source(signal => {
+    switch (signal) {
+    | Start(tb) => {
+      talkback := tb;
+      sink(Start(signal => {
+        if (taken^ < max) tb(signal);
+      }));
+    }
+    | Push(_) when taken^ < max => {
+      taken := taken^ + 1;
+      sink(signal);
+
+      if (taken^ === max) {
+        sink(End);
+        talkback^(End);
+      };
+    }
+    | End => sink(End)
+    | _ => ()
+    }
+  });
+};
+
 let forEach = (f, source) =>
   captureTalkback(source, [@bs] (signal, talkback) => {
     switch (signal) {
