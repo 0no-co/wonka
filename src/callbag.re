@@ -158,8 +158,11 @@ let share = source => {
           state.talkback(End);
         };
       }
-      | Pull when !state.gotSignal => state.talkback(signal)
-      | _ => ()
+      | Pull when !state.gotSignal => {
+        state.gotSignal = true;
+        state.talkback(signal);
+      }
+      | Pull => ()
       }
     }));
   }
