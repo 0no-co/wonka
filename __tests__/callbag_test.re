@@ -221,6 +221,49 @@ describe("operator factories", () => {
       expect(signals) == [| Push(1), Push(4), Push(5), Push(6), Push(2), Push(3), End |];
     });
   });
+
+  describe("share", () => {
+    open Expect;
+
+    it("shares an underlying source with all sinks", () => {
+      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let num = ref(1);
+      let nums = [||];
+
+      let source = Callbag.share(sink => {
+        sink(Start(signal => {
+          switch (signal) {
+          | Pull => {
+            let i = num^;
+            num := num^ + 1;
+            sink(Push(i));
+          }
+          | _ => ()
+          }
+        }));
+      });
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | Push(x) => ignore(Js.Array.push(x, nums))
+        | _ => ()
+        }
+      });
+
+      source(signal => {
+        switch (signal) {
+        | Push(x) => ignore(Js.Array.push(x, nums))
+        | _ => ()
+        }
+      });
+
+      talkback^(Pull);
+      let numsA = Array.copy(nums);
+      talkback^(Pull);
+      expect((numsA, nums)) |> toEqual(([| 1, 1 |], [| 1, 1, 2, 2 |]));
+    });
+  });
 });
 
 describe("sink factories", () => {
