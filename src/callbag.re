@@ -1,6 +1,8 @@
 open Callbag_types;
 open Callbag_helpers;
 
+module Types = Callbag_types;
+
 let fromList = (l, sink) => {
   let restL = ref(l);
 
