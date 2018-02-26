@@ -30,6 +30,7 @@ let makeTrampoline = (sink: signalT('a) => unit, f: [@bs] unit => option('a)) =>
     let rec explode = () =>
       switch ([@bs] f()) {
       | Some(x) => {
+        state.gotSignal = false;
         sink(Push(x));
         if (state.gotSignal) explode();
       }

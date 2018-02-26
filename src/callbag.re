@@ -135,12 +135,12 @@ let share = source => {
     Hashtbl.add(state.sinks, id, sink);
     state.idCounter = state.idCounter + 1;
 
-    if (state.idCounter === 1) {
+    if (id === 0) {
       source(signal => {
         switch (signal) {
         | Push(_) when !state.ended => {
-          Hashtbl.iter((_, sink) => sink(signal), state.sinks);
           state.gotSignal = false;
+          Hashtbl.iter((_, sink) => sink(signal), state.sinks);
         }
         | Start(x) => state.talkback = x
         | End => state.ended = true
