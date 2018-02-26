@@ -1,0 +1,18 @@
+// http://bucklescript.github.io/bucklescript/docson/#build-schema.json
+{
+  "name": "bs-callbag",
+  "version": "0.1.0",
+  "bsc-flags": ["-bs-super-errors", "-bs-no-version-header"],
+  "refmt": 3,
+  "package-specs" : ["es6", "commonjs"],
+  "sources": [
+    "src",
+    {
+      "dir": "__tests__",
+      "type": "dev"
+    }
+  ],
+  "bs-dependencies" : [],
+  "bs-dev-dependencies": ["bs-jest"],
+  "namespace": false
+}

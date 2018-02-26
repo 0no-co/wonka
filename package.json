@@ -1,0 +1,40 @@
+{
+  "name": "bs-callbag",
+  "version": "0.1.0",
+  "scripts": {
+    "clean": "bsb -clean-world",
+    "build": "bsb -make-world",
+    "watch": "bsb -make-world -w",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "reason",
+    "bucklescript",
+    "callbag",
+    "observable",
+    "iterable"
+  ],
+  "repository": "https://github.com/kitten/bs-callbag",
+  "homepage": "https://github.com/kitten/bs-callbag",
+  "bugs": "https://github.com/kitten/bs-callbag/issues",
+  "license": "MIT",
+  "devDependencies": {
+    "bs-jest": "^0.3.2",
+    "bs-loader": "^2.0.1",
+    "bs-platform": "^2.1.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "re",
+      "js",
+      "ml"
+    ],
+    "testMatch": [
+      "**/__tests__/*_test.re"
+    ],
+    "transform": {
+      ".(re|ml)": "bs-loader"
+    }
+  }
+}
