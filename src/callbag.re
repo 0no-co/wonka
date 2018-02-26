@@ -113,6 +113,58 @@ let merge = (sources, sink) => {
   loopSources(0);
 };
 
+type shareStateT('a) = {
+  sinks: Hashtbl.t(int, signalT('a) => unit),
+  mutable idCounter: int,
+  mutable talkback: talkbackT => unit,
+  mutable ended: bool,
+  mutable gotSignal: bool
+};
+
+let share = source => {
+  let state = {
+    sinks: Hashtbl.create(10),
+    idCounter: 0,
+    talkback: (_: talkbackT) => (),
+    ended: false,
+    gotSignal: false
+  };
+
+  sink => {
+    let id = state.idCounter;
+    Hashtbl.add(state.sinks, id, sink);
+    state.idCounter = state.idCounter + 1;
+
+    if (state.idCounter === 1) {
+      source(signal => {
+        switch (signal) {
+        | Push(_) when !state.ended => {
+          Hashtbl.iter((_, sink) => sink(signal), state.sinks);
+          state.gotSignal = false;
+        }
+        | Start(x) => state.talkback = x
+        | End => state.ended = true
+        | _ => ()
+        }
+      });
+    };
+
+    sink(Start(signal => {
+      switch (signal) {
+      | End => {
+        Hashtbl.remove(state.sinks, id);
+        if (Hashtbl.length(state.sinks) === 0) {
+          state.ended = true;
+          state.talkback(End);
+        };
+      }
+      | Pull when !state.gotSignal => state.talkback(signal)
+      | _ => ()
+      }
+    }));
+  }
+};
+
 let forEach = (f, source) =>
   captureTalkback(source, [@bs] (signal, talkback) => {
     switch (signal) {
