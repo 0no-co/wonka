@@ -9,3 +9,4 @@ let scan: (('b, 'a) => 'b, 'b, (signalT('a) => unit) => unit, signalT('b) => uni
 let merge: (array((signalT('a) => unit) => unit), signalT('a) => unit) => unit;
 
 let forEach: ('a => unit, (signalT('a) => unit) => unit) => unit;
+let subscribe: ('a => unit, (signalT('a) => unit) => unit) => (unit => unit);

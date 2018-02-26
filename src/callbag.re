@@ -122,3 +122,27 @@ let forEach = (f, source) =>
     | End => ()
     }
   });
+
+let subscribe = (f, source) => {
+  let talkback = ref((_: talkbackT) => ());
+  let ended = ref(false);
+
+  source(signal => {
+    switch (signal) {
+    | Start(x) => {
+      talkback := x;
+      talkback^(Pull);
+    }
+    | Push(x) when !ended^ => {
+      f(x);
+      talkback^(Pull);
+    }
+    | _ => ()
+    }
+  });
+
+  () => if (!ended^) {
+    ended := true;
+    talkback^(End);
+  }
+};
