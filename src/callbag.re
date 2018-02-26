@@ -168,6 +168,75 @@ let share = source => {
   }
 };
 
+type combineLatestStateT('a, 'b) = {
+  mutable talkbackA: talkbackT => unit,
+  mutable talkbackB: talkbackT => unit,
+  mutable lastValA: option('a),
+  mutable lastValB: option('b),
+  mutable gotSignal: bool,
+  mutable endCounter: int,
+  mutable ended: bool,
+};
+
+let combine = (sourceA, sourceB, sink) => {
+  let state = {
+    talkbackA: (_: talkbackT) => (),
+    talkbackB: (_: talkbackT) => (),
+    lastValA: None,
+    lastValB: None,
+    gotSignal: false,
+    endCounter: 0,
+    ended: false
+  };
+
+  sourceA(signal => {
+    switch (signal, state.lastValB) {
+    | (Start(tb), _) => state.talkbackA = tb
+    | (Push(a), None) => state.lastValA = Some(a)
+    | (Push(a), Some(b)) when !state.ended => {
+      state.lastValA = Some(a);
+      state.gotSignal = false;
+      sink(Push((a, b)));
+    }
+    | (End, _) when state.endCounter < 2 => state.endCounter = state.endCounter + 1
+    | (End, _) => sink(End)
+    | _ => ()
+    }
+  });
+
+  sourceB(signal => {
+    switch (signal, state.lastValA) {
+    | (Start(tb), _) => state.talkbackB = tb
+    | (Push(b), None) => state.lastValB = Some(b)
+    | (Push(b), Some(a)) when !state.ended => {
+      state.lastValB = Some(b);
+      state.gotSignal = false;
+      sink(Push((a, b)));
+    }
+    | (End, _) when state.endCounter < 2 =>
+      state.endCounter = state.endCounter + 1
+    | (End, _) => sink(End)
+    | _ => ()
+    }
+  });
+
+  sink(Start(signal => {
+    switch (signal) {
+    | End => {
+      state.ended = true;
+      state.talkbackA(End);
+      state.talkbackB(End);
+    }
+    | Pull when !state.gotSignal => {
+      state.gotSignal = true;
+      state.talkbackA(signal);
+      state.talkbackB(signal);
+    }
+    | Pull => ()
+    }
+  }));
+};
+
 let forEach = (f, source) =>
   captureTalkback(source, [@bs] (signal, talkback) => {
     switch (signal) {

@@ -8,6 +8,7 @@ let filter: ('a => bool, (signalT('a) => unit) => unit, signalT('a) => unit) => 
 let scan: (('b, 'a) => 'b, 'b, (signalT('a) => unit) => unit, signalT('b) => unit) => unit;
 let merge: (array((signalT('a) => unit) => unit), signalT('a) => unit) => unit;
 let share: ((signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+let combine: ((signalT('a) => unit) => unit, (signalT('b) => unit) => unit, signalT(('a, 'b)) => unit) => unit;
 
 let forEach: ('a => unit, (signalT('a) => unit) => unit) => unit;
 let subscribe: ('a => unit, (signalT('a) => unit) => unit) => (unit => unit);

@@ -264,6 +264,48 @@ describe("operator factories", () => {
       expect((numsA, nums)) |> toEqual(([| 1, 1 |], [| 1, 1, 2, 2 |]));
     });
   });
+
+  describe("combine", () => {
+    open Expect;
+
+    it("combines the latest values of two sources", () => {
+      let talkback = ref((_: Callbag_types.talkbackT) => ());
+
+      let makeSource = (factor: int) => {
+        let num = ref(1);
+
+        sink => {
+          sink(Start(signal => {
+            switch (signal) {
+            | Pull => {
+              let i = num^ * factor;
+              num := num^ + 1;
+              sink(Push(i));
+            }
+            | _ => ()
+            }
+          }));
+        }
+      };
+
+      let sourceA = makeSource(1);
+      let sourceB = makeSource(2);
+      let source = Callbag.combine(sourceA, sourceB);
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | Push(x) => ignore(Js.Array.push(x, res))
+        | _ => ()
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      expect(res) |> toEqual([| (1, 2), (2, 2), (2, 4) |]);
+    });
+  });
 });
 
 describe("sink factories", () => {
