@@ -1,4 +1,4 @@
-open Callbag_types;
+open Wonka_types;
 
 let captureTalkback = (source: (signalT('a) => unit) => unit, sinkWithTalkback: [@bs] (signalT('a), talkbackT => unit) => unit) => {
   let talkback = ref((_: talkbackT) => ());

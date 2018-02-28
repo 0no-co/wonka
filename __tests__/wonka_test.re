@@ -1,5 +1,5 @@
 open Jest;
-open Callbag_types;
+open Wonka_types;
 
 let it = test;
 
@@ -9,8 +9,8 @@ describe("source factories", () => {
     open! Expect.Operators;
 
     it("sends list items to a puller sink", () => {
-      let source = Callbag.fromList([10, 20, 30]);
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let source = Wonka.fromList([10, 20, 30]);
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
       let signals = [||];
 
       source(signal => {
@@ -35,8 +35,8 @@ describe("source factories", () => {
     open Expect; open! Expect.Operators;
 
     it("sends array items to a puller sink", () => {
-      let source = Callbag.fromArray([| 10, 20, 30 |]);
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let source = Wonka.fromArray([| 10, 20, 30 |]);
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
       let signals = ref([||]);
 
       source(signal => {
@@ -58,8 +58,8 @@ describe("source factories", () => {
 
     it("does not blow up the stack when iterating something huge", () => {
       let arr = Array.make(100000, 123);
-      let source = Callbag.fromArray(arr);
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let source = Wonka.fromArray(arr);
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
       let values = [||];
 
       source(signal => {
@@ -88,9 +88,9 @@ describe("operator factories", () => {
     it("maps all emissions of a source", () => {
       let num = ref(1);
       let nums = [||];
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
 
-      Callbag.map((_) => {
+      Wonka.map((_) => {
         let res = num^;
         num := num^ + 1;
         res
@@ -125,9 +125,9 @@ describe("operator factories", () => {
     it("filters emissions according to a predicate", () => {
       let i = ref(1);
       let nums = [||];
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
 
-      Callbag.filter(x => x mod 2 === 0, sink => {
+      Wonka.filter(x => x mod 2 === 0, sink => {
         sink(Start(signal => {
           switch (signal) {
           | Pull => {
@@ -162,9 +162,9 @@ describe("operator factories", () => {
     it("folds emissions using an initial seed value", () => {
       let i = ref(1);
       let nums = [||];
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
 
-      Callbag.scan((acc, x) => acc + x, 0, sink => {
+      Wonka.scan((acc, x) => acc + x, 0, sink => {
         sink(Start(signal => {
           switch (signal) {
           | Pull => {
@@ -198,11 +198,11 @@ describe("operator factories", () => {
     open! Expect.Operators;
 
     it("merges different sources into a single one", () => {
-      let a = Callbag.fromList([1, 2, 3]);
-      let b = Callbag.fromList([4, 5, 6]);
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let a = Wonka.fromList([1, 2, 3]);
+      let b = Wonka.fromList([4, 5, 6]);
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
       let signals = [||];
-      let source = Callbag.merge([| a, b |]);
+      let source = Wonka.merge([| a, b |]);
 
       source(signal => {
         switch (signal) {
@@ -226,11 +226,11 @@ describe("operator factories", () => {
     open Expect;
 
     it("shares an underlying source with all sinks", () => {
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
       let nums = [||];
 
-      let source = Callbag.share(sink => {
+      let source = Wonka.share(sink => {
         sink(Start(signal => {
           switch (signal) {
           | Pull => {
@@ -269,7 +269,7 @@ describe("operator factories", () => {
     open Expect;
 
     it("combines the latest values of two sources", () => {
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
 
       let makeSource = (factor: int) => {
         let num = ref(1);
@@ -290,7 +290,7 @@ describe("operator factories", () => {
 
       let sourceA = makeSource(1);
       let sourceB = makeSource(2);
-      let source = Callbag.combine(sourceA, sourceB);
+      let source = Wonka.combine(sourceA, sourceB);
       let res = [||];
 
       source(signal => {
@@ -311,10 +311,10 @@ describe("operator factories", () => {
     open Expect;
 
     it("only lets a maximum number of values through", () => {
-      let talkback = ref((_: Callbag_types.talkbackT) => ());
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Callbag.take(2, sink => sink(Start(signal => {
+      let source = Wonka.take(2, sink => sink(Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
@@ -364,7 +364,7 @@ describe("sink factories", () => {
         }));
       };
 
-      Callbag.forEach(x => ignore(Js.Array.push(x, nums)), source);
+      Wonka.forEach(x => ignore(Js.Array.push(x, nums)), source);
       expect(nums) |> toEqual([| 0, 1, 2, 3 |])
     });
   });
@@ -379,9 +379,9 @@ describe("chains (integration)", () => {
     let actual = [||];
 
     input
-      |> Callbag.fromArray
-      |> Callbag.map(x => string_of_int(x))
-      |> Callbag.forEach(x => ignore(Js.Array.push(x, actual)));
+      |> Wonka.fromArray
+      |> Wonka.map(x => string_of_int(x))
+      |> Wonka.forEach(x => ignore(Js.Array.push(x, actual)));
 
     expect(output) |> toEqual(output)
   });

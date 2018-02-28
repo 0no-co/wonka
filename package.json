@@ -1,5 +1,5 @@
 {
-  "name": "bs-callbag",
+  "name": "wonka",
   "version": "0.1.0",
   "scripts": {
     "clean": "bsb -clean-world",
@@ -9,15 +9,18 @@
     "test:watch": "jest --watch"
   },
   "keywords": [
+    "wonka",
     "reason",
     "bucklescript",
     "callbag",
+    "callback",
     "observable",
-    "iterable"
+    "iterable",
+    "stream"
   ],
-  "repository": "https://github.com/kitten/bs-callbag",
-  "homepage": "https://github.com/kitten/bs-callbag",
-  "bugs": "https://github.com/kitten/bs-callbag/issues",
+  "repository": "https://github.com/kitten/wonka",
+  "homepage": "https://github.com/kitten/wonka",
+  "bugs": "https://github.com/kitten/wonka/issues",
   "license": "MIT",
   "devDependencies": {
     "bs-jest": "^0.3.2",

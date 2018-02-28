@@ -1,7 +1,7 @@
-open Callbag_types;
-open Callbag_helpers;
+open Wonka_types;
+open Wonka_helpers;
 
-module Types = Callbag_types;
+module Types = Wonka_types;
 
 let fromList = (l, sink) => {
   let restL = ref(l);

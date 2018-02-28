@@ -1,4 +1,4 @@
-open Callbag_types;
+open Wonka_types;
 
 let interval = (p, sink) => {
   let i = ref(0);
