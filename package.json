@@ -6,6 +6,7 @@
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
     "test": "jest",
+    "coverage": "jest -c ./.jest.coverage.json --coverage",
     "test:watch": "jest --watch"
   },
   "keywords": [
@@ -25,7 +26,8 @@
   "devDependencies": {
     "bs-jest": "^0.3.2",
     "bs-loader": "^2.0.1",
-    "bs-platform": "^2.1.0"
+    "bs-platform": "^2.1.0",
+    "coveralls": "^3.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
