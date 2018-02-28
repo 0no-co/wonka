@@ -1,6 +1,14 @@
 {
   "name": "wonka",
   "version": "0.1.0",
+  "files": [
+    "dist",
+    "src",
+    "lib/es6",
+    "lib/js",
+    "docs/*.md",
+    "*.md"
+  ],
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
