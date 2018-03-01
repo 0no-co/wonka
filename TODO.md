@@ -37,7 +37,7 @@ more-uncommon BuckleScript bindings:
 - [x] takeLast(num) *new*
 - [x] skip
 - [ ] skipUntil(source) *new*
-- [ ] skipWhile(predicate) *new*
+- [x] skipWhile(predicate) *new*
 - [x] filter
 - [ ] takeUntil(source) *new*
 - [x] takeWhile(predicate) *new*

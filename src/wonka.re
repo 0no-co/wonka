@@ -370,6 +370,24 @@ let skip = (wait, source, sink) => {
   });
 };
 
+let skipWhile = (predicate, source, sink) => {
+  let skip = ref(true);
+
+  captureTalkback(source, [@bs] (signal, talkback) => {
+    switch (signal) {
+    | Push(x) when skip^ => {
+      if (predicate(x)) {
+        talkback(Pull);
+      } else {
+        skip := false;
+        sink(signal);
+      };
+    }
+    | _ => sink(signal)
+    }
+  });
+};
+
 type flattenStateT = {
   mutable sourceTalkback: talkbackT => unit,
   mutable innerTalkback: talkbackT => unit,
