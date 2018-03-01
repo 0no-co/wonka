@@ -330,6 +330,32 @@ let takeLast = (max, source, sink) => {
   });
 };
 
+let takeWhile = (predicate, source, sink) => {
+  let ended = ref(false);
+  let talkback = ref((_: talkbackT) => ());
+
+  source(signal => {
+    switch (signal) {
+    | Start(tb) => talkback := tb;
+    | Push(x) when !ended^ => {
+      if (!predicate(x)) {
+        ended := true;
+        sink(End);
+        talkback^(End);
+      } else {
+        sink(signal);
+      };
+    }
+    | Push(_) => ()
+    | End => sink(End)
+    }
+  });
+
+  sink(Start(signal => {
+    if (!ended^) talkback^(signal);
+  }));
+};
+
 let skip = (wait, source, sink) => {
   let rest = ref(wait);
 

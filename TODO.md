@@ -40,7 +40,7 @@ more-uncommon BuckleScript bindings:
 - [ ] skipWhile(predicate) *new*
 - [x] filter
 - [ ] takeUntil(source) *new*
-- [ ] takeWhile(predicate) *new*
+- [x] takeWhile(predicate) *new*
 
 ## Combination factories
 

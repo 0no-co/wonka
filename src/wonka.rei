@@ -85,6 +85,12 @@ let take: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
    the cached values on the new source as a pullable. */
 let takeLast: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
 
+/* Takes a predicate and a source, and creates a sink & source.
+   It will emit values that the sink receives until the predicate returns false
+   for a value, at which point it will end the source and the returned, new
+   source. */
+let takeWhile: ('a => bool, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+
 /* Takes a number and a source, and creates a sink & source.
    It will not values that the sink receives until the passed number
    of values is reached, at which point it will start acting like a noop

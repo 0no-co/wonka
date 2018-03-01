@@ -476,6 +476,44 @@ describe("operator factories", () => {
     });
   });
 
+  describe("takeWhile", () => {
+    open Expect;
+
+    it("only lets the last n values through on an entirely new source", () => {
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let num = ref(1);
+
+      let source = Wonka.takeWhile(x => x <= 2, sink => sink(Start(signal => {
+        switch (signal) {
+        | Pull => {
+          let i = num^;
+          num := num^ + 1;
+          sink(Push(i));
+        }
+        | _ => ()
+        }
+      })));
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+
+      expect(res) |> toEqual([| Push(1), Push(2), End |]);
+    });
+  });
+
+
+
   describe("skip", () => {
     open Expect;
 
