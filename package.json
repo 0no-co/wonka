@@ -1,13 +1,25 @@
 {
   "name": "wonka",
   "version": "0.1.0",
+  "files": [
+    "dist",
+    "src",
+    "lib/es6",
+    "lib/js",
+    "docs/*.md",
+    "*.md"
+  ],
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
     "test": "jest",
     "coverage": "jest -c ./.jest.coverage.json --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "prebundle": "run-s build",
+    "bundle": "microbundle -i ./.index.js",
+    "prebundlesize": "run-s bundle",
+    "bundlesize": "bundlesize"
   },
   "keywords": [
     "wonka",
@@ -30,7 +42,10 @@
     "bs-jest": "^0.3.2",
     "bs-loader": "^2.0.1",
     "bs-platform": "^2.2.0",
-    "coveralls": "^3.0.0"
+    "bundlesize": "^0.16.0",
+    "coveralls": "^3.0.0",
+    "microbundle": "^0.4.4",
+    "npm-run-all": "^4.1.2"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -44,5 +59,11 @@
     "transform": {
       ".(re|ml)": "bs-loader"
     }
-  }
+  },
+  "bundlesize": [
+    {
+      "path": "./dist/wonka.js",
+      "maxSize": "4 kB"
+    }
+  ]
 }
