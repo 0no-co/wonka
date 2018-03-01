@@ -336,7 +336,10 @@ let takeWhile = (predicate, source, sink) => {
 
   source(signal => {
     switch (signal) {
-    | Start(tb) => talkback := tb;
+    | Start(tb) => {
+      talkback := tb;
+      sink(signal);
+    }
     | Push(x) when !ended^ => {
       if (!predicate(x)) {
         ended := true;
