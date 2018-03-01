@@ -113,6 +113,31 @@ let merge = (sources, sink) => {
   loopSources(0);
 };
 
+let concat = (sources, sink) => {
+  let size = Array.length(sources);
+  let talkback = ref((_: talkbackT) => ());
+  let rec nextSource = (i: int) =>
+    if (i < size) {
+      let source = Array.unsafe_get(sources, i);
+
+      source(signal => {
+        switch (signal) {
+        | Start(tb) => {
+          talkback := tb;
+          if (i === 0) sink(Start(signal => talkback^(signal)));
+          tb(Pull);
+        }
+        | End => nextSource(i + 1)
+        | Push(_) => sink(signal)
+        }
+      });
+    } else {
+      sink(End);
+    };
+
+  nextSource(0);
+};
+
 type shareStateT('a) = {
   sinks: Belt.MutableMap.Int.t(signalT('a) => unit),
   mutable idCounter: int,

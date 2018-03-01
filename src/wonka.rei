@@ -39,8 +39,13 @@ let scan:
 
 /* Takes an array of sources and creates a sink & source.
    All values that the sink receives from all sources will be passed through
-   to the new source */
+   to the new source. */
 let merge: (array((signalT('a) => unit) => unit), signalT('a) => unit) => unit;
+
+/* Takes an array of sources and creates a sink & source.
+   The values from each sources will be emitted on the sink, one after another.
+   When one source ends, the next one will start. */
+let concat: (array((signalT('a) => unit) => unit), signalT('a) => unit) => unit;
 
 /* Takes a listenable or a pullable source and creates a new source that
    will ensure that the source is shared between all sinks that follow.

@@ -221,6 +221,35 @@ describe("operator factories", () => {
     });
   });
 
+  describe("concat", () => {
+    open Expect;
+    open! Expect.Operators;
+
+    it("concatenates different sources into a single one", () => {
+      let a = Wonka.fromList([1, 2, 3]);
+      let b = Wonka.fromList([4, 5, 6]);
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let signals = [||];
+      let source = Wonka.concat([| a, b |]);
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => {
+          talkback := x;
+          x(Pull);
+        }
+        | Push(_) => {
+          ignore(Js.Array.push(signal, signals));
+          talkback^(Pull);
+        }
+        | End => ignore(Js.Array.push(signal, signals))
+        };
+      });
+
+      expect(signals) == [| Push(1), Push(2), Push(3), Push(4), Push(5), Push(6), End |];
+    });
+  });
+
   describe("share", () => {
     open Expect;
 
