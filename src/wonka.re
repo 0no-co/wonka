@@ -243,12 +243,7 @@ let take = (max, source, sink) => {
 
   source(signal => {
     switch (signal) {
-    | Start(tb) => {
-      talkback := tb;
-      sink(Start(signal => {
-        if (taken^ < max) tb(signal);
-      }));
-    }
+    | Start(tb) => talkback := tb;
     | Push(_) when taken^ < max => {
       taken := taken^ + 1;
       sink(signal);
@@ -258,10 +253,14 @@ let take = (max, source, sink) => {
         talkback^(End);
       };
     }
+    | Push(_) => ()
     | End => sink(End)
-    | _ => ()
     }
   });
+
+  sink(Start(signal => {
+    if (taken^ < max) talkback^(signal);
+  }));
 };
 
 let forEach = (f, source) =>
