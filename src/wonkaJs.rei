@@ -2,6 +2,32 @@ open Wonka_types;
 
 /* -- source factories */
 
+/* Accepts an event listening start function and stop function
+   and creates a listenable source that emits the received events.
+   This stream will emit values indefinitely until it receives an
+   End signal from a talkback passed downwards to its sink, which
+   calls the stop function using the internal handler.
+   This works well for Dom event listeners, for example the ones
+   in bs-webapi-incubator:
+   https://github.com/reasonml-community/bs-webapi-incubator/blob/master/src/dom/events/EventTargetRe.re
+   */
+let fromListener:
+  (
+    ('event => unit) => unit,
+    ('event => unit) => unit,
+    signalT('event) => unit
+  ) =>
+  unit;
+
+/* Accepts a Dom.element type and an event nme and creates a listenable
+   source that emits values of the Dom.event type. This stream is
+   created using the fromListener helper and more specific events
+   should be created using the methods in bs-webapi-incubator:
+   https://github.com/reasonml-community/bs-webapi-incubator/blob/master/src/dom/events/EventTargetRe.re
+   */
+let fromDomEvent:
+  (Dom.element, string, signalT(Dom.event) => unit) => unit;
+
 /* Accepts a period in milliseconds and creates a listenable source
    that emits ascending numbers for each time the interval fires.
    This stream will emit values indefinitely until it receives an
