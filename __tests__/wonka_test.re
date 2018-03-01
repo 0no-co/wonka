@@ -78,6 +78,33 @@ describe("source factories", () => {
       expect(Array.length(values)) == Array.length(arr);
     });
   });
+
+  describe("fromValue", () => {
+    open Expect;
+    open! Expect.Operators;
+
+    it("sends a single item to a puller sink", () => {
+      let source = Wonka.fromValue(123);
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let signals = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x;
+        | Push(_) => ignore(Js.Array.push(signal, signals));
+        | End => ignore(Js.Array.push(signal, signals))
+        };
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull); /* one extra to check whether no signal comes back after it has ended */
+
+      expect(signals) == [| Push(123), End |];
+    });
+  });
+
+
 });
 
 describe("operator factories", () => {

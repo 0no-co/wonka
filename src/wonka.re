@@ -32,6 +32,21 @@ let fromArray = (a, sink) => {
   });
 };
 
+let fromValue = (x, sink) => {
+  let ended = ref(false);
+
+  sink(Start(signal => {
+    switch (signal) {
+    | Pull when !ended^ => {
+      ended := true;
+      sink(Push(x));
+      sink(End);
+    }
+    | _ => ()
+    }
+  }));
+};
+
 let map = (f, source, sink) =>
   source(signal => sink(
     switch (signal) {

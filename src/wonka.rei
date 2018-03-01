@@ -11,6 +11,10 @@ let fromList: (list('a), signalT('a) => unit) => unit;
    is exhausted and it completes */
 let fromArray: (array('a), signalT('a) => unit) => unit;
 
+/* Accepts a value and creates a pullable source emitting just
+   that single value. */
+let fromValue: ('a, signalT('a) => unit) => unit;
+
 /* -- operators */
 /* Takes a mapping function from one type to another, and a source,
    and creates a sink & source.
