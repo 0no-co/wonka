@@ -47,6 +47,11 @@ let fromValue = (x, sink) => {
   }));
 };
 
+let empty = sink => {
+  sink(Start((_) => ()));
+  sink(End);
+};
+
 let map = (f, source, sink) =>
   source(signal => sink(
     switch (signal) {
