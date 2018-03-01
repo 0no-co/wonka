@@ -310,6 +310,20 @@ let take = (max, source, sink) => {
   }));
 };
 
+let skip = (wait, source, sink) => {
+  let rest = ref(wait);
+
+  captureTalkback(source, [@bs] (signal, talkback) => {
+    switch (signal) {
+    | Push(_) when rest^ > 0 => {
+      rest := rest^ - 1;
+      talkback(Pull);
+    }
+    | _ => sink(signal)
+    }
+  });
+};
+
 type flattenStateT = {
   mutable sourceTalkback: talkbackT => unit,
   mutable innerTalkback: talkbackT => unit,
