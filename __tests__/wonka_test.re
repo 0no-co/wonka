@@ -512,6 +512,53 @@ describe("operator factories", () => {
     });
   });
 
+  describe("takeUntil", () => {
+    open Expect;
+
+    it("only lets the last n values through on an entirely new source", () => {
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let notify = ref((_: Wonka_types.talkbackT) => ());
+      let num = ref(1);
+
+      let notifier = sink => {
+        notify := signal => switch (signal) {
+        | Pull => sink(Push(0));
+        | _ => ()
+        };
+
+        sink(Start((_) => ()));
+      };
+
+      let source = Wonka.takeUntil(notifier, sink => sink(Start(signal => {
+        switch (signal) {
+        | Pull when num^ <= 4 => {
+          let i = num^;
+          if (i === 3) notify^(Pull);
+          num := num^ + 1;
+          sink(Push(i));
+        }
+        | _ => ()
+        }
+      })));
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+
+      expect(res) |> toEqual([| Push(1), Push(2), End |]);
+    });
+  });
+
   describe("skip", () => {
     open Expect;
 
@@ -582,7 +629,7 @@ describe("operator factories", () => {
     });
   });
 
-  describe("skipWhile", () => {
+  describe("skipUntil", () => {
     open Expect;
 
     it("only lets values through after the notifier emits a value", () => {
@@ -623,8 +670,10 @@ describe("operator factories", () => {
 
       talkback^(Pull);
       talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
 
-      expect(res) |> toEqual([| Push(3), Push(4) |]);
+      expect(res) |> toEqual([| Push(3), Push(4), End |]);
     });
   });
 

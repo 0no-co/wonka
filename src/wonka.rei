@@ -1,6 +1,7 @@
 open Wonka_types;
 
 /* -- source factories */
+
 /* Accepts a list and creates a pullable source for that list.
    The source will emit events when being pulled until the list
    is exhausted and it completes */
@@ -22,6 +23,7 @@ let empty: (signalT('a) => unit) => unit;
 let never: (signalT('a) => unit) => unit;
 
 /* -- operators */
+
 /* Takes a mapping function from one type to another, and a source,
    and creates a sink & source.
    All values that it receives will be transformed using the mapping
@@ -91,6 +93,17 @@ let takeLast: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
    source. */
 let takeWhile: ('a => bool, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
 
+/* Takes a notifier source and an input source, and creates a sink & source.
+   It will not emit values that the sink receives until the notifier source
+   It will emit values that the sink receives until the notifier source
+   emits a value, at which point it will end the source and the returned, new
+   source. */
+let takeUntil: (
+  (signalT('a) => unit) => unit,
+  (signalT('b) => unit) => unit,
+  signalT('b) => unit
+) => unit;
+
 /* Takes a number and a source, and creates a sink & source.
    It will not emit values that the sink receives until the passed number
    of values is reached, at which point it will start acting like a noop
@@ -103,7 +116,7 @@ let skip: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
    operator, passing through every signal. */
 let skipWhile: ('a => bool, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
 
-/* Takes a predicate and a source, and creates a sink & source.
+/* Takes a notifier source and an input source, and creates a sink & source.
    It will not emit values that the sink receives until the notifier source
    emits a value, at which point it will start acting like a noop
    operator, passing through every signal. */
@@ -124,6 +137,7 @@ let flatten: (
 ) => unit;
 
 /* -- sink factories */
+
 /* Takes a function and a source, and creates a sink.
    The function will be called for each value that the sink receives.
    The sink will attempt to pull new values as values come in, until

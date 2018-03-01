@@ -359,6 +359,63 @@ let takeWhile = (predicate, source, sink) => {
   }));
 };
 
+type takeUntilStateT = {
+  mutable ended: bool,
+  mutable sourceTalkback: talkbackT => unit,
+  mutable notifierTalkback: talkbackT => unit
+};
+
+let takeUntil = (notifier, source, sink) => {
+  let state: takeUntilStateT = {
+    ended: false,
+    sourceTalkback: (_: talkbackT) => (),
+    notifierTalkback: (_: talkbackT) => ()
+  };
+
+  source(signal => {
+    switch (signal) {
+    | Start(tb) => {
+      state.sourceTalkback = tb;
+
+      notifier(signal => {
+        switch (signal) {
+        | Start(innerTb) => {
+          state.notifierTalkback = innerTb;
+          innerTb(Pull);
+        }
+        | Push(_) => {
+          state.ended = true;
+          state.notifierTalkback(End);
+          state.sourceTalkback(End);
+          sink(End);
+        }
+        | End => ()
+        }
+      });
+    }
+    | End => {
+      if (!state.ended) state.notifierTalkback(End);
+      state.ended = true;
+      sink(End);
+    }
+    | Push(_) when !state.ended => sink(signal)
+    | Push(_) => ()
+    }
+  });
+
+  sink(Start(signal => {
+    switch (signal) {
+    | End when !state.ended => {
+      state.sourceTalkback(End);
+      state.notifierTalkback(End);
+    }
+    | End => ()
+    | Pull when !state.ended => state.sourceTalkback(Pull)
+    | Pull => ()
+    }
+  }));
+};
+
 let skip = (wait, source, sink) => {
   let rest = ref(wait);
 
@@ -393,6 +450,7 @@ let skipWhile = (predicate, source, sink) => {
 
 type skipUntilStateT = {
   mutable skip: bool,
+  mutable ended: bool,
   mutable gotSignal: bool,
   mutable sourceTalkback: talkbackT => unit,
   mutable notifierTalkback: talkbackT => unit
@@ -401,12 +459,13 @@ type skipUntilStateT = {
 let skipUntil = (notifier, source, sink) => {
   let state: skipUntilStateT = {
     skip: true,
+    ended: false,
     gotSignal: false,
     sourceTalkback: (_: talkbackT) => (),
     notifierTalkback: (_: talkbackT) => ()
   };
 
-  captureTalkback(source, [@bs] (signal, talkback) => {
+  source(signal => {
     switch (signal) {
     | Start(tb) => {
       state.sourceTalkback = tb;
@@ -426,13 +485,17 @@ let skipUntil = (notifier, source, sink) => {
         }
       });
     }
-    | Push(_) when state.skip => talkback(Pull)
-    | Push(_) => {
+    | Push(_) when state.skip && !state.ended => state.sourceTalkback(Pull)
+    | Push(_) when !state.ended => {
       state.gotSignal = false;
       sink(signal)
     }
-    | End when state.skip => state.notifierTalkback(End)
-    | End => ()
+    | Push(_) => ()
+    | End => {
+      if (state.skip) state.notifierTalkback(End);
+      state.ended = true;
+      sink(End)
+    }
     }
   });
 
@@ -440,7 +503,7 @@ let skipUntil = (notifier, source, sink) => {
     switch (signal) {
     | End => {
       if (state.skip) state.notifierTalkback(End);
-      state.skip = true;
+      state.ended = true;
       state.sourceTalkback(End);
     }
     | Pull when !state.gotSignal => {
