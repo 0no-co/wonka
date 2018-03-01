@@ -81,7 +81,10 @@ let debounce = (debounceF, source, sink) => {
 
   let clearTimeout = () =>
     switch (id^) {
-    | Some(timeoutId) => Js.Global.clearTimeout(timeoutId)
+    | Some(timeoutId) => {
+      id := None;
+      Js.Global.clearTimeout(timeoutId);
+    }
     | None => ()
     };
 
@@ -100,12 +103,11 @@ let debounce = (debounceF, source, sink) => {
     }
     | Push(x) => {
       clearTimeout();
-      let debounceP = debounceF(x);
       id := Some(Js.Global.setTimeout(() => {
         id := None;
         sink(signal);
         if (gotEndSignal^) sink(End);
-      }, debounceP));
+      }, debounceF(x)));
     }
     | End => {
       gotEndSignal := true;
@@ -115,6 +117,46 @@ let debounce = (debounceF, source, sink) => {
       | _ => ()
       };
     }
+    }
+  });
+};
+
+let throttle = (throttleF, source, sink) => {
+  let skip = ref(false);
+  let id: ref(option(Js.Global.timeoutId)) = ref(None);
+  let clearTimeout = () =>
+    switch (id^) {
+    | Some(timeoutId) => Js.Global.clearTimeout(timeoutId);
+    | None => ()
+    };
+
+  source(signal => {
+    switch (signal) {
+    | Start(tb) => {
+      sink(Start(signal => {
+        switch (signal) {
+        | End => {
+          clearTimeout();
+          tb(End);
+        }
+        | _ => tb(signal)
+        }
+      }));
+    }
+    | End => {
+      clearTimeout();
+      sink(End);
+    }
+    | Push(x) when !skip^ => {
+      skip := true;
+      clearTimeout();
+      id := Some(Js.Global.setTimeout(() => {
+        id := None;
+        skip := false;
+      }, throttleF(x)));
+      sink(signal);
+    }
+    | Push(_) => ()
     }
   });
 };

@@ -58,7 +58,7 @@ built-in pipe operator.
 ## Backpressure
 
 - [x] debounce(x => t) *new*
-- [ ] throttle(x => t) *new*
+- [x] throttle(x => t) *new*
 - [ ] delay(t) *new*
 - [ ] delayWhen(x => source) *new*
 - [ ] sample(source) *new*

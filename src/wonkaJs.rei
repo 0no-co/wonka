@@ -42,7 +42,12 @@ let fromPromise: (Js.Promise.t('a), signalT('a) => unit) => unit;
 
 /* -- operators */
 
-/* Takes a period in milliseconds and a source, and creates a listenable
-   source that emits the last emitted value if no other value has been
-   emitted during the passed debounce period. */
+/* Takes a projection to a period in milliseconds and a source, and creates
+   a listenable source that emits the last emitted value if no other value
+   has been emitted during the passed debounce period. */
 let debounce: ('a => int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+
+/* Takes a projection to a period in milliseconds and a source, and creates
+   a listenable source that ignores values after the last emitted value for
+   the duration of the returned throttle period. */
+let throttle: ('a => int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
