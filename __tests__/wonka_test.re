@@ -396,9 +396,13 @@ describe("operator factories", () => {
           sink(Start(signal => {
             switch (signal) {
             | Pull => {
-              let i = num^ * factor;
-              num := num^ + 1;
-              sink(Push(i));
+              if (num^ <= 2) {
+                let i = num^ * factor;
+                num := num^ + 1;
+                sink(Push(i));
+              } else {
+                sink(End);
+              }
             }
             | _ => ()
             }
@@ -414,14 +418,15 @@ describe("operator factories", () => {
       source(signal => {
         switch (signal) {
         | Start(x) => talkback := x
-        | Push(x) => ignore(Js.Array.push(x, res))
-        | _ => ()
+        | _ => ignore(Js.Array.push(signal, res))
         }
       });
 
       talkback^(Pull);
       talkback^(Pull);
-      expect(res) |> toEqual([| (1, 2), (2, 2), (2, 4) |]);
+      talkback^(Pull);
+      talkback^(Pull);
+      expect(res) |> toEqual([| Push((1, 2)), Push((2, 2)), Push((2, 4)), End |]);
     });
   });
 

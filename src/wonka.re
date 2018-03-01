@@ -220,7 +220,7 @@ let share = source => {
   }
 };
 
-type combineLatestStateT('a, 'b) = {
+type combineStateT('a, 'b) = {
   mutable talkbackA: talkbackT => unit,
   mutable talkbackB: talkbackT => unit,
   mutable lastValA: option('a),
@@ -250,8 +250,12 @@ let combine = (sourceA, sourceB, sink) => {
       state.gotSignal = false;
       sink(Push((a, b)));
     }
-    | (End, _) when state.endCounter < 2 => state.endCounter = state.endCounter + 1
-    | (End, _) => sink(End)
+    | (End, _) when state.endCounter < 1 =>
+      state.endCounter = state.endCounter + 1
+    | (End, _) => {
+      print_endline("end");
+      sink(End)
+    }
     | _ => ()
     }
   });
@@ -265,7 +269,7 @@ let combine = (sourceA, sourceB, sink) => {
       state.gotSignal = false;
       sink(Push((a, b)));
     }
-    | (End, _) when state.endCounter < 2 =>
+    | (End, _) when state.endCounter < 1 =>
       state.endCounter = state.endCounter + 1
     | (End, _) => sink(End)
     | _ => ()
