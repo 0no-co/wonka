@@ -4,7 +4,7 @@
 
 ## Source factories
 
-- [x] create *new* (helper that is observable like? spec out; not counting)
+- [x] create *new*
 - [x] fromValue(x) *new* (emits single item)
 - [x] empty() *new* (ends immediately)
 - [x] never() *new* (never ends, never emits)
@@ -24,7 +24,7 @@ more-uncommon BuckleScript bindings:
 
 ## Sink factories
 - [x] forEach
-- [ ] subscribe *needs testing*
+- [x] subscribe
 
 ## Transformation operators
 - [x] map

@@ -730,6 +730,36 @@ describe("sink factories", () => {
       expect(nums) |> toEqual([| 0, 1, 2, 3 |])
     });
   });
+
+  describe("subscribe", () => {
+    open Expect;
+
+    it("calls a function for each emission of the passed source and stops when unsubscribed", () => {
+      let i = ref(0);
+      let nums = [||];
+      let push = ref(() => ());
+
+      let source = sink => {
+        push := () => {
+          let num = i^;
+          i := i^ + 1;
+          sink(Push(num));
+        };
+
+        sink(Start((_) => ()));
+      };
+
+      let unsubscribe = Wonka.subscribe(x => ignore(Js.Array.push(x, nums)), source);
+
+      push^();
+      push^();
+      unsubscribe();
+      push^();
+      push^();
+
+      expect(nums) |> toEqual([| 0, 1 |])
+    });
+  });
 });
 
 describe("chains (integration)", () => {
