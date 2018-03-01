@@ -23,10 +23,13 @@
   "homepage": "https://github.com/kitten/wonka",
   "bugs": "https://github.com/kitten/wonka/issues",
   "license": "MIT",
+  "peerDependencies": {
+    "bs-platform": ">=2.2.0"
+  },
   "devDependencies": {
     "bs-jest": "^0.3.2",
     "bs-loader": "^2.0.1",
-    "bs-platform": "^2.1.0",
+    "bs-platform": "^2.2.0",
     "coveralls": "^3.0.0"
   },
   "jest": {

@@ -403,9 +403,9 @@ bs-loader@^2.0.1:
     loader-utils "^1.1.0"
     read-bsconfig "^1.0.1"
 
-bs-platform@^2.1.0:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-2.2.1.tgz#e22b82143a43a10630d7b2040aab87648b12190c"
+bs-platform@^2.2.0:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-2.2.2.tgz#95ff37719771bbf310e8376fedd1148865c0da19"
 
 bsb-js@^1.0.0:
   version "1.0.2"

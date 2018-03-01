@@ -1,7 +1,6 @@
 open Wonka_types;
 
 /* -- source factories */
-
 /* Accepts a list and creates a pullable source for that list.
    The source will emit events when being pulled until the list
    is exhausted and it completes */
@@ -13,7 +12,6 @@ let fromList: (list('a), signalT('a) => unit) => unit;
 let fromArray: (array('a), signalT('a) => unit) => unit;
 
 /* -- operators */
-
 /* Takes a mapping function from one type to another, and a source,
    and creates a sink & source.
    All values that it receives will be transformed using the mapping
@@ -67,7 +65,6 @@ let combine:
 let take: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
 
 /* -- sink factories */
-
 /* Takes a function and a source, and creates a sink.
    The function will be called for each value that the sink receives.
    The sink will attempt to pull new values as values come in, until
