@@ -2,6 +2,12 @@ open Wonka_types;
 
 /* -- source factories */
 
+/* Accepts a factory function and creates a pullable source for it.
+   The source will emit events when being pulled by calling the passed
+   factory function until the function returns None, at which point
+   the source will complete. */
+let create: (unit => option('a), signalT('a) => unit) => unit;
+
 /* Accepts a list and creates a pullable source for that list.
    The source will emit events when being pulled until the list
    is exhausted and it completes */

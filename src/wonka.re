@@ -3,6 +3,8 @@ open Wonka_helpers;
 
 module Types = Wonka_types;
 
+let create = (gen, sink) => makeTrampoline(sink, [@bs] () => gen());
+
 let fromList = (l, sink) => {
   let restL = ref(l);
 
