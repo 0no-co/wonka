@@ -15,8 +15,11 @@ let fromArray: (array('a), signalT('a) => unit) => unit;
    that single value. */
 let fromValue: ('a, signalT('a) => unit) => unit;
 
-/* Creates a source that ends immediately */
+/* A source that ends immediately */
 let empty: (signalT('a) => unit) => unit;
+
+/* A source that never ends or emits a value */
+let never: (signalT('a) => unit) => unit;
 
 /* -- operators */
 /* Takes a mapping function from one type to another, and a source,

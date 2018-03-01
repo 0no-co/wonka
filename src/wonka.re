@@ -52,6 +52,8 @@ let empty = sink => {
   sink(End);
 };
 
+let never = sink => sink(Start((_) => ()));
+
 let map = (f, source, sink) =>
   source(signal => sink(
     switch (signal) {

@@ -127,6 +127,29 @@ describe("source factories", () => {
       expect((_signals, signals)) == ([| End |], [| End |]);
     });
   });
+
+  describe("empty", () => {
+    open Expect;
+    open! Expect.Operators;
+
+    it("does not end", () => {
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let ended = ref(false);
+
+      Wonka.never(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x;
+        | End => ended := true
+        | _ => ()
+        };
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+
+      expect(ended^) === false;
+    });
+  });
 });
 
 describe("operator factories", () => {

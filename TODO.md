@@ -7,7 +7,7 @@
 - [ ] create *new* (helper that is observable like? spec out; not counting)
 - [x] fromValue(x) *new* (emits single item)
 - [x] empty() *new* (ends immediately)
-- [ ] never() *new* (never ends, never emits)
+- [x] never() *new* (never ends, never emits)
 - [x] fromArray
 - [x] fromList
 - [x] fromEvent (fromListener, fromDomEvent)
