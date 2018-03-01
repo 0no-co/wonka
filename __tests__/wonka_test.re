@@ -231,36 +231,38 @@ describe("operator factories", () => {
     open Expect;
 
     it("folds emissions using an initial seed value", () => {
-      let i = ref(1);
-      let nums = [||];
       let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let num = ref(1);
 
-      Wonka.scan((acc, x) => acc + x, 0, sink => {
-        sink(Start(signal => {
-          switch (signal) {
-          | Pull => {
-            let num = i^;
-            i := i^ + 1;
-            sink(Push(num));
-          }
-          | _ => ()
-          }
-        }));
-      }, signal => {
+      let source = Wonka.scan((acc, x) => acc + x, 0, sink => sink(Start(signal => {
         switch (signal) {
-        | Start(x) => {
-          talkback := x;
-          x(Pull);
-        }
-        | Push(x) when x < 7 => {
-          ignore(Js.Array.push(x, nums));
-          talkback^(Pull);
+        | Pull => {
+          let i = num^;
+          if (i <= 3) {
+            num := num^ + 1;
+            sink(Push(i));
+          } else {
+            sink(End);
+          }
         }
         | _ => ()
         }
+      })));
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
       });
 
-      expect(nums) |> toEqual([|1, 3, 6|])
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      expect(res) |> toEqual([| Push(1), Push(3), Push(6), End |]);
     });
   });
 
@@ -327,6 +329,7 @@ describe("operator factories", () => {
 
     it("shares an underlying source with all sinks", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let aborterTb = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
       let nums = [||];
 
@@ -335,8 +338,12 @@ describe("operator factories", () => {
           switch (signal) {
           | Pull => {
             let i = num^;
-            num := num^ + 1;
-            sink(Push(i));
+            if (i <= 2) {
+              num := num^ + 1;
+              sink(Push(i));
+            } else {
+              sink(End);
+            }
           }
           | _ => ()
           }
@@ -346,22 +353,33 @@ describe("operator factories", () => {
       source(signal => {
         switch (signal) {
         | Start(x) => talkback := x
-        | Push(x) => ignore(Js.Array.push(x, nums))
-        | _ => ()
+        | _ => ignore(Js.Array.push(signal, nums))
         }
       });
 
       source(signal => {
         switch (signal) {
-        | Push(x) => ignore(Js.Array.push(x, nums))
-        | _ => ()
+        | Start(_) => ()
+        | _ => ignore(Js.Array.push(signal, nums))
+        }
+      });
+
+      source(signal => {
+        switch (signal) {
+        | Start(tb) => aborterTb := tb
+        | _ => {
+          ignore(Js.Array.push(signal, nums));
+          aborterTb^(End);
+        }
         }
       });
 
       talkback^(Pull);
       let numsA = Array.copy(nums);
       talkback^(Pull);
-      expect((numsA, nums)) |> toEqual(([| 1, 1 |], [| 1, 1, 2, 2 |]));
+      talkback^(Pull);
+      talkback^(Pull);
+      expect((numsA, nums)) |> toEqual(([| Push(1), Push(1), Push(1) |], [| Push(1), Push(1), Push(1), Push(2), Push(2), End, End |]));
     });
   });
 

@@ -191,9 +191,12 @@ let share = source => {
           state.gotSignal = false;
           Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(signal));
         }
+        | Push(_) => ()
         | Start(x) => state.talkback = x
-        | End => state.ended = true
-        | _ => ()
+        | End => {
+          state.ended = true;
+          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(End));
+        }
         }
       });
     };
