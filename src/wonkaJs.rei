@@ -61,3 +61,7 @@ let sample: (
   (signalT('b) => unit) => unit,
   signalT('b) => unit
 ) => unit;
+
+/* Takes a projection to a period in milliseconds and a source, and creates
+   a listenable source that delays every emission by that passed period. */
+let delay: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
