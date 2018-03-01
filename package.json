@@ -19,7 +19,8 @@
     "prebundle": "run-s build",
     "bundle": "microbundle -i ./.index.js",
     "prebundlesize": "run-s bundle",
-    "bundlesize": "bundlesize"
+    "bundlesize": "bundlesize",
+    "prepublishOnly": "run-s clean build test bundle"
   },
   "keywords": [
     "wonka",
