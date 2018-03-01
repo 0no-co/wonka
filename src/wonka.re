@@ -391,6 +391,67 @@ let skipWhile = (predicate, source, sink) => {
   });
 };
 
+type skipUntilStateT = {
+  mutable skip: bool,
+  mutable gotSignal: bool,
+  mutable sourceTalkback: talkbackT => unit,
+  mutable notifierTalkback: talkbackT => unit
+};
+
+let skipUntil = (notifier, source, sink) => {
+  let state: skipUntilStateT = {
+    skip: true,
+    gotSignal: false,
+    sourceTalkback: (_: talkbackT) => (),
+    notifierTalkback: (_: talkbackT) => ()
+  };
+
+  captureTalkback(source, [@bs] (signal, talkback) => {
+    switch (signal) {
+    | Start(tb) => {
+      state.sourceTalkback = tb;
+
+      notifier(signal => {
+        switch (signal) {
+        | Start(innerTb) => {
+          state.notifierTalkback = innerTb;
+          innerTb(Pull);
+          tb(Pull);
+        }
+        | Push(_) => {
+          state.skip = false;
+          state.notifierTalkback(End);
+        }
+        | End => ()
+        }
+      });
+    }
+    | Push(_) when state.skip => talkback(Pull)
+    | Push(_) => {
+      state.gotSignal = false;
+      sink(signal)
+    }
+    | End when state.skip => state.notifierTalkback(End)
+    | End => ()
+    }
+  });
+
+  sink(Start(signal => {
+    switch (signal) {
+    | End => {
+      if (state.skip) state.notifierTalkback(End);
+      state.skip = true;
+      state.sourceTalkback(End);
+    }
+    | Pull when !state.gotSignal => {
+      state.gotSignal = true;
+      state.sourceTalkback(Pull);
+    }
+    | Pull => ()
+    }
+  }));
+};
+
 type flattenStateT = {
   mutable sourceTalkback: talkbackT => unit,
   mutable innerTalkback: talkbackT => unit,

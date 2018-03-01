@@ -582,6 +582,52 @@ describe("operator factories", () => {
     });
   });
 
+  describe("skipWhile", () => {
+    open Expect;
+
+    it("only lets values through after the notifier emits a value", () => {
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let notify = ref((_: Wonka_types.talkbackT) => ());
+      let num = ref(1);
+
+      let notifier = sink => {
+        notify := signal => switch (signal) {
+        | Pull => sink(Push(0));
+        | _ => ()
+        };
+
+        sink(Start((_) => ()));
+      };
+
+      let source = Wonka.skipUntil(notifier, (sink) => sink(Start(signal => {
+        switch (signal) {
+        | Pull when num^ <= 4 => {
+          let i = num^;
+          if (i === 3) notify^(Pull);
+          num := num^ + 1;
+          sink(Push(i));
+        }
+        | Pull => sink(End)
+        | _ => ()
+        }
+      })));
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+
+      expect(res) |> toEqual([| Push(3), Push(4) |]);
+    });
+  });
+
   describe("flatten", () => {
     open Expect;
 

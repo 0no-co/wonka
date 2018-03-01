@@ -103,6 +103,16 @@ let skip: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
    operator, passing through every signal. */
 let skipWhile: ('a => bool, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
 
+/* Takes a predicate and a source, and creates a sink & source.
+   It will not emit values that the sink receives until the notifier source
+   emits a value, at which point it will start acting like a noop
+   operator, passing through every signal. */
+let skipUntil: (
+  (signalT('a) => unit) => unit,
+  (signalT('b) => unit) => unit,
+  signalT('b) => unit
+) => unit;
+
 /* Takes a source emitting sources, and creates a synk & source.
    It will pass through all values from a source that it receives,
    until it either receives a new source, which will cause the last
