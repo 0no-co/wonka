@@ -114,7 +114,7 @@ let merge = (sources, sink) => {
 };
 
 type shareStateT('a) = {
-  sinks: Hashtbl.t(int, signalT('a) => unit),
+  sinks: Belt.MutableMap.Int.t(signalT('a) => unit),
   mutable idCounter: int,
   mutable talkback: talkbackT => unit,
   mutable ended: bool,
@@ -123,7 +123,7 @@ type shareStateT('a) = {
 
 let share = source => {
   let state = {
-    sinks: Hashtbl.create(10),
+    sinks: Belt.MutableMap.Int.make(),
     idCounter: 0,
     talkback: (_: talkbackT) => (),
     ended: false,
@@ -132,7 +132,7 @@ let share = source => {
 
   sink => {
     let id = state.idCounter;
-    Hashtbl.add(state.sinks, id, sink);
+    Belt.MutableMap.Int.set(state.sinks, id, sink);
     state.idCounter = state.idCounter + 1;
 
     if (id === 0) {
@@ -140,7 +140,7 @@ let share = source => {
         switch (signal) {
         | Push(_) when !state.ended => {
           state.gotSignal = false;
-          Hashtbl.iter((_, sink) => sink(signal), state.sinks);
+          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(signal));
         }
         | Start(x) => state.talkback = x
         | End => state.ended = true
@@ -152,8 +152,8 @@ let share = source => {
     sink(Start(signal => {
       switch (signal) {
       | End => {
-        Hashtbl.remove(state.sinks, id);
-        if (Hashtbl.length(state.sinks) === 0) {
+        Belt.MutableMap.Int.remove(state.sinks, id);
+        if (Belt.MutableMap.Int.isEmpty(state.sinks)) {
           state.ended = true;
           state.talkback(End);
         };
