@@ -39,3 +39,10 @@ let interval: (int, signalT(int) => unit) => unit;
    This stream will wait for the promise's completion, unless it
    receives an End signal first. */
 let fromPromise: (Js.Promise.t('a), signalT('a) => unit) => unit;
+
+/* -- operators */
+
+/* Takes a period in milliseconds and a source, and creates a listenable
+   source that emits the last emitted value if no other value has been
+   emitted during the passed debounce period. */
+let debounce: ('a => int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;

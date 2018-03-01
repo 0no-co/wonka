@@ -74,3 +74,47 @@ let fromPromise = (promise, sink) => {
     }
   }));
 };
+
+let debounce = (debounceF, source, sink) => {
+  let gotEndSignal = ref(false);
+  let id: ref(option(Js.Global.timeoutId)) = ref(None);
+
+  let clearTimeout = () =>
+    switch (id^) {
+    | Some(timeoutId) => Js.Global.clearTimeout(timeoutId)
+    | None => ()
+    };
+
+  source(signal => {
+    switch (signal) {
+    | Start(tb) => {
+      sink(Start(signal => {
+        switch (signal) {
+        | End => {
+          clearTimeout();
+          tb(End);
+        }
+        | _ => tb(signal)
+        }
+      }));
+    }
+    | Push(x) => {
+      clearTimeout();
+      let debounceP = debounceF(x);
+      id := Some(Js.Global.setTimeout(() => {
+        id := None;
+        sink(signal);
+        if (gotEndSignal^) sink(End);
+      }, debounceP));
+    }
+    | End => {
+      gotEndSignal := true;
+
+      switch (id^) {
+      | None => sink(End)
+      | _ => ()
+      };
+    }
+    }
+  });
+};
