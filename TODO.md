@@ -60,8 +60,7 @@ built-in pipe operator.
 - [x] debounce(x => t) *new*
 - [x] throttle(x => t) *new*
 - [ ] delay(t) *new*
-- [ ] delayWhen(x => source) *new*
-- [ ] sample(source) *new*
+- [x] sample(source) *new*
 
 ## IO Subjects
 

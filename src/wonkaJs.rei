@@ -51,3 +51,13 @@ let debounce: ('a => int, (signalT('a) => unit) => unit, signalT('a) => unit) =>
    a listenable source that ignores values after the last emitted value for
    the duration of the returned throttle period. */
 let throttle: ('a => int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+
+/* Takes a notifier source and an input source, and creates a sink & source.
+   When the notifier emits a value, it will emit the value that it most recently
+   received from the input source, unless said source hasn't emitted anything
+   since the last signal. */
+let sample: (
+  (signalT('a) => unit) => unit,
+  (signalT('b) => unit) => unit,
+  signalT('b) => unit
+) => unit;
