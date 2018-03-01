@@ -79,6 +79,12 @@ let combine:
    returned, new source. */
 let take: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
 
+/* Takes a max number and a source, and creates a sink & source.
+   It will pull values and add them to a queue limiting its size to the passed
+   number until the source ends. It will then proceed to emit
+   the cached values on the new source as a pullable. */
+let takeLast: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+
 /* Takes a number and a source, and creates a sink & source.
    It will not values that the sink receives until the passed number
    of values is reached, at which point it will start acting like a noop

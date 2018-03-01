@@ -441,6 +441,41 @@ describe("operator factories", () => {
     });
   });
 
+  describe("takeLast", () => {
+    open Expect;
+
+    it("only lets the last n values through on an entirely new source", () => {
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let num = ref(1);
+
+      let source = Wonka.takeLast(2, sink => sink(Start(signal => {
+        switch (signal) {
+        | Pull when num^ <= 4 => {
+          let i = num^;
+          num := num^ + 1;
+          sink(Push(i));
+        }
+        | Pull => sink(End)
+        | _ => ()
+        }
+      })));
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      expect(res) |> toEqual([| Push(3), Push(4), End |]);
+    });
+  });
+
   describe("skip", () => {
     open Expect;
 
@@ -475,8 +510,6 @@ describe("operator factories", () => {
       expect(res) |> toEqual([| Push(3), Push(4), End |]);
     });
   });
-
-
 
   describe("flatten", () => {
     open Expect;

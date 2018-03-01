@@ -34,7 +34,7 @@ more-uncommon BuckleScript bindings:
 ## Filtering operators
 
 - [x] take
-- [ ] takeLast(num) *new*
+- [x] takeLast(num) *new*
 - [x] skip
 - [ ] skipUntil(source) *new*
 - [ ] skipWhile(predicate) *new*

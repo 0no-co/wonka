@@ -310,6 +310,26 @@ let take = (max, source, sink) => {
   }));
 };
 
+let takeLast = (max, source, sink) => {
+  let queue = Belt.MutableQueue.make();
+
+  captureTalkback(source, [@bs] (signal, talkback) => {
+    switch (signal) {
+    | Start(_) => talkback(Pull)
+    | Push(x) => {
+      let size = Belt.MutableQueue.size(queue);
+      if (size >= max && max > 0) {
+        ignore(Belt.MutableQueue.pop(queue));
+      };
+
+      Belt.MutableQueue.add(queue, x);
+      talkback(Pull);
+    }
+    | End => makeTrampoline(sink, [@bs] () => Belt.MutableQueue.pop(queue))
+    }
+  });
+};
+
 let skip = (wait, source, sink) => {
   let rest = ref(wait);
 
