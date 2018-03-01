@@ -15,17 +15,16 @@ describe("source factories", () => {
 
       source(signal => {
         switch (signal) {
-        | Start(x) => {
-          talkback := x;
-          x(Pull);
-        }
-        | Push(_) => {
-          ignore(Js.Array.push(signal, signals));
-          talkback^(Pull);
-        }
+        | Start(x) => talkback := x;
+        | Push(_) => ignore(Js.Array.push(signal, signals));
         | End => ignore(Js.Array.push(signal, signals))
         };
       });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
 
       expect(signals) == [| Push(10), Push(20), Push(30), End |];
     });
@@ -338,6 +337,32 @@ describe("operator factories", () => {
       talkback^(Pull);
       talkback^(Pull);
       expect(res) |> toEqual([| Push(1), Push(2), End |]);
+    });
+  });
+
+  describe("flatten", () => {
+    open Expect;
+
+    it("merges the result of multiple pullables into its source", () => {
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let source = Wonka.fromList([ Wonka.fromList([ 1, 2 ]), Wonka.fromList([ 1, 2 ]) ])
+        |> Wonka.flatten;
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      expect(res) |> toEqual([| Push(1), Push(2), Push(1), Push(2), End |]);
     });
   });
 });

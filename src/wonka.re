@@ -263,6 +263,65 @@ let take = (max, source, sink) => {
   }));
 };
 
+type flattenStateT = {
+  mutable sourceTalkback: talkbackT => unit,
+  mutable innerTalkback: talkbackT => unit,
+  mutable sourceEnded: bool,
+  mutable innerEnded: bool
+};
+
+let flatten = (source, sink) => {
+  let state: flattenStateT = {
+    sourceTalkback: (_: talkbackT) => (),
+    innerTalkback: (_: talkbackT) => (),
+    sourceEnded: false,
+    innerEnded: true
+  };
+
+  let applyInnerSource = innerSource => {
+    innerSource(signal => {
+      switch (signal) {
+      | Start(tb) => {
+        if (!state.innerEnded) {
+          state.innerTalkback(End);
+        };
+
+        state.innerEnded = false;
+        state.innerTalkback = tb;
+        tb(Pull);
+      }
+      | End when !state.sourceEnded => {
+        state.innerEnded = true;
+        state.sourceTalkback(Pull);
+      }
+      | End => state.sourceTalkback(End)
+      | Push(_) => sink(signal)
+      }
+    });
+  };
+
+  source(signal => {
+    switch (signal) {
+    | Start(tb) => state.sourceTalkback = tb
+    | Push(innerSource) => applyInnerSource(innerSource)
+    | End when !state.innerEnded => state.sourceEnded = true
+    | End => sink(End)
+    }
+  });
+
+  sink(Start(signal => {
+    switch (signal) {
+    | End => {
+      state.sourceTalkback(End);
+      state.innerTalkback(End);
+    }
+    | Pull when !state.innerEnded && !state.sourceEnded => state.innerTalkback(Pull)
+    | Pull when !state.sourceEnded => state.sourceTalkback(Pull)
+    | Pull => ()
+    }
+  }));
+};
+
 let forEach = (f, source) =>
   captureTalkback(source, [@bs] (signal, talkback) => {
     switch (signal) {

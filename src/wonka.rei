@@ -64,6 +64,16 @@ let combine:
    returned, new source. */
 let take: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
 
+/* Takes a source emitting sources, and creates a synk & source.
+   It will pass through all values from a source that it receives,
+   until it either receives a new source, which will cause the last
+   one to be ended and swapped out.
+   The sink will also attempt to pull new sources when one ends. */
+let flatten: (
+  (signalT((signalT('a) => unit) => unit) => unit) => unit,
+  signalT('a) => unit
+) => unit;
+
 /* -- sink factories */
 /* Takes a function and a source, and creates a sink.
    The function will be called for each value that the sink receives.
