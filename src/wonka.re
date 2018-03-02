@@ -325,14 +325,15 @@ let take = (max, source, sink) => {
   });
 
   sink(Start(signal => {
-    switch (signal) {
-    | Pull when state.taken < max => state.talkback(signal)
-    | Pull => ()
-    | End => {
-      state.taken = max;
-      state.talkback(End);
-    }
-    }
+    if (state.taken < max) {
+      switch (signal) {
+      | Pull => state.talkback(Pull);
+      | End => {
+        state.taken = max;
+        state.talkback(End);
+      }
+      }
+    };
   }));
 };
 
@@ -366,6 +367,10 @@ let takeWhile = (predicate, source, sink) => {
       talkback := tb;
       sink(signal);
     }
+    | End => {
+      ended := true;
+      sink(End);
+    }
     | Push(x) when !ended^ => {
       if (!predicate(x)) {
         ended := true;
@@ -376,12 +381,19 @@ let takeWhile = (predicate, source, sink) => {
       };
     }
     | Push(_) => ()
-    | End => sink(End)
     }
   });
 
   sink(Start(signal => {
-    if (!ended^) talkback^(signal);
+    if (!ended^) {
+      switch (signal) {
+      | Pull => talkback^(Pull);
+      | End => {
+        ended := true;
+        talkback^(End);
+      }
+      }
+    };
   }));
 };
 
