@@ -544,7 +544,7 @@ let skipUntil = (notifier, source, sink) => {
       state.ended = true;
       state.sourceTalkback(End);
     }
-    | Pull when !state.gotSignal => {
+    | Pull when !state.gotSignal && !state.ended => {
       state.gotSignal = true;
       state.sourceTalkback(Pull);
     }
