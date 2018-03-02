@@ -293,29 +293,46 @@ let combine = (sourceA, sourceB, sink) => {
   }));
 };
 
+type takeStateT = {
+  mutable taken: int,
+  mutable talkback: talkbackT => unit
+};
+
 let take = (max, source, sink) => {
-  let taken = ref(0);
-  let talkback = ref((_: talkbackT) => ());
+  let state: takeStateT = {
+    taken: 0,
+    talkback: (_: talkbackT) => ()
+  };
 
   source(signal => {
     switch (signal) {
-    | Start(tb) => talkback := tb;
-    | Push(_) when taken^ < max => {
-      taken := taken^ + 1;
+    | Start(tb) => state.talkback = tb;
+    | Push(_) when state.taken < max => {
+      state.taken = state.taken + 1;
       sink(signal);
 
-      if (taken^ === max) {
+      if (state.taken === max) {
         sink(End);
-        talkback^(End);
+        state.talkback(End);
       };
     }
     | Push(_) => ()
-    | End => sink(End)
+    | End => {
+      state.taken = max;
+      sink(End)
+    }
     }
   });
 
   sink(Start(signal => {
-    if (taken^ < max) talkback^(signal);
+    switch (signal) {
+    | Pull when state.taken < max => state.talkback(signal)
+    | Pull => ()
+    | End => {
+      state.taken = max;
+      state.talkback(End);
+    }
+    }
   }));
 };
 

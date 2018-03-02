@@ -460,7 +460,42 @@ describe("operator factories", () => {
       talkback^(Pull);
       talkback^(Pull);
       talkback^(Pull);
+      talkback^(Pull);
       expect(res) |> toEqual([| Push(1), Push(2), End |]);
+    });
+
+    it("accepts the end of the source when max number of emissions is not reached", () => {
+      let talkback = ref((_: Wonka_types.talkbackT) => ());
+      let num = ref(1);
+
+      let source = Wonka.take(2, sink => sink(Start(signal => {
+        switch (signal) {
+        | Pull => {
+          let i = num^;
+          if (i < 2) {
+            num := num^ + 1;
+            sink(Push(i));
+          } else {
+            sink(End);
+          }
+        }
+        | _ => ()
+        }
+      })));
+
+      let res = [||];
+
+      source(signal => {
+        switch (signal) {
+        | Start(x) => talkback := x
+        | _ => ignore(Js.Array.push(signal, res))
+        }
+      });
+
+      talkback^(Pull);
+      talkback^(Pull);
+      talkback^(Pull);
+      expect(res) |> toEqual([| Push(1), End |]);
     });
   });
 
