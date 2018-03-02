@@ -1,7 +1,9 @@
 open Wonka_types;
 
+let talkbackPlaceholder = (_: talkbackT) => ();
+
 let captureTalkback = (source: (signalT('a) => unit) => unit, sinkWithTalkback: [@bs] (signalT('a), talkbackT => unit) => unit) => {
-  let talkback = ref((_: talkbackT) => ());
+  let talkback = ref(talkbackPlaceholder);
 
   source(signal => {
     switch (signal) {

@@ -94,7 +94,7 @@ type mergeStateT = {
 };
 
 let merge = (sources, sink) => {
-  let noop = (_: talkbackT) => ();
+  let noop = talkbackPlaceholder;
   let size = Array.length(sources);
   let talkbacks = Array.map((_) => noop, sources);
 
@@ -139,7 +139,7 @@ let merge = (sources, sink) => {
 
 let concat = (sources, sink) => {
   let size = Array.length(sources);
-  let talkback = ref((_: talkbackT) => ());
+  let talkback = ref(talkbackPlaceholder);
   let rec nextSource = (i: int) =>
     if (i < size) {
       let source = Array.unsafe_get(sources, i);
@@ -174,7 +174,7 @@ let share = source => {
   let state = {
     sinks: Belt.MutableMap.Int.make(),
     idCounter: 0,
-    talkback: (_: talkbackT) => (),
+    talkback: talkbackPlaceholder,
     ended: false,
     gotSignal: false
   };
@@ -232,8 +232,8 @@ type combineStateT('a, 'b) = {
 
 let combine = (sourceA, sourceB, sink) => {
   let state = {
-    talkbackA: (_: talkbackT) => (),
-    talkbackB: (_: talkbackT) => (),
+    talkbackA: talkbackPlaceholder,
+    talkbackB: talkbackPlaceholder,
     lastValA: None,
     lastValB: None,
     gotSignal: false,
@@ -312,7 +312,7 @@ type takeStateT = {
 let take = (max, source, sink) => {
   let state: takeStateT = {
     taken: 0,
-    talkback: (_: talkbackT) => ()
+    talkback: talkbackPlaceholder
   };
 
   source(signal => {
@@ -371,7 +371,7 @@ let takeLast = (max, source, sink) => {
 
 let takeWhile = (predicate, source, sink) => {
   let ended = ref(false);
-  let talkback = ref((_: talkbackT) => ());
+  let talkback = ref(talkbackPlaceholder);
 
   source(signal => {
     switch (signal) {
@@ -419,8 +419,8 @@ type takeUntilStateT = {
 let takeUntil = (notifier, source, sink) => {
   let state: takeUntilStateT = {
     ended: false,
-    sourceTalkback: (_: talkbackT) => (),
-    notifierTalkback: (_: talkbackT) => ()
+    sourceTalkback: talkbackPlaceholder,
+    notifierTalkback: talkbackPlaceholder
   };
 
   source(signal => {
@@ -513,8 +513,8 @@ let skipUntil = (notifier, source, sink) => {
     skip: true,
     ended: false,
     gotSignal: false,
-    sourceTalkback: (_: talkbackT) => (),
-    notifierTalkback: (_: talkbackT) => ()
+    sourceTalkback: talkbackPlaceholder,
+    notifierTalkback: talkbackPlaceholder
   };
 
   source(signal => {
@@ -576,8 +576,8 @@ type flattenStateT = {
 
 let flatten = (source, sink) => {
   let state: flattenStateT = {
-    sourceTalkback: (_: talkbackT) => (),
-    innerTalkback: (_: talkbackT) => (),
+    sourceTalkback: talkbackPlaceholder,
+    innerTalkback: talkbackPlaceholder,
     sourceEnded: false,
     innerEnded: true
   };
@@ -639,7 +639,7 @@ let forEach = (f, source) =>
   });
 
 let subscribe = (f, source) => {
-  let talkback = ref((_: talkbackT) => ());
+  let talkback = ref(talkbackPlaceholder);
   let ended = ref(false);
 
   source(signal => {
