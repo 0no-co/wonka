@@ -24,6 +24,7 @@ lib/bs
 .vscode
 .merlin
 
+yarn-error.log
 dist/
 node_modules/
 lib/
