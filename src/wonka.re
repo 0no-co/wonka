@@ -442,15 +442,15 @@ let takeUntil = (notifier, source, sink) => {
   });
 
   sink(Start(signal => {
-    switch (signal) {
-    | End when !state.ended => {
-      state.sourceTalkback(End);
-      state.notifierTalkback(End);
-    }
-    | End => ()
-    | Pull when !state.ended => state.sourceTalkback(Pull)
-    | Pull => ()
-    }
+    if (!state.ended) {
+      switch (signal) {
+      | End => {
+        state.sourceTalkback(End);
+        state.notifierTalkback(End);
+      }
+      | Pull => state.sourceTalkback(Pull)
+      }
+    };
   }));
 };
 
