@@ -164,7 +164,7 @@ describe("source factories", () => {
     });
   });
 
-  describe("empty", () => {
+  describe("never", () => {
     open Expect;
     open! Expect.Operators;
 
@@ -224,6 +224,26 @@ describe("operator factories", () => {
 
       expect(nums) |> toEqual([|1, 2, 3, 4|])
     });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.map(x => x))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.map(x => x))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
+    });
   });
 
   describe("filter", () => {
@@ -260,6 +280,35 @@ describe("operator factories", () => {
       });
 
       expect(nums) |> toEqual([|2, 4|])
+    });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.filter((_) => true))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("follows the spec for listenables when filtering", () => {
+      Wonka_thelpers.testWithListenable(Wonka.filter((_) => false))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, Pull |], [| End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.filter((_) => true))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 
@@ -300,6 +349,26 @@ describe("operator factories", () => {
       talkback^(Pull);
       expect(res) |> toEqual([| Push(1), Push(3), Push(6), End |]);
     });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.scan((_, x) => x, 0))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.scan((_, x) => x, 0))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
+    });
   });
 
   describe("merge", () => {
@@ -329,6 +398,26 @@ describe("operator factories", () => {
 
       expect(signals) == [| Push(1), Push(4), Push(5), Push(6), Push(2), Push(3), End |];
     });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(source => Wonka.merge([|source|]))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(source => Wonka.merge([|source|]))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
+    });
   });
 
   describe("concat", () => {
@@ -357,6 +446,26 @@ describe("operator factories", () => {
       });
 
       expect(signals) == [| Push(1), Push(2), Push(3), Push(4), Push(5), Push(6), End |];
+    });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(source => Wonka.concat([|source|]))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull |], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(source => Wonka.concat([|source|]))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 
@@ -417,6 +526,26 @@ describe("operator factories", () => {
       talkback^(Pull);
       expect((numsA, nums)) |> toEqual(([| Push(1), Push(1), Push(1) |], [| Push(1), Push(1), Push(1), Push(2), Push(2), End, End |]));
     });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.share)
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.share)
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
+    });
   });
 
   describe("combine", () => {
@@ -463,6 +592,32 @@ describe("operator factories", () => {
       talkback^(Pull);
       talkback^(Pull);
       expect(res) |> toEqual([| Push((1, 2)), Push((2, 2)), Push((2, 4)), End |]);
+    });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(source => {
+        let shared = Wonka.share(source);
+        Wonka.combine(shared, shared)
+      })
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push((1, 1)), Push((2, 1)), Push((2, 2)), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(source => {
+        let shared = Wonka.share(source);
+        Wonka.combine(shared, shared)
+      })
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push((1, 1)) |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 
@@ -533,6 +688,37 @@ describe("operator factories", () => {
       talkback^(Pull);
       expect(res) |> toEqual([| Push(1), End |]);
     });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.take(10))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("follows the spec for listenables when ending the source", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testWithListenable(Wonka.take(1))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.take(10))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
+    });
   });
 
   describe("takeLast", () => {
@@ -567,6 +753,24 @@ describe("operator factories", () => {
       talkback^(Pull);
       talkback^(Pull);
       expect(res) |> toEqual([| Push(3), Push(4), End |]);
+    });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.takeLast(10))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, Pull, Pull |], [| /* empty since the source is a pullable */ |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      Wonka_thelpers.testTalkbackEnd(Wonka.takeLast(10))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, Pull |], [| |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 
@@ -638,6 +842,37 @@ describe("operator factories", () => {
       talkback^(Pull);
 
       expect(res) |> toEqual([| Push(1), End |]);
+    });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.takeWhile((_) => true))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("follows the spec for listenables when ending the source", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testWithListenable(Wonka.takeWhile((_) => false))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.takeWhile((_) => true))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 
@@ -722,7 +957,37 @@ describe("operator factories", () => {
       talkback^(Pull);
 
       expect(res) |> toEqual([| Push(1), Push(2), End |]);
+    });
 
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.takeUntil(Wonka.never))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("follows the spec for listenables when ending the source", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testWithListenable(Wonka.takeUntil(Wonka.fromValue(0)))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.takeUntil(Wonka.never))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 
@@ -759,6 +1024,35 @@ describe("operator factories", () => {
       talkback^(Pull);
       expect(res) |> toEqual([| Push(3), Push(4), End |]);
     });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.skip(0))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("follows the spec for listenables when skipping the source", () => {
+      Wonka_thelpers.testWithListenable(Wonka.skip(10))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, Pull |], [| End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.skip(10))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, end_ |], [| |]))
+            |> Js.Promise.resolve
+        })
+    });
   });
 
   describe("skipWhile", () => {
@@ -793,6 +1087,35 @@ describe("operator factories", () => {
       talkback^(Pull);
       talkback^(Pull);
       expect(res) |> toEqual([| Push(3), Push(4), End |]);
+    });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.skipWhile((_) => false))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("follows the spec for listenables when skipping the source", () => {
+      Wonka_thelpers.testWithListenable(Wonka.skipWhile((_) => true))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, Pull |], [| End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.skipWhile((_) => false))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 
@@ -877,6 +1200,35 @@ describe("operator factories", () => {
       talkback^(Pull);
 
       expect(res) |> toEqual([| End |]);
+    });
+
+    testPromise("follows the spec for listenables", () => {
+      Wonka_thelpers.testWithListenable(Wonka.skipUntil(Wonka.never))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, Pull, Pull |], [| End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("follows the spec for listenables when skipping the source", () => {
+      Wonka_thelpers.testWithListenable(Wonka.skipUntil(Wonka.fromValue(0)))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull |], [| Push(1), Push(2), End |]))
+            |> Js.Promise.resolve
+        })
+    });
+
+    testPromise("ends itself and source when its talkback receives the End signal", () => {
+      let end_: talkbackT = End;
+
+      Wonka_thelpers.testTalkbackEnd(Wonka.skipUntil(Wonka.fromValue(0)))
+        |> Js.Promise.then_(x => {
+          expect(x)
+            |> toEqual(([| Pull, end_ |], [| Push(1) |]))
+            |> Js.Promise.resolve
+        })
     });
   });
 

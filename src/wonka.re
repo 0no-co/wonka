@@ -244,7 +244,10 @@ let combine = (sourceA, sourceB, sink) => {
   sourceA(signal => {
     switch (signal, state.lastValB) {
     | (Start(tb), _) => state.talkbackA = tb
-    | (Push(a), None) => state.lastValA = Some(a)
+    | (Push(a), None) => {
+      state.lastValA = Some(a);
+      state.gotSignal = false;
+    }
     | (Push(a), Some(b)) when !state.ended => {
       state.lastValA = Some(a);
       state.gotSignal = false;
@@ -252,9 +255,9 @@ let combine = (sourceA, sourceB, sink) => {
     }
     | (End, _) when state.endCounter < 1 =>
       state.endCounter = state.endCounter + 1
-    | (End, _) => {
-      print_endline("end");
-      sink(End)
+    | (End, _) when !state.ended => {
+      state.ended = true;
+      sink(End);
     }
     | _ => ()
     }
@@ -263,7 +266,10 @@ let combine = (sourceA, sourceB, sink) => {
   sourceB(signal => {
     switch (signal, state.lastValA) {
     | (Start(tb), _) => state.talkbackB = tb
-    | (Push(b), None) => state.lastValB = Some(b)
+    | (Push(b), None) => {
+      state.lastValB = Some(b);
+      state.gotSignal = false;
+    }
     | (Push(b), Some(a)) when !state.ended => {
       state.lastValB = Some(b);
       state.gotSignal = false;
@@ -271,25 +277,30 @@ let combine = (sourceA, sourceB, sink) => {
     }
     | (End, _) when state.endCounter < 1 =>
       state.endCounter = state.endCounter + 1
-    | (End, _) => sink(End)
+    | (End, _) when !state.ended => {
+      state.ended = true;
+      sink(End);
+    }
     | _ => ()
     }
   });
 
   sink(Start(signal => {
-    switch (signal) {
-    | End => {
-      state.ended = true;
-      state.talkbackA(End);
-      state.talkbackB(End);
-    }
-    | Pull when !state.gotSignal => {
-      state.gotSignal = true;
-      state.talkbackA(signal);
-      state.talkbackB(signal);
-    }
-    | Pull => ()
-    }
+    if (!state.ended) {
+      switch (signal) {
+      | End => {
+        state.ended = true;
+        state.talkbackA(End);
+        state.talkbackB(End);
+      }
+      | Pull when !state.gotSignal => {
+        state.gotSignal = true;
+        state.talkbackA(signal);
+        state.talkbackB(signal);
+      }
+      | Pull => ()
+      }
+    };
   }));
 };
 
@@ -317,10 +328,11 @@ let take = (max, source, sink) => {
       };
     }
     | Push(_) => ()
-    | End => {
+    | End when state.taken < max => {
       state.taken = max;
       sink(End)
     }
+    | End => ()
     }
   });
 
@@ -367,10 +379,11 @@ let takeWhile = (predicate, source, sink) => {
       talkback := tb;
       sink(signal);
     }
-    | End => {
+    | End when !ended^ => {
       ended := true;
       sink(End);
     }
+    | End => ()
     | Push(x) when !ended^ => {
       if (!predicate(x)) {
         ended := true;
@@ -431,11 +444,12 @@ let takeUntil = (notifier, source, sink) => {
         }
       });
     }
-    | End => {
-      if (!state.ended) state.notifierTalkback(End);
+    | End when !state.ended => {
+      state.notifierTalkback(End);
       state.ended = true;
       sink(End);
     }
+    | End => ()
     | Push(_) when !state.ended => sink(signal)
     | Push(_) => ()
     }
