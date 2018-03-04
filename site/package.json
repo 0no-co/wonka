@@ -15,6 +15,7 @@
     "gatsby-remark-smartypants": "^1.4.12",
     "gatsby-source-filesystem": "^1.5.25",
     "gatsby-transformer-remark": "^1.7.34",
+    "polished": "^1.9.2",
     "react-helmet": "^5.2.0",
     "styled-components": "^3.1.6"
   },
@@ -22,5 +23,8 @@
   "scripts": {
     "build": "gatsby build",
     "dev": "gatsby develop"
+  },
+  "devDependencies": {
+    "gatsby-cli": "^1.1.45"
   }
 }
