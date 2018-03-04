@@ -1,6 +1,7 @@
 {
   "name": "wonka",
   "version": "0.1.0-2",
+  "author": "Phil Pluckthun <phil@kitten.sh>",
   "files": [
     "dist",
     "src",

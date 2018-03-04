@@ -1,32 +1,8 @@
-*.exe
-*.obj
-*.out
-*.compile
-*.native
-*.byte
-*.cmo
-*.annot
-*.cmi
-*.cmx
-*.cmt
-*.cmti
-*.cma
-*.a
-*.cmxa
-*.obj
-*~
-*.annot
-*.cmj
-*.bak
-lib/bs
-*.mlast
-*.mliast
-.vscode
-.merlin
-*.bs.js
-
-dist/
-node_modules/
-lib/
-.cache
+# Project dependencies
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+node_modules
+.cache/
+# Build directory
+public/
+.DS_Store
 yarn-error.log

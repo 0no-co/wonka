@@ -1,26 +1,26 @@
 {
-  "name": "reason-wonka-site",
+  "name": "wonka-site",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "author": "Phil Pluckthun <phil@kitten.sh>",
+  "dependencies": {
+    "gatsby": "^1.9.218",
+    "gatsby-link": "^1.6.37",
+    "gatsby-plugin-manifest": "^1.0.15",
+    "gatsby-plugin-offline": "^1.0.15",
+    "gatsby-plugin-preact": "^1.0.17",
+    "gatsby-plugin-react-helmet": "^2.0.5",
+    "gatsby-plugin-styled-components": "^2.0.9",
+    "gatsby-remark-prismjs": "^1.2.17",
+    "gatsby-remark-smartypants": "^1.4.12",
+    "gatsby-source-filesystem": "^1.5.25",
+    "gatsby-transformer-remark": "^1.7.34",
+    "react-helmet": "^5.2.0",
+    "styled-components": "^3.1.6"
+  },
   "license": "MIT",
   "scripts": {
-    "dev": "run-p dev:bsb dev:parcel",
-    "dev:parcel": "parcel -p 3000 src/index.html",
-    "dev:bsb": "bsb -make-world -w",
-    "build": "run-s build:bsb build:parcel",
-    "build:parcel": "parcel build src/index.html --public-url /",
-    "build:bsb": "bsb -make-world"
-  },
-  "devDependencies": {
-    "bs-platform": "^2.2.2",
-    "bsb-js": "^1.0.2",
-    "npm-run-all": "^4.1.2",
-    "parcel-bundler": "^1.6.2"
-  },
-  "dependencies": {
-    "bs-nice": "^0.1.6",
-    "bs-webapi": "^0.8.3",
-    "reason-react": "^0.3.2",
-    "wonka": "file:./.."
+    "build": "gatsby build",
+    "dev": "gatsby develop"
   }
 }
