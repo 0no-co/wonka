@@ -11,6 +11,10 @@
     "gatsby-plugin-preact": "^1.0.17",
     "gatsby-plugin-react-helmet": "^2.0.5",
     "gatsby-plugin-styled-components": "^2.0.9",
+    "gatsby-remark-prismjs": "^1.2.17",
+    "gatsby-remark-smartypants": "^1.4.12",
+    "gatsby-source-filesystem": "^1.5.25",
+    "gatsby-transformer-remark": "^1.7.34",
     "react-helmet": "^5.2.0",
     "styled-components": "^3.1.6"
   },

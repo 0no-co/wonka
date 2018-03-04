@@ -23,25 +23,26 @@ const Content = styled.div`
     color: ${p => p.theme.colors.textAccent};
     font-size: 3.998rem;
     line-height: 1.4;
-    margin: 0.4em 0;
+    margin: 0.5em 0 0.4em 0;
   }
 
   h2 {
     font-weight: 400;
     font-size: 2.827rem;
     line-height: 1.4;
-    margin: 0.35em 0;
+    margin: 0.45em 0 0.35em;
   }
 
   h3 {
     font-weight: 400;
     font-size: 1.999rem;
     line-height: 1.4;
-    margin: 0.35em 0;
+    margin: 0.45em 0 0.35em;
   }
 
   p {
-    line-height: 1.2;
+    font-size: 20px;
+    line-height: 1.6;
     margin: 0.35em 0 0.6em 0;
   }
 
@@ -52,6 +53,24 @@ const Content = styled.div`
   }
   a:after { ${hoverLine} }
   a:hover:after { opacity: 1; }
+
+  pre:not([class*="language-"]),
+  code:not([class*="language-"]) {
+    font-weight: 500;
+    color: ${p => p.theme.colors.textLight};
+    padding: 0 ${rem(3)};
+    font-size: 0.9em;
+  }
+
+  pre[class*="language-"] {
+    background: #2a2734;
+    color: #9a86fd;
+    border-radius: 0.3rem;
+    font-size: 16px;
+    padding: ${rem(12)} ${rem(18)};
+    max-width: ${rem(900)};
+    margin: ${rem(35)} auto;
+  }
 `
 
 export default Content
