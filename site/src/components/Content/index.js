@@ -54,6 +54,15 @@ const Content = styled.div`
   a:after { ${hoverLine} }
   a:hover:after { opacity: 1; }
 
+  a.anchor > svg {
+    fill: ${p => p.theme.colors.textLight};
+  }
+
+  a.anchor:after {
+    bottom: auto;
+    top: 1.1em;
+  }
+
   pre:not([class*="language-"]),
   code:not([class*="language-"]) {
     font-weight: 500;
