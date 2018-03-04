@@ -25,7 +25,7 @@ const Wrapper = styled.div`
 
   width: 100%;
   height ${rem(60)};
-  background: ${p => p.theme.colors.bg};
+  background: rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid ${p => p.theme.colors.border};
 `
 
@@ -72,7 +72,7 @@ const hoverLine = css`
 const Name = styled.h3`
   position: relative;
   font-size: ${rem(18)};
-  font-weight: 800;
+  font-weight: 600;
 
   &:after {
     ${hoverLine}

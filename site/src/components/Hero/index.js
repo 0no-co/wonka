@@ -27,7 +27,7 @@ const Wrapper = styled.div`
 `
 
 const LeftColumn = styled.div`
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -37,6 +37,7 @@ const LeftColumn = styled.div`
 `
 
 const RightColumn = styled.div`
+  flex: 1;
   position: relative;
   display: flex;
   flex-direction: column;
