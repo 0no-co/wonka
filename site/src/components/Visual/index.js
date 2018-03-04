@@ -1,5 +1,5 @@
 import React from 'react'
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 import { rem } from 'polished'
 import Link from 'gatsby-link'
 
@@ -38,6 +38,13 @@ const InnerRow = styled.div`
   padding: 0 ${p => p.theme.sizes.gutter};
 `
 
+const pop = keyframes`
+  0% { transform: scale(1); }
+  5% { transform: scale(1.3); }
+  30% { transform: scale(1); }
+  100% { transform: scale(1); }
+`
+
 const Emission = styled.div`
   width: ${rem(23)};
   height: ${rem(23)};
@@ -47,6 +54,7 @@ const Emission = styled.div`
 
   position: absolute;
   left: ${p => p.left * 100}%;
+  animation: 3s ease-in-out ${p => 3 * p.left}s infinite ${pop};
 `
 
 const Visual = () => (
