@@ -41,6 +41,7 @@ module.exports = {
           'gatsby-remark-smartypants',
           'gatsby-remark-external-links',
           'gatsby-remark-autolink-headers',
+          'gatsby-remark-emoji',
           'gatsby-plugin-sharp',
           {
             resolve: 'gatsby-remark-images',

@@ -5,6 +5,7 @@
   "author": "Phil Pluckthun <phil@kitten.sh>",
   "dependencies": {
     "gatsby": "^1.9.218",
+    "gatsby-image": "^1.0.41",
     "gatsby-link": "^1.6.37",
     "gatsby-plugin-favicon": "^2.1.1",
     "gatsby-plugin-manifest": "^1.0.15",
@@ -15,12 +16,14 @@
     "gatsby-plugin-sharp": "^1.6.38",
     "gatsby-plugin-styled-components": "^2.0.9",
     "gatsby-remark-autolink-headers": "^1.4.13",
+    "gatsby-remark-emoji": "^0.0.1",
     "gatsby-remark-external-links": "^0.0.4",
     "gatsby-remark-images": "^1.5.54",
     "gatsby-remark-prismjs": "^1.2.17",
     "gatsby-remark-smartypants": "^1.4.12",
     "gatsby-source-filesystem": "^1.5.25",
     "gatsby-transformer-remark": "^1.7.34",
+    "gatsby-transformer-sharp": "^1.6.22",
     "polished": "^1.9.2",
     "react-helmet": "^5.2.0",
     "styled-components": "^3.1.6"
