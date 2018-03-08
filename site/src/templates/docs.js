@@ -5,25 +5,33 @@ import styled from 'styled-components'
 import Content from '../components/Content'
 import WithSidebar from '../components/WithSidebar'
 
-const getTitle = (headings = []) => {
-  if (!headings[0]) {
-    return `Documentation – Wonka`
-  }
+const toItems = (others = [], order = []) => {
+  const otherNodesById = others.reduce((acc, { node }) => {
+    acc[node.frontmatter.id] = node
+    return acc
+  }, {});
 
-  return `${headings[0].value} – Wonka`
-}
+  const orderedNodes = order.map(({ id }) => otherNodesById[id])
+  return orderedNodes
+};
 
 const DocsTemplate = ({
   data: {
     content: {
-      headings,
+      fields: { slug },
+      frontmatter: { title },
       html
-    }
+    },
+    order: { items: itemsOrder },
+    others: { edges: others } = {}
   }
 }) => (
-  <WithSidebar>
+  <WithSidebar
+    items={toItems(others, itemsOrder)}
+    activeSlug={slug}
+  >
     <Helmet>
-      <title>{getTitle(headings)}</title>
+      <title>{title} — Wonka</title>
     </Helmet>
 
     <Content isNarrow dangerouslySetInnerHTML={{ __html: html }} />
@@ -32,11 +40,3 @@ const DocsTemplate = ({
 
 export default DocsTemplate
 
-export const pageQuery = graphql`
-  query DocContentBySlug($slug: String!) {
-    content: markdownRemark(fields: { slug: { eq: $slug } }) {
-      headings(depth: h1) { value }
-      html
-    }
-  }
-`

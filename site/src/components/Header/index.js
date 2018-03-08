@@ -12,8 +12,8 @@ const Container = styled.div`
 `
 
 const Placeholder = styled.div`
+  height ${p => p.theme.sizes.navbar};
   width: 100%;
-  height ${rem(60)};
 `
 
 const Wrapper = styled.div`
@@ -138,7 +138,7 @@ const Npm = styled.img.attrs({
   margin: ${rem(10)} 0 ${rem(8)} 0;
 `
 
-const Header = () => (
+const Header = ({ gettingStartedIndex }) => (
   <Container>
     <Placeholder />
     <Wrapper>

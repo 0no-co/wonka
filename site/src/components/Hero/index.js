@@ -125,7 +125,7 @@ const Hero = () => (
           A Reason library for lightweight <Emphasis>observables</Emphasis> and <Emphasis>iterables</Emphasis> loosely based on the callbag spec.
         </Description>
         <Row>
-          <Button to="/getting-started">Getting Started</Button>
+          <Button to="/docs/getting-started">Getting Started</Button>
           <Item href="https://github.com/kitten/wonka">Github</Item>
           <Item href="https://npmjs.com/package/wonka">npm</Item>
         </Row>

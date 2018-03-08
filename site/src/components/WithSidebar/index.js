@@ -1,26 +1,19 @@
 import React from 'react'
 import styled from 'styled-components'
 
+import Sidebar from './Sidebar'
+
 const Container = styled.div`
   padding-right: ${p => p.theme.sizes.sidebar};
 `
 
-const Wrapper = styled.nav`
-  position: fixed;
-  display: block;
-  z-index: 5;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  overflow-y: auto;
-  background: ${p => p.theme.colors.sidebar};
-  width: ${p => p.theme.sizes.sidebar};
-  border-left: 1px solid ${p => p.theme.colors.border};
-`
-
-const WithSidebar = ({ children }) => (
+const WithSidebar = ({
+  children,
+  activeSlug,
+  items
+}) => (
   <Container>
-    <Wrapper />
+    <Sidebar items={items} activeSlug={activeSlug} />
     {children}
   </Container>
 )

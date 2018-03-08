@@ -8,6 +8,9 @@ module.exports = {
     'gatsby-plugin-styled-components',
     'gatsby-plugin-manifest',
     'gatsby-plugin-offline',
+    'gatsby-plugin-catch-links',
+    'gatsby-plugin-remove-trailing-slashes',
+    'gatsby-transformer-yaml',
     {
       resolve: 'gatsby-plugin-favicon',
       options: {

@@ -19,5 +19,7 @@ export const sizes = {
   width: rem(1100),
   narrow: rem(890),
   gutter: rem(20),
-  sidebar: rem(420)
+  sidebar: rem(420),
+  navbar: rem(60),
+  sidebarSpacing: rem(110)
 };
