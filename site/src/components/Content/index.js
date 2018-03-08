@@ -13,22 +13,32 @@ const hoverLine = css`
   transition: ease-in-out 0.2s opacity;
 `
 
+const contentWidth = p => p.theme.sizes[p.isNarrow ? 'narrow' : 'width'];
+
 const Content = styled.div`
   margin: 0 auto;
-  max-width: ${p => p.theme.sizes.width};
+  width: ${contentWidth};
+  max-width: 100%;
   padding: ${rem(10)} ${p => p.theme.sizes.gutter};
   color: ${p => p.theme.colors.text};
+
+  hr {
+    border: none;
+    border-top: 1px solid ${p => p.theme.colors.border};
+    margin: ${rem(35)} 0;
+  }
 
   h1 {
     color: ${p => p.theme.colors.textAccent};
     font-size: 3.998rem;
     line-height: 1.4;
     margin: 0.5em 0 0.4em 0;
+    letter-spacing: ${rem(-0.2)};
   }
 
   h2 {
-    font-weight: 400;
-    font-size: 2.827rem;
+    font-weight: 600;
+    font-size: 2.627rem;
     line-height: 1.4;
     margin: 0.45em 0 0.35em;
   }
@@ -41,9 +51,17 @@ const Content = styled.div`
   }
 
   p {
-    font-size: 20px;
+    font-size: ${rem(20)};
     line-height: 1.6;
     margin: 0.35em 0 0.6em 0;
+  }
+
+  & > h1 ~ p:nth-child(2) {
+    font-size: ${rem(24)};
+    line-height: 1.5;
+    margin: 0.55em 0 1.2em 0;
+    letter-spacing: ${rem(-0.2)};
+    color: ${p => p.theme.colors.textFaint};
   }
 
   a {
@@ -63,6 +81,10 @@ const Content = styled.div`
     top: 1.1em;
   }
 
+  h1 > a.anchor:after {
+    top: 1.05em;
+  }
+
   pre:not([class*="language-"]),
   code:not([class*="language-"]) {
     font-weight: 500;
@@ -72,13 +94,13 @@ const Content = styled.div`
   }
 
   pre[class*="language-"] {
-    background: #2a2734;
-    color: #9a86fd;
-    border-radius: 0.3rem;
+    background: #25282d;
+    color: ${p => p.theme.colors.bg};
+    border-radius: ${rem(9)};
     font-size: 16px;
-    padding: ${rem(12)} ${rem(18)};
-    max-width: ${rem(900)};
-    margin: ${rem(35)} auto;
+    width: 100%;
+    padding: ${rem(22)} ${rem(32)};
+    margin: ${rem(24)} ${rem(-30)};
   }
 `
 

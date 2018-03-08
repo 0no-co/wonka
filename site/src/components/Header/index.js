@@ -148,9 +148,9 @@ const Header = () => (
           <Name>Wonka</Name>
         </Title>
         <Menu>
-          <Pill to="/getting-started">Getting Started</Pill>
-          <Item to="/guides">Guides</Item>
-          <Item to="/api">API</Item>
+          <Pill to="/docs/getting-started">Getting Started</Pill>
+          <Item to="/docs/guides">Guides</Item>
+          <Item to="/docs/api">API</Item>
 
           <ExternalItem href="https://github.com/kitten/wonka">
             <Github />

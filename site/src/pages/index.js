@@ -1,10 +1,11 @@
 import React from 'react'
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet'
 import Link from 'gatsby-link'
 
 import Hero from '../components/Hero'
 import Visual from '../components/Visual'
 import Content from '../components/Content'
+import Footer from '../components/Footer'
 
 const IndexPage = ({ data: { content: { html } } }) => (
   <div>
@@ -15,6 +16,7 @@ const IndexPage = ({ data: { content: { html } } }) => (
     <Hero />
     <Visual />
     <Content dangerouslySetInnerHTML={{ __html: html }} />
+    <Footer />
   </div>
 )
 
@@ -24,6 +26,6 @@ export const pageQuery = graphql`
       html
     }
   }
-`;
+`
 
 export default IndexPage

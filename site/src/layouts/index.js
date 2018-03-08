@@ -7,16 +7,6 @@ import Header from '../components/Header'
 import '../css/reset.css'
 import '../css/prism.css'
 
-const Footer = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: ${rem(80)};
-  background: linear-gradient(${p => p.theme.colors.bgDarkTranslucent}, ${p => p.theme.colors.bgDark});
-`
-
 const Container = styled.div`
   position: relative;
   min-height: 100vh;
@@ -29,16 +19,15 @@ const Content = styled.div`
   color: ${p => p.theme.colors.text};
 `;
 
-const TemplateWrapper = ({ children }) => (
+const MainLayout = ({ children }) => (
   <ThemeProvider theme={theme}>
     <Container>
       <Header />
       <Content>
         {children()}
       </Content>
-      <Footer />
     </Container>
   </ThemeProvider>
 )
 
-export default TemplateWrapper
+export default MainLayout
