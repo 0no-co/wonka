@@ -28,7 +28,7 @@ let fromDomEvent = (element, event, sink) => {
     (Dom.event) => unit
   ) => unit = [%raw {|
     function (element, event, handler) {
-      element.addEventListener(event, handler);
+      element.removeEventListener(event, handler);
     }
   |}];
 
