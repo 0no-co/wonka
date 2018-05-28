@@ -43,7 +43,7 @@
   "devDependencies": {
     "bs-jest": "^0.3.2",
     "bs-loader": "^2.0.1",
-    "bs-platform": "^2.2.0",
+    "bs-platform": "^3.1.4",
     "bundlesize": "^0.16.0",
     "coveralls": "^3.0.0",
     "microbundle": "^0.4.4",
