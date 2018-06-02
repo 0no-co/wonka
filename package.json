@@ -5,7 +5,6 @@
   "files": [
     "dist",
     "src",
-    "lib/es6",
     "lib/js",
     "docs/*.md",
     "*.md"
