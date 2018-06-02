@@ -50,16 +50,11 @@
   },
   "jest": {
     "moduleFileExtensions": [
-      "re",
-      "js",
-      "ml"
+      "js"
     ],
     "testMatch": [
-      "**/__tests__/*_test.re"
-    ],
-    "transform": {
-      ".(re|ml)": "bs-loader"
-    }
+      "<rootDir>/lib/js/__tests__/*_test.js"
+    ]
   },
   "bundlesize": [
     {
