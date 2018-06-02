@@ -5,6 +5,7 @@
   "files": [
     "dist",
     "src",
+    "lib/es6",
     "lib/js",
     "docs/*.md",
     "*.md"
@@ -52,7 +53,10 @@
       "js"
     ],
     "testMatch": [
-      "<rootDir>/lib/js/__tests__/*_test.js"
+      "**/__tests__/*_test.js"
+    ],
+    "modulePathIgnorePatterns": [
+      "/es6/"
     ]
   },
   "bundlesize": [
