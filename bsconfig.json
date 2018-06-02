@@ -1,10 +1,12 @@
-// http://bucklescript.github.io/bucklescript/docson/#build-schema.json
 {
   "name": "wonka",
   "version": "0.1.0",
   "bsc-flags": ["-bs-super-errors", "-bs-no-version-header"],
   "refmt": 3,
-  "package-specs" : ["es6", "commonjs"],
+  "package-specs": {
+    "module": "commonjs",
+    "in-source": false
+  },
   "sources": [
     "src",
     {
