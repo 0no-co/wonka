@@ -13,6 +13,8 @@
     }
   ],
   "bs-dependencies" : [],
-  "bs-dev-dependencies": ["bs-jest"],
+  "bs-dev-dependencies": [
+    "@glennsl/bs-jest"
+  ],
   "namespace": false
 }
