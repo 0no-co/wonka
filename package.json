@@ -41,8 +41,7 @@
     "bs-platform": ">=2.2.0"
   },
   "devDependencies": {
-    "bs-jest": "^0.3.2",
-    "bs-loader": "^2.0.1",
+    "@glennsl/bs-jest": "^0.4.2",
     "bs-platform": "^3.1.4",
     "bundlesize": "^0.16.0",
     "coveralls": "^3.0.0",
@@ -51,16 +50,14 @@
   },
   "jest": {
     "moduleFileExtensions": [
-      "re",
-      "js",
-      "ml"
+      "js"
     ],
     "testMatch": [
-      "**/__tests__/*_test.re"
+      "**/__tests__/*_test.js"
     ],
-    "transform": {
-      ".(re|ml)": "bs-loader"
-    }
+    "modulePathIgnorePatterns": [
+      "/es6/"
+    ]
   },
   "bundlesize": [
     {
