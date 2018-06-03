@@ -661,3 +661,42 @@ let subscribe = (f, source) => {
     talkback^(End);
   }
 };
+
+type subjectT('a) = {
+  observer: (signalT('a) => unit) => unit,
+  next: 'a => unit,
+  complete: unit => unit,
+};
+
+type subjectStateT('a) = {
+  sinks: Belt.MutableMap.Int.t(signalT('a) => unit),
+  mutable idCounter: int,
+};
+
+let makeSubject = () => {
+  let state = {sinks: Belt.MutableMap.Int.make(), idCounter: 0};
+
+  {
+    observer: sink => {
+      let id = state.idCounter;
+      Belt.MutableMap.Int.set(state.sinks, id, sink);
+      state.idCounter = state.idCounter |> succ;
+
+      sink(
+        Start(
+          signal =>
+            switch (signal) {
+            | End => Belt.MutableMap.Int.remove(state.sinks, id)
+            | _ => ()
+            },
+        ),
+      );
+    },
+    next: value =>
+      Belt.MutableMap.Int.forEachU(state.sinks, (. _, sink) =>
+        sink(Push(value))
+      ),
+    complete: () =>
+      Belt.MutableMap.Int.forEachU(state.sinks, (. _, sink) => sink(End)),
+  };
+};

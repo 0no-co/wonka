@@ -154,3 +154,11 @@ let forEach: ('a => unit, (signalT('a) => unit) => unit) => unit;
    that when called will end the stream immediately.
    Ending the stream will propagate an End signal upwards to the root source. */
 let subscribe: ('a => unit, (signalT('a) => unit) => unit, unit) => unit;
+
+type subjectT('a) = {
+  observer: (signalT('a) => unit) => unit,
+  next: 'a => unit,
+  complete: unit => unit,
+};
+
+let makeSubject: unit => subjectT('a);
