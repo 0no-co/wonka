@@ -8,7 +8,8 @@
     "lib/es6",
     "lib/js",
     "docs/*.md",
-    "*.md"
+    "*.md",
+    "bsconfig.json"
   ],
   "scripts": {
     "clean": "bsb -clean-world",
