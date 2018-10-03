@@ -2,6 +2,8 @@
   "name": "wonka",
   "version": "0.1.0-3",
   "author": "Phil Pluckthun <phil@kitten.sh>",
+  "main": "./dist/wonka.js",
+  "module": "./dist/wonka.m.js",
   "files": [
     "dist",
     "src",

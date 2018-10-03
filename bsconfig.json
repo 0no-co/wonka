@@ -11,7 +11,13 @@
     "in-source": false
   }],
   "sources": [
-    "src",
+    {
+      "dir": "src",
+      "subdirs": [{
+        "dir": "web",
+        "backend": ["js"]
+      }]
+    },
     {
       "dir": "__tests__",
       "type": "dev"
