@@ -15,7 +15,7 @@ let fromListener:
   (
     ('event => unit) => unit,
     ('event => unit) => unit,
-    signalT('event) => unit
+    sinkT('event)
   ) =>
   unit;
 
@@ -25,43 +25,38 @@ let fromListener:
    should be created using the methods in bs-webapi-incubator:
    https://github.com/reasonml-community/bs-webapi-incubator/blob/master/src/dom/events/EventTargetRe.re
    */
-let fromDomEvent:
-  (Dom.element, string, signalT(Dom.event) => unit) => unit;
+let fromDomEvent: (Dom.element, string, sinkT(Dom.event)) => unit;
 
 /* Accepts a period in milliseconds and creates a listenable source
    that emits ascending numbers for each time the interval fires.
    This stream will emit values indefinitely until it receives an
    End signal from a talkback passed downwards to its sink. */
-let interval: (int, signalT(int) => unit) => unit;
+let interval: (int, sinkT(int)) => unit;
 
 /* Accepts a JS promise and creates a listenable source that emits
    the promise's value once it resolves.
    This stream will wait for the promise's completion, unless it
    receives an End signal first. */
-let fromPromise: (Js.Promise.t('a), signalT('a) => unit) => unit;
+let fromPromise: (Js.Promise.t('a), sinkT('a)) => unit;
 
 /* -- operators */
 
 /* Takes a projection to a period in milliseconds and a source, and creates
    a listenable source that emits the last emitted value if no other value
    has been emitted during the passed debounce period. */
-let debounce: ('a => int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+let debounce: ('a => int, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a projection to a period in milliseconds and a source, and creates
    a listenable source that ignores values after the last emitted value for
    the duration of the returned throttle period. */
-let throttle: ('a => int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+let throttle: ('a => int, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a notifier source and an input source, and creates a sink & source.
    When the notifier emits a value, it will emit the value that it most recently
    received from the input source, unless said source hasn't emitted anything
    since the last signal. */
-let sample: (
-  (signalT('a) => unit) => unit,
-  (signalT('b) => unit) => unit,
-  signalT('b) => unit
-) => unit;
+let sample: (sourceT('a), sourceT('b), sinkT('b)) => unit;
 
 /* Takes a projection to a period in milliseconds and a source, and creates
    a listenable source that delays every emission by that passed period. */
-let delay: (int, (signalT('a) => unit) => unit, signalT('a) => unit) => unit;
+let delay: (int, sourceT('a), sinkT('a)) => unit;

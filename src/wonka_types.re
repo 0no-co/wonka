@@ -35,3 +35,6 @@ type signalT('a) =
   | Start(talkbackT => unit)
   | Push('a)
   | End;
+
+type sinkT('a) = signalT('a) => unit;
+type sourceT('a) = sinkT('a) => unit;
