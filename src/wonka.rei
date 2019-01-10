@@ -1,5 +1,7 @@
 open Wonka_types;
 
+module Types = Wonka_types;
+
 /* -- source factories */
 
 /* Accepts a factory function and creates a pullable source for it.
