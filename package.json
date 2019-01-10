@@ -2,13 +2,10 @@
   "name": "wonka",
   "version": "1.0.0",
   "author": "Phil Pluckthun <phil@kitten.sh>",
-  "main": "./dist/wonka.js",
-  "module": "./dist/wonka.m.js",
+  "main": "./src/wonka.js",
   "files": [
     "dist",
     "src",
-    "lib/es6",
-    "lib/js",
     "docs/*.md",
     "*.md",
     "bsconfig.json"
@@ -20,11 +17,7 @@
     "test": "jest",
     "coverage": "jest -c ./.jest.coverage.json --coverage",
     "test:watch": "jest --watch",
-    "prebundle": "run-s build",
-    "bundle": "microbundle -i ./.index.js",
-    "prebundlesize": "run-s bundle",
-    "bundlesize": "bundlesize",
-    "prepublishOnly": "run-s clean build test bundle"
+    "prepublishOnly": "run-s clean build test"
   },
   "keywords": [
     "wonka",
@@ -46,9 +39,7 @@
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.6",
     "bs-platform": "^4.0.17",
-    "bundlesize": "^0.16.0",
     "coveralls": "^3.0.0",
-    "microbundle": "^0.4.4",
     "npm-run-all": "^4.1.2"
   },
   "jest": {
@@ -61,11 +52,5 @@
     "modulePathIgnorePatterns": [
       "/es6/"
     ]
-  },
-  "bundlesize": [
-    {
-      "path": "./dist/wonka.js",
-      "maxSize": "4 kB"
-    }
-  ]
+  }
 }

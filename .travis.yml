@@ -17,5 +17,3 @@ script:
   - yarn run test
   - yarn run coverage
   - cat coverage/lcov.info | node_modules/.bin/coveralls || echo "Coveralls upload failed"
-  - yarn run bundle
-  - yarn run bundlesize
