@@ -4,7 +4,7 @@ let fromListener = (addListener, removeListener, sink) => {
   let handler = event => sink(Push(event));
   sink(Start(signal => {
     switch (signal) {
-    | End => removeListener(handler)
+    | Close => removeListener(handler)
     | _ => ()
     }
   }));
@@ -49,7 +49,7 @@ let interval = (p, sink) => {
 
   sink(Start(signal => {
     switch (signal) {
-    | End => Js.Global.clearInterval(id)
+    | Close => Js.Global.clearInterval(id)
     | _ => ()
     }
   }));
@@ -69,7 +69,7 @@ let fromPromise = (promise, sink) => {
 
   sink(Start(signal => {
     switch (signal) {
-    | End => ended := true
+    | Close => ended := true
     | _ => ()
     }
   }));
@@ -93,9 +93,9 @@ let debounce = (debounceF, source, sink) => {
     | Start(tb) => {
       sink(Start(signal => {
         switch (signal) {
-        | End => {
+        | Close => {
           clearTimeout();
-          tb(End);
+          tb(Close);
         }
         | _ => tb(signal)
         }
@@ -135,9 +135,9 @@ let throttle = (throttleF, source, sink) => {
     | Start(tb) => {
       sink(Start(signal => {
         switch (signal) {
-        | End => {
+        | Close => {
           clearTimeout();
-          tb(End);
+          tb(Close);
         }
         | _ => tb(signal)
         }
@@ -181,7 +181,7 @@ let sample = (notifier, source, sink) => {
     | Start(tb) => state.sourceTalkback = tb
     | End => {
       state.ended = true;
-      state.notifierTalkback(End);
+      state.notifierTalkback(Close);
       sink(End);
     }
     | Push(x) => state.value = Some(x)
@@ -193,7 +193,7 @@ let sample = (notifier, source, sink) => {
     | (Start(tb), _) => state.notifierTalkback = tb
     | (End, _) => {
       state.ended = true;
-      state.sourceTalkback(End);
+      state.sourceTalkback(Close);
       sink(End);
     }
     | (Push(_), Some(x)) when !state.ended => {
@@ -210,10 +210,10 @@ let sample = (notifier, source, sink) => {
       state.sourceTalkback(Pull);
       state.notifierTalkback(Pull);
     }
-    | End => {
+    | Close => {
       state.ended = true;
-      state.sourceTalkback(End);
-      state.notifierTalkback(End);
+      state.sourceTalkback(Close);
+      state.notifierTalkback(Close);
     }
     }
   }));
@@ -253,7 +253,7 @@ let delay = (wait, source, sink) => {
 
   sink(Start(signal => {
     switch (signal) {
-    | End => {
+    | Close => {
       state.gotEndSignal = true;
       if (state.active === 0) sink(End);
     }

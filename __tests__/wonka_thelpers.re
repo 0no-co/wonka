@@ -53,7 +53,7 @@ let testTalkbackEnd = operator => {
   Js.Promise.make((~resolve, ~reject as _) => {
     sink^(Push(1));
     ignore(Js.Global.setTimeout(() => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
       talkback^(end_);
       ignore(Js.Global.setTimeout(() => {
         [@bs] resolve((signals, res));

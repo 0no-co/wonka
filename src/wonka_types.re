@@ -29,7 +29,7 @@
 
 type talkbackT =
   | Pull
-  | End;
+  | Close;
 
 type signalT('a) =
   | Start(talkbackT => unit)

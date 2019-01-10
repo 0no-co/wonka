@@ -235,7 +235,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.map(x => x))
         |> Js.Promise.then_(x => {
@@ -301,7 +301,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.filter((_) => true))
         |> Js.Promise.then_(x => {
@@ -360,7 +360,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.scan((_, x) => x, 0))
         |> Js.Promise.then_(x => {
@@ -409,7 +409,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(source => Wonka.merge([|source|]))
         |> Js.Promise.then_(x => {
@@ -458,7 +458,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(source => Wonka.concat([|source|]))
         |> Js.Promise.then_(x => {
@@ -514,7 +514,7 @@ describe("operator factories", () => {
         | Start(tb) => aborterTb := tb
         | _ => {
           ignore(Js.Array.push(signal, nums));
-          aborterTb^(End);
+          aborterTb^(Close);
         }
         }
       });
@@ -537,7 +537,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.share)
         |> Js.Promise.then_(x => {
@@ -607,7 +607,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(source => {
         let shared = Wonka.share(source);
@@ -699,7 +699,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables when ending the source", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testWithListenable(Wonka.take(1))
         |> Js.Promise.then_(x => {
@@ -710,7 +710,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.take(10))
         |> Js.Promise.then_(x => {
@@ -854,7 +854,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables when ending the source", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testWithListenable(Wonka.takeWhile((_) => false))
         |> Js.Promise.then_(x => {
@@ -865,7 +865,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.takeWhile((_) => true))
         |> Js.Promise.then_(x => {
@@ -969,7 +969,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables when ending the source", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testWithListenable(Wonka.takeUntil(Wonka.fromValue(0)))
         |> Js.Promise.then_(x => {
@@ -980,7 +980,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.takeUntil(Wonka.never))
         |> Js.Promise.then_(x => {
@@ -1044,7 +1044,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.skip(10))
         |> Js.Promise.then_(x => {
@@ -1108,7 +1108,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.skipWhile((_) => false))
         |> Js.Promise.then_(x => {
@@ -1221,7 +1221,7 @@ describe("operator factories", () => {
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = End;
+      let end_: talkbackT = Close;
 
       Wonka_thelpers.testTalkbackEnd(Wonka.skipUntil(Wonka.fromValue(0)))
         |> Js.Promise.then_(x => {

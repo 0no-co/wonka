@@ -203,11 +203,11 @@ let share = source => {
 
     sink(Start(signal => {
       switch (signal) {
-      | End => {
+      | Close => {
         Belt.MutableMap.Int.remove(state.sinks, id);
         if (Belt.MutableMap.Int.isEmpty(state.sinks)) {
           state.ended = true;
-          state.talkback(End);
+          state.talkback(Close);
         };
       }
       | Pull when !state.gotSignal => {
@@ -288,10 +288,10 @@ let combine = (sourceA, sourceB, sink) => {
   sink(Start(signal => {
     if (!state.ended) {
       switch (signal) {
-      | End => {
+      | Close => {
         state.ended = true;
-        state.talkbackA(End);
-        state.talkbackB(End);
+        state.talkbackA(Close);
+        state.talkbackB(Close);
       }
       | Pull when !state.gotSignal => {
         state.gotSignal = true;
@@ -324,7 +324,7 @@ let take = (max, source, sink) => {
 
       if (state.taken === max) {
         sink(End);
-        state.talkback(End);
+        state.talkback(Close);
       };
     }
     | Push(_) => ()
@@ -340,9 +340,9 @@ let take = (max, source, sink) => {
     if (state.taken < max) {
       switch (signal) {
       | Pull => state.talkback(Pull);
-      | End => {
+      | Close => {
         state.taken = max;
-        state.talkback(End);
+        state.talkback(Close);
       }
       }
     };
@@ -388,7 +388,7 @@ let takeWhile = (predicate, source, sink) => {
       if (!predicate(x)) {
         ended := true;
         sink(End);
-        talkback^(End);
+        talkback^(Close);
       } else {
         sink(signal);
       };
@@ -401,9 +401,9 @@ let takeWhile = (predicate, source, sink) => {
     if (!ended^) {
       switch (signal) {
       | Pull => talkback^(Pull);
-      | End => {
+      | Close => {
         ended := true;
-        talkback^(End);
+        talkback^(Close);
       }
       }
     };
@@ -436,8 +436,8 @@ let takeUntil = (notifier, source, sink) => {
         }
         | Push(_) => {
           state.ended = true;
-          state.notifierTalkback(End);
-          state.sourceTalkback(End);
+          state.notifierTalkback(Close);
+          state.sourceTalkback(Close);
           sink(End);
         }
         | End => ()
@@ -445,7 +445,7 @@ let takeUntil = (notifier, source, sink) => {
       });
     }
     | End when !state.ended => {
-      state.notifierTalkback(End);
+      state.notifierTalkback(Close);
       state.ended = true;
       sink(End);
     }
@@ -458,9 +458,9 @@ let takeUntil = (notifier, source, sink) => {
   sink(Start(signal => {
     if (!state.ended) {
       switch (signal) {
-      | End => {
-        state.sourceTalkback(End);
-        state.notifierTalkback(End);
+      | Close => {
+        state.sourceTalkback(Close);
+        state.notifierTalkback(Close);
       }
       | Pull => state.sourceTalkback(Pull)
       }
@@ -531,7 +531,7 @@ let skipUntil = (notifier, source, sink) => {
         }
         | Push(_) => {
           state.skip = false;
-          state.notifierTalkback(End);
+          state.notifierTalkback(Close);
         }
         | End => ()
         }
@@ -544,7 +544,7 @@ let skipUntil = (notifier, source, sink) => {
     }
     | Push(_) => ()
     | End => {
-      if (state.skip) state.notifierTalkback(End);
+      if (state.skip) state.notifierTalkback(Close);
       state.ended = true;
       sink(End)
     }
@@ -553,10 +553,10 @@ let skipUntil = (notifier, source, sink) => {
 
   sink(Start(signal => {
     switch (signal) {
-    | End => {
-      if (state.skip) state.notifierTalkback(End);
+    | Close => {
+      if (state.skip) state.notifierTalkback(Close);
       state.ended = true;
-      state.sourceTalkback(End);
+      state.sourceTalkback(Close);
     }
     | Pull when !state.gotSignal && !state.ended => {
       state.gotSignal = true;
@@ -587,7 +587,7 @@ let flatten = (source, sink) => {
       switch (signal) {
       | Start(tb) => {
         if (!state.innerEnded) {
-          state.innerTalkback(End);
+          state.innerTalkback(Close);
         };
 
         state.innerEnded = false;
@@ -598,7 +598,7 @@ let flatten = (source, sink) => {
         state.innerEnded = true;
         state.sourceTalkback(Pull);
       }
-      | End => state.sourceTalkback(End)
+      | End => state.sourceTalkback(Close)
       | Push(_) => sink(signal)
       }
     });
@@ -615,9 +615,9 @@ let flatten = (source, sink) => {
 
   sink(Start(signal => {
     switch (signal) {
-    | End => {
-      state.sourceTalkback(End);
-      state.innerTalkback(End);
+    | Close => {
+      state.sourceTalkback(Close);
+      state.innerTalkback(Close);
     }
     | Pull when !state.innerEnded && !state.sourceEnded => state.innerTalkback(Pull)
     | Pull when !state.sourceEnded => state.sourceTalkback(Pull)
@@ -658,6 +658,6 @@ let subscribe = (f, source) => {
 
   () => if (!ended^) {
     ended := true;
-    talkback^(End);
+    talkback^(Close);
   }
 };
