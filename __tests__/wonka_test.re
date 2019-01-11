@@ -13,7 +13,7 @@ describe("source factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let signals = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x;
         | Push(_) => ignore(Js.Array.push(signal, signals));
@@ -39,7 +39,7 @@ describe("source factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let signals = ref([||]);
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => {
           talkback := x;
@@ -62,7 +62,7 @@ describe("source factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let values = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => {
           talkback := x;
@@ -89,7 +89,7 @@ describe("source factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let signals = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x;
         | Push(_) => ignore(Js.Array.push(signal, signals));
@@ -113,7 +113,7 @@ describe("source factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let signals = [||];
 
-      Wonka.empty(signal => {
+      Wonka.empty((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x;
         | _ => ignore(Js.Array.push(signal, signals))
@@ -137,7 +137,7 @@ describe("source factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let ended = ref(false);
 
-      Wonka.never(signal => {
+      Wonka.never((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x;
         | End => ended := true
@@ -167,13 +167,13 @@ describe("operator factories", () => {
         num := num^ + 1;
         res
       }, sink => {
-        sink(Start(signal => {
+        sink(.Start(signal => {
           switch (signal) {
-          | Pull => sink(Push(1));
+          | Pull => sink(.Push(1));
           | _ => ()
           }
         }));
-      }, signal => {
+      }, (.signal) => {
         switch (signal) {
         | Start(x) => {
           talkback := x;
@@ -220,17 +220,17 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
 
       Wonka.filter(x => x mod 2 === 0, sink => {
-        sink(Start(signal => {
+        sink(.Start(signal => {
           switch (signal) {
           | Pull => {
             let num = i^;
             i := i^ + 1;
-            sink(Push(num));
+            sink(.Push(num));
           }
           | _ => ()
           }
         }));
-      }, signal => {
+      }, (.signal) => {
         switch (signal) {
         | Start(x) => {
           talkback := x;
@@ -284,15 +284,15 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.scan((acc, x) => acc + x, 0, sink => sink(Start(signal => {
+      let source = Wonka.scan((acc, x) => acc + x, 0, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
           if (i <= 3) {
             num := num^ + 1;
-            sink(Push(i));
+            sink(.Push(i));
           } else {
-            sink(End);
+            sink(.End);
           }
         }
         | _ => ()
@@ -301,7 +301,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -347,7 +347,7 @@ describe("operator factories", () => {
       let signals = [||];
       let source = Wonka.merge([| a, b |]);
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => {
           talkback := x;
@@ -396,7 +396,7 @@ describe("operator factories", () => {
       let signals = [||];
       let source = Wonka.concat([| a, b |]);
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => {
           talkback := x;
@@ -444,15 +444,15 @@ describe("operator factories", () => {
       let nums = [||];
 
       let source = Wonka.share(sink => {
-        sink(Start(signal => {
+        sink(.Start(signal => {
           switch (signal) {
           | Pull => {
             let i = num^;
             if (i <= 2) {
               num := num^ + 1;
-              sink(Push(i));
+              sink(.Push(i));
             } else {
-              sink(End);
+              sink(.End);
             }
           }
           | _ => ()
@@ -460,21 +460,21 @@ describe("operator factories", () => {
         }));
       });
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, nums))
         }
       });
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(_) => ()
         | _ => ignore(Js.Array.push(signal, nums))
         }
       });
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(tb) => aborterTb := tb
         | _ => {
@@ -523,15 +523,15 @@ describe("operator factories", () => {
         let num = ref(1);
 
         sink => {
-          sink(Start(signal => {
+          sink(.Start(signal => {
             switch (signal) {
             | Pull => {
               if (num^ <= 2) {
                 let i = num^ * factor;
                 num := num^ + 1;
-                sink(Push(i));
+                sink(.Push(i));
               } else {
-                sink(End);
+                sink(.End);
               }
             }
             | _ => ()
@@ -545,7 +545,7 @@ describe("operator factories", () => {
       let source = Wonka.combine(sourceA, sourceB);
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -593,12 +593,12 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.take(2, sink => sink(Start(signal => {
+      let source = Wonka.take(2, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
           num := num^ + 1;
-          sink(Push(i));
+          sink(.Push(i));
         }
         | _ => ()
         }
@@ -606,7 +606,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -624,15 +624,15 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.take(2, sink => sink(Start(signal => {
+      let source = Wonka.take(2, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
           if (i < 2) {
             num := num^ + 1;
-            sink(Push(i));
+            sink(.Push(i));
           } else {
-            sink(End);
+            sink(.End);
           }
         }
         | _ => ()
@@ -641,7 +641,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -693,21 +693,21 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.takeLast(2, sink => sink(Start(signal => {
+      let source = Wonka.takeLast(2, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull when num^ <= 4 => {
           let i = num^;
           num := num^ + 1;
-          sink(Push(i));
+          sink(.Push(i));
         }
-        | Pull => sink(End)
+        | Pull => sink(.End)
         | _ => ()
         }
       })));
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -746,12 +746,12 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.takeWhile(x => x <= 2, sink => sink(Start(signal => {
+      let source = Wonka.takeWhile(x => x <= 2, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
           num := num^ + 1;
-          sink(Push(i));
+          sink(.Push(i));
         }
         | _ => ()
         }
@@ -759,7 +759,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -778,15 +778,15 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.takeWhile(x => x <= 5, sink => sink(Start(signal => {
+      let source = Wonka.takeWhile(x => x <= 5, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
           if (i < 2) {
             num := num^ + 1;
-            sink(Push(i));
+            sink(.Push(i));
           } else {
-            sink(End);
+            sink(.End);
           }
         }
         | _ => ()
@@ -795,7 +795,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -851,20 +851,20 @@ describe("operator factories", () => {
 
       let notifier = sink => {
         notify := signal => switch (signal) {
-        | Pull => sink(Push(0));
+        | Pull => sink(.Push(0));
         | _ => ()
         };
 
-        sink(Start((_) => ()));
+        sink(.Start((_) => ()));
       };
 
-      let source = Wonka.takeUntil(notifier, sink => sink(Start(signal => {
+      let source = Wonka.takeUntil(notifier, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull when num^ <= 4 => {
           let i = num^;
           if (i === 3) notify^(Pull);
           num := num^ + 1;
-          sink(Push(i));
+          sink(.Push(i));
         }
         | _ => ()
         }
@@ -872,7 +872,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -890,17 +890,17 @@ describe("operator factories", () => {
     it("accepts the end of the source when max number of emissions is not reached", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
-      let notifier = sink => sink(Start((_) => ()));
+      let notifier = sink => sink(.Start((_) => ()));
 
-      let source = Wonka.takeUntil(notifier, sink => sink(Start(signal => {
+      let source = Wonka.takeUntil(notifier, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
           if (num^ <= 2) {
             num := num^ + 1;
-            sink(Push(i));
+            sink(.Push(i));
           } else {
-            sink(End);
+            sink(.End);
           }
         }
         | _ => ()
@@ -909,7 +909,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -963,21 +963,21 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.skip(2, sink => sink(Start(signal => {
+      let source = Wonka.skip(2, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull when num^ <= 4 => {
           let i = num^;
           num := num^ + 1;
-          sink(Push(i));
+          sink(.Push(i));
         }
-        | Pull => sink(End)
+        | Pull => sink(.End)
         | _ => ()
         }
       })));
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -1027,21 +1027,21 @@ describe("operator factories", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.skipWhile(x => x <= 2, sink => sink(Start(signal => {
+      let source = Wonka.skipWhile(x => x <= 2, sink => sink(.Start(signal => {
         switch (signal) {
         | Pull when num^ <= 4 => {
           let i = num^;
           num := num^ + 1;
-          sink(Push(i));
+          sink(.Push(i));
         }
-        | Pull => sink(End)
+        | Pull => sink(.End)
         | _ => ()
         }
       })));
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -1094,29 +1094,29 @@ describe("operator factories", () => {
 
       let notifier = sink => {
         notify := signal => switch (signal) {
-        | Pull => sink(Push(0));
+        | Pull => sink(.Push(0));
         | _ => ()
         };
 
-        sink(Start((_) => ()));
+        sink(.Start((_) => ()));
       };
 
-      let source = Wonka.skipUntil(notifier, (sink) => sink(Start(signal => {
+      let source = Wonka.skipUntil(notifier, (sink) => sink(.Start(signal => {
         switch (signal) {
         | Pull when num^ <= 4 => {
           let i = num^;
           if (i === 3) notify^(Pull);
           num := num^ + 1;
-          sink(Push(i));
+          sink(.Push(i));
         }
-        | Pull => sink(End)
+        | Pull => sink(.End)
         | _ => ()
         }
       })));
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -1134,17 +1134,17 @@ describe("operator factories", () => {
     it("accepts the end of the source when max number of emissions is not reached", () => {
       let talkback = ref((_: Wonka_types.talkbackT) => ());
       let num = ref(1);
-      let notifier = sink => sink(Start((_) => ()));
+      let notifier = sink => sink(.Start((_) => ()));
 
-      let source = Wonka.skipUntil(notifier, (sink) => sink(Start(signal => {
+      let source = Wonka.skipUntil(notifier, (sink) => sink(.Start(signal => {
         switch (signal) {
         | Pull => {
           let i = num^;
           if (i < 2) {
             num := num^ + 1;
-            sink(Push(i));
+            sink(.Push(i));
           } else {
-            sink(End);
+            sink(.End);
           }
         }
         | _ => ()
@@ -1153,7 +1153,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -1207,7 +1207,7 @@ describe("operator factories", () => {
 
       let res = [||];
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(x) => talkback := x
         | _ => ignore(Js.Array.push(signal, res))
@@ -1233,14 +1233,14 @@ describe("sink factories", () => {
       let nums = [||];
 
       let source = sink => {
-        sink(Start(signal => {
+        sink(.Start(signal => {
           switch (signal) {
           | Pull when i^ < 4 => {
             let num = i^;
             i := i^ + 1;
-            sink(Push(num));
+            sink(.Push(num));
           }
-          | Pull => sink(End)
+          | Pull => sink(.End)
           | _ => ()
           }
         }));
@@ -1263,10 +1263,10 @@ describe("sink factories", () => {
         push := () => {
           let num = i^;
           i := i^ + 1;
-          sink(Push(num));
+          sink(.Push(num));
         };
 
-        sink(Start((_) => ()));
+        sink(.Start((_) => ()));
       };
 
       let unsubscribe = Wonka.subscribe(x => ignore(Js.Array.push(x, nums)), source);

@@ -8,7 +8,7 @@ let captureTalkback = (
 ) => {
   let talkback = ref(talkbackPlaceholder);
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(x) => talkback := x
     | _ => ()
@@ -36,12 +36,12 @@ let makeTrampoline = (sink: sinkT('a), f: [@bs] unit => option('a)) => {
       switch ([@bs] f()) {
       | Some(x) => {
         state.gotSignal = false;
-        sink(Push(x));
+        sink(.Push(x));
         if (state.gotSignal) explode();
       }
       | None => {
         state.exhausted = true;
-        sink(End)
+        sink(.End)
       }
       };
 
@@ -50,7 +50,7 @@ let makeTrampoline = (sink: sinkT('a), f: [@bs] unit => option('a)) => {
     state.inLoop = false;
   };
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal, state.exhausted) {
     | (Pull, false) => {
       state.gotSignal = true;

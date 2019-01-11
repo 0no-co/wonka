@@ -18,7 +18,7 @@ let fromList = (list_, sink) => {
     pull: false
   };
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal, state.looping) {
     | (Pull, false) => {
       state.pull = true;
@@ -29,11 +29,11 @@ let fromList = (list_, sink) => {
         | [x, ...rest] => {
           state.value = rest;
           state.pull = false;
-          sink(Push(x));
+          sink(.Push(x));
         }
         | [] => {
           state.ended = true;
-          sink(End);
+          sink(.End);
         }
         }
       };
@@ -62,7 +62,7 @@ let fromArray = (arr, sink) => {
     pull: false
   };
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal, state.looping) {
     | (Pull, false) => {
       state.pull = true;
@@ -74,10 +74,10 @@ let fromArray = (arr, sink) => {
           let x = Array.unsafe_get(arr, index);
           state.index = index + 1;
           state.pull = false;
-          sink(Push(x));
+          sink(.Push(x));
         } else {
           state.ended = true;
-          sink(End);
+          sink(.End);
         }
       };
 
@@ -92,12 +92,12 @@ let fromArray = (arr, sink) => {
 let fromValue = (x, sink) => {
   let ended = ref(false);
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal) {
     | Pull when !ended^ => {
       ended := true;
-      sink(Push(x));
-      sink(End);
+      sink(.Push(x));
+      sink(.End);
     }
     | _ => ()
     }
@@ -105,14 +105,14 @@ let fromValue = (x, sink) => {
 };
 
 let empty = sink => {
-  sink(Start((_) => ()));
-  sink(End);
+  sink(.Start((_) => ()));
+  sink(.End);
 };
 
-let never = sink => sink(Start((_) => ()));
+let never = sink => sink(.Start((_) => ()));
 
 let map = (f, source, sink) =>
-  source(signal => sink(
+  source((.signal) => sink(.
     switch (signal) {
     | Start(x) => Start(x)
     | Push(x) => Push(f(x))
@@ -124,14 +124,14 @@ let filter = (f, source, sink) =>
   captureTalkback(source, [@bs] (signal, talkback) => {
     switch (signal) {
     | Push(x) when !f(x) => talkback(Pull)
-    | _ => sink(signal)
+    | _ => sink(.signal)
     }
   });
 
 let scan = (f, seed, source, sink) => {
   let acc = ref(seed);
 
-  source(signal => sink(
+  source((.signal) => sink(.
     switch (signal) {
     | Push(x) => {
       acc := f(acc^, x);
@@ -171,18 +171,18 @@ let merge = (sources, sink) => {
   let rec loopSources = (i: int) =>
     if (i < size) {
       let source = Array.unsafe_get(sources, i);
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(tb) => {
           Array.unsafe_set(talkbacks, i, tb);
           state.started = state.started + 1;
-          if (state.started === size) sink(Start(talkback));
+          if (state.started === size) sink(.Start(talkback));
         }
         | End => {
           state.ended = state.ended + 1;
-          if (state.ended === size) sink(End);
+          if (state.ended === size) sink(.End);
         }
-        | Push(_) => sink(signal)
+        | Push(_) => sink(.signal)
         }
       });
 
@@ -199,26 +199,26 @@ let concat = (sources, sink) => {
     if (i < size) {
       let source = Array.unsafe_get(sources, i);
 
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Start(tb) => {
           talkback := tb;
-          if (i === 0) sink(Start(signal => talkback^(signal)));
+          if (i === 0) sink(.Start(signal => talkback^(signal)));
           tb(Pull);
         }
         | End => nextSource(i + 1)
-        | Push(_) => sink(signal)
+        | Push(_) => sink(.signal)
         }
       });
     } else {
-      sink(End);
+      sink(.End);
     };
 
   nextSource(0);
 };
 
 type shareStateT('a) = {
-  sinks: Belt.MutableMap.Int.t(signalT('a) => unit),
+  sinks: Belt.MutableMap.Int.t(sinkT('a)),
   mutable idCounter: int,
   mutable talkback: talkbackT => unit,
   mutable ended: bool,
@@ -240,23 +240,23 @@ let share = source => {
     state.idCounter = state.idCounter + 1;
 
     if (id === 0) {
-      source(signal => {
+      source((.signal) => {
         switch (signal) {
         | Push(_) when !state.ended => {
           state.gotSignal = false;
-          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(signal));
+          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(.signal));
         }
         | Push(_) => ()
         | Start(x) => state.talkback = x
         | End => {
           state.ended = true;
-          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(End));
+          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(.End));
         }
         }
       });
     };
 
-    sink(Start(signal => {
+    sink(.Start(signal => {
       switch (signal) {
       | Close => {
         Belt.MutableMap.Int.remove(state.sinks, id);
@@ -296,7 +296,7 @@ let combine = (sourceA, sourceB, sink) => {
     ended: false
   };
 
-  sourceA(signal => {
+  sourceA((.signal) => {
     switch (signal, state.lastValB) {
     | (Start(tb), _) => state.talkbackA = tb
     | (Push(a), None) => {
@@ -306,19 +306,19 @@ let combine = (sourceA, sourceB, sink) => {
     | (Push(a), Some(b)) when !state.ended => {
       state.lastValA = Some(a);
       state.gotSignal = false;
-      sink(Push((a, b)));
+      sink(.Push((a, b)));
     }
     | (End, _) when state.endCounter < 1 =>
       state.endCounter = state.endCounter + 1
     | (End, _) when !state.ended => {
       state.ended = true;
-      sink(End);
+      sink(.End);
     }
     | _ => ()
     }
   });
 
-  sourceB(signal => {
+  sourceB((.signal) => {
     switch (signal, state.lastValA) {
     | (Start(tb), _) => state.talkbackB = tb
     | (Push(b), None) => {
@@ -328,19 +328,19 @@ let combine = (sourceA, sourceB, sink) => {
     | (Push(b), Some(a)) when !state.ended => {
       state.lastValB = Some(b);
       state.gotSignal = false;
-      sink(Push((a, b)));
+      sink(.Push((a, b)));
     }
     | (End, _) when state.endCounter < 1 =>
       state.endCounter = state.endCounter + 1
     | (End, _) when !state.ended => {
       state.ended = true;
-      sink(End);
+      sink(.End);
     }
     | _ => ()
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     if (!state.ended) {
       switch (signal) {
       | Close => {
@@ -370,28 +370,28 @@ let take = (max, source, sink) => {
     talkback: talkbackPlaceholder
   };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => state.talkback = tb;
     | Push(_) when state.taken < max => {
       state.taken = state.taken + 1;
-      sink(signal);
+      sink(.signal);
 
       if (state.taken === max) {
-        sink(End);
+        sink(.End);
         state.talkback(Close);
       };
     }
     | Push(_) => ()
     | End when state.taken < max => {
       state.taken = max;
-      sink(End)
+      sink(.End)
     }
     | End => ()
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     if (state.taken < max) {
       switch (signal) {
       | Pull => state.talkback(Pull);
@@ -428,31 +428,31 @@ let takeWhile = (predicate, source, sink) => {
   let ended = ref(false);
   let talkback = ref(talkbackPlaceholder);
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => {
       talkback := tb;
-      sink(signal);
+      sink(.signal);
     }
     | End when !ended^ => {
       ended := true;
-      sink(End);
+      sink(.End);
     }
     | End => ()
     | Push(x) when !ended^ => {
       if (!predicate(x)) {
         ended := true;
-        sink(End);
+        sink(.End);
         talkback^(Close);
       } else {
-        sink(signal);
+        sink(.signal);
       };
     }
     | Push(_) => ()
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     if (!ended^) {
       switch (signal) {
       | Pull => talkback^(Pull);
@@ -478,12 +478,12 @@ let takeUntil = (notifier, source, sink) => {
     notifierTalkback: talkbackPlaceholder
   };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => {
       state.sourceTalkback = tb;
 
-      notifier(signal => {
+      notifier((.signal) => {
         switch (signal) {
         | Start(innerTb) => {
           state.notifierTalkback = innerTb;
@@ -493,7 +493,7 @@ let takeUntil = (notifier, source, sink) => {
           state.ended = true;
           state.notifierTalkback(Close);
           state.sourceTalkback(Close);
-          sink(End);
+          sink(.End);
         }
         | End => ()
         }
@@ -502,15 +502,15 @@ let takeUntil = (notifier, source, sink) => {
     | End when !state.ended => {
       state.notifierTalkback(Close);
       state.ended = true;
-      sink(End);
+      sink(.End);
     }
     | End => ()
-    | Push(_) when !state.ended => sink(signal)
+    | Push(_) when !state.ended => sink(.signal)
     | Push(_) => ()
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     if (!state.ended) {
       switch (signal) {
       | Close => {
@@ -532,7 +532,7 @@ let skip = (wait, source, sink) => {
       rest := rest^ - 1;
       talkback(Pull);
     }
-    | _ => sink(signal)
+    | _ => sink(.signal)
     }
   });
 };
@@ -547,10 +547,10 @@ let skipWhile = (predicate, source, sink) => {
         talkback(Pull);
       } else {
         skip := false;
-        sink(signal);
+        sink(.signal);
       };
     }
-    | _ => sink(signal)
+    | _ => sink(.signal)
     }
   });
 };
@@ -572,12 +572,12 @@ let skipUntil = (notifier, source, sink) => {
     notifierTalkback: talkbackPlaceholder
   };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => {
       state.sourceTalkback = tb;
 
-      notifier(signal => {
+      notifier((.signal) => {
         switch (signal) {
         | Start(innerTb) => {
           state.notifierTalkback = innerTb;
@@ -595,18 +595,18 @@ let skipUntil = (notifier, source, sink) => {
     | Push(_) when state.skip && !state.ended => state.sourceTalkback(Pull)
     | Push(_) when !state.ended => {
       state.gotSignal = false;
-      sink(signal)
+      sink(.signal)
     }
     | Push(_) => ()
     | End => {
       if (state.skip) state.notifierTalkback(Close);
       state.ended = true;
-      sink(End)
+      sink(.End)
     }
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal) {
     | Close => {
       if (state.skip) state.notifierTalkback(Close);
@@ -638,7 +638,7 @@ let flatten = (source, sink) => {
   };
 
   let applyInnerSource = innerSource => {
-    innerSource(signal => {
+    innerSource((.signal) => {
       switch (signal) {
       | Start(tb) => {
         if (!state.innerEnded) {
@@ -654,21 +654,21 @@ let flatten = (source, sink) => {
         state.sourceTalkback(Pull);
       }
       | End => state.sourceTalkback(Close)
-      | Push(_) => sink(signal)
+      | Push(_) => sink(.signal)
       }
     });
   };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => state.sourceTalkback = tb
     | Push(innerSource) => applyInnerSource(innerSource)
     | End when !state.innerEnded => state.sourceEnded = true
-    | End => sink(End)
+    | End => sink(.End)
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal) {
     | Close => {
       state.sourceTalkback(Close);
@@ -697,7 +697,7 @@ let subscribe = (f, source) => {
   let talkback = ref(talkbackPlaceholder);
   let ended = ref(false);
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(x) => {
       talkback := x;

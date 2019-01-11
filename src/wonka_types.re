@@ -36,5 +36,5 @@ type signalT('a) =
   | Push('a)
   | End;
 
-type sinkT('a) = signalT('a) => unit;
+type sinkT('a) = (. signalT('a)) => unit;
 type sourceT('a) = sinkT('a) => unit;

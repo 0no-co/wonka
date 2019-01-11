@@ -1,8 +1,8 @@
 open Wonka_types;
 
 let fromListener = (addListener, removeListener, sink) => {
-  let handler = event => sink(Push(event));
-  sink(Start(signal => {
+  let handler = event => sink(.Push(event));
+  sink(.Start(signal => {
     switch (signal) {
     | Close => removeListener(handler)
     | _ => ()
@@ -44,10 +44,10 @@ let interval = (p, sink) => {
   let id = Js.Global.setInterval(() => {
     let num = i^;
     i := i^ + 1;
-    sink(Push(num));
+    sink(.Push(num));
   }, p);
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal) {
     | Close => Js.Global.clearInterval(id)
     | _ => ()
@@ -60,14 +60,14 @@ let fromPromise = (promise, sink) => {
 
   ignore(Js.Promise.then_(value => {
     if (!ended^) {
-      sink(Push(value));
-      sink(End);
+      sink(.Push(value));
+      sink(.End);
     };
 
     Js.Promise.resolve(())
   }, promise));
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal) {
     | Close => ended := true
     | _ => ()
@@ -88,10 +88,10 @@ let debounce = (debounceF, source, sink) => {
     | None => ()
     };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => {
-      sink(Start(signal => {
+      sink(.Start(signal => {
         switch (signal) {
         | Close => {
           clearTimeout();
@@ -105,15 +105,15 @@ let debounce = (debounceF, source, sink) => {
       clearTimeout();
       id := Some(Js.Global.setTimeout(() => {
         id := None;
-        sink(signal);
-        if (gotEndSignal^) sink(End);
+        sink(.signal);
+        if (gotEndSignal^) sink(.End);
       }, debounceF(x)));
     }
     | End => {
       gotEndSignal := true;
 
       switch (id^) {
-      | None => sink(End)
+      | None => sink(.End)
       | _ => ()
       };
     }
@@ -130,10 +130,10 @@ let throttle = (throttleF, source, sink) => {
     | None => ()
     };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => {
-      sink(Start(signal => {
+      sink(.Start(signal => {
         switch (signal) {
         | Close => {
           clearTimeout();
@@ -145,7 +145,7 @@ let throttle = (throttleF, source, sink) => {
     }
     | End => {
       clearTimeout();
-      sink(End);
+      sink(.End);
     }
     | Push(x) when !skip^ => {
       skip := true;
@@ -154,7 +154,7 @@ let throttle = (throttleF, source, sink) => {
         id := None;
         skip := false;
       }, throttleF(x)));
-      sink(signal);
+      sink(.signal);
     }
     | Push(_) => ()
     }
@@ -176,35 +176,35 @@ let sample = (notifier, source, sink) => {
     notifierTalkback: (_: talkbackT) => ()
   };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => state.sourceTalkback = tb
     | End => {
       state.ended = true;
       state.notifierTalkback(Close);
-      sink(End);
+      sink(.End);
     }
     | Push(x) => state.value = Some(x)
     }
   });
 
-  notifier(signal => {
+  notifier((.signal) => {
     switch (signal, state.value) {
     | (Start(tb), _) => state.notifierTalkback = tb
     | (End, _) => {
       state.ended = true;
       state.sourceTalkback(Close);
-      sink(End);
+      sink(.End);
     }
     | (Push(_), Some(x)) when !state.ended => {
       state.value = None;
-      sink(Push(x));
+      sink(.Push(x));
     }
     | (Push(_), _) => ()
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal) {
     | Pull => {
       state.sourceTalkback(Pull);
@@ -232,30 +232,30 @@ let delay = (wait, source, sink) => {
     gotEndSignal: false
   };
 
-  source(signal => {
+  source((.signal) => {
     switch (signal) {
     | Start(tb) => state.talkback = tb
     | _ when !state.gotEndSignal => {
       state.active = state.active + 1;
       ignore(Js.Global.setTimeout(() => {
         if (state.gotEndSignal && state.active === 0) {
-          sink(End);
+          sink(.End);
         } else {
           state.active = state.active - 1;
         };
 
-        sink(signal);
+        sink(.signal);
       }, wait));
     }
     | _ => ()
     }
   });
 
-  sink(Start(signal => {
+  sink(.Start(signal => {
     switch (signal) {
     | Close => {
       state.gotEndSignal = true;
-      if (state.active === 0) sink(End);
+      if (state.active === 0) sink(.End);
     }
     | _ when !state.gotEndSignal => state.talkback(signal)
     | _ => ()
