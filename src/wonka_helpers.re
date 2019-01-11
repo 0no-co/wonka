@@ -4,7 +4,7 @@ let talkbackPlaceholder = (_: talkbackT) => ();
 
 let captureTalkback = (
   source: sourceT('a),
-  sinkWithTalkback: [@bs] (signalT('a), talkbackT => unit) => unit
+  sinkWithTalkback: (.signalT('a), talkbackT => unit) => unit
 ) => {
   let talkback = ref(talkbackPlaceholder);
 
@@ -14,7 +14,7 @@ let captureTalkback = (
     | _ => ()
     };
 
-    [@bs] sinkWithTalkback(signal, talkback^)
+    sinkWithTalkback(.signal, talkback^)
   });
 };
 
@@ -24,7 +24,7 @@ type trampolineT = {
   mutable gotSignal: bool
 };
 
-let makeTrampoline = (sink: sinkT('a), f: [@bs] unit => option('a)) => {
+let makeTrampoline = (sink: sinkT('a), f: (.unit) => option('a)) => {
   let state: trampolineT = {
     exhausted: false,
     inLoop: false,
@@ -33,7 +33,7 @@ let makeTrampoline = (sink: sinkT('a), f: [@bs] unit => option('a)) => {
 
   let loop = () => {
     let rec explode = () =>
-      switch ([@bs] f()) {
+      switch (f(.)) {
       | Some(x) => {
         state.gotSignal = false;
         sink(.Push(x));

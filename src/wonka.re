@@ -121,7 +121,7 @@ let map = (f, source, sink) =>
   ));
 
 let filter = (f, source, sink) =>
-  captureTalkback(source, [@bs] (signal, talkback) => {
+  captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Push(x) when !f(x) => talkback(Pull)
     | _ => sink(.signal)
@@ -244,13 +244,13 @@ let share = source => {
         switch (signal) {
         | Push(_) when !state.ended => {
           state.gotSignal = false;
-          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(.signal));
+          Belt.MutableMap.Int.forEachU(state.sinks, (._, sink) => sink(.signal));
         }
         | Push(_) => ()
         | Start(x) => state.talkback = x
         | End => {
           state.ended = true;
-          Belt.MutableMap.Int.forEachU(state.sinks, [@bs] (_, sink) => sink(.End));
+          Belt.MutableMap.Int.forEachU(state.sinks, (._, sink) => sink(.End));
         }
         }
       });
@@ -407,7 +407,7 @@ let take = (max, source, sink) => {
 let takeLast = (max, source, sink) => {
   let queue = Belt.MutableQueue.make();
 
-  captureTalkback(source, [@bs] (signal, talkback) => {
+  captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Start(_) => talkback(Pull)
     | Push(x) => {
@@ -419,7 +419,7 @@ let takeLast = (max, source, sink) => {
       Belt.MutableQueue.add(queue, x);
       talkback(Pull);
     }
-    | End => makeTrampoline(sink, [@bs] () => Belt.MutableQueue.pop(queue))
+    | End => makeTrampoline(sink, (.) => Belt.MutableQueue.pop(queue))
     }
   });
 };
@@ -526,7 +526,7 @@ let takeUntil = (notifier, source, sink) => {
 let skip = (wait, source, sink) => {
   let rest = ref(wait);
 
-  captureTalkback(source, [@bs] (signal, talkback) => {
+  captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Push(_) when rest^ > 0 => {
       rest := rest^ - 1;
@@ -540,7 +540,7 @@ let skip = (wait, source, sink) => {
 let skipWhile = (predicate, source, sink) => {
   let skip = ref(true);
 
-  captureTalkback(source, [@bs] (signal, talkback) => {
+  captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Push(x) when skip^ => {
       if (predicate(x)) {
@@ -682,7 +682,7 @@ let flatten = (source, sink) => {
 };
 
 let forEach = (f, source) =>
-  captureTalkback(source, [@bs] (signal, talkback) => {
+  captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Start(_) => talkback(Pull)
     | Push(x) => {
