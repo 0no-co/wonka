@@ -2,7 +2,7 @@ open Wonka_types;
 
 let fromListener = (addListener, removeListener, sink) => {
   let handler = event => sink(.Push(event));
-  sink(.Start(signal => {
+  sink(.Start((.signal) => {
     switch (signal) {
     | Close => removeListener(handler)
     | _ => ()
@@ -47,7 +47,7 @@ let interval = (p, sink) => {
     sink(.Push(num));
   }, p);
 
-  sink(.Start(signal => {
+  sink(.Start((.signal) => {
     switch (signal) {
     | Close => Js.Global.clearInterval(id)
     | _ => ()
@@ -67,7 +67,7 @@ let fromPromise = (promise, sink) => {
     Js.Promise.resolve(())
   }, promise));
 
-  sink(.Start(signal => {
+  sink(.Start((.signal) => {
     switch (signal) {
     | Close => ended := true
     | _ => ()
@@ -91,13 +91,13 @@ let debounce = (debounceF, source, sink) => {
   source((.signal) => {
     switch (signal) {
     | Start(tb) => {
-      sink(.Start(signal => {
+      sink(.Start((.signal) => {
         switch (signal) {
         | Close => {
           clearTimeout();
-          tb(Close);
+          tb(.Close);
         }
-        | _ => tb(signal)
+        | _ => tb(.signal)
         }
       }));
     }
@@ -133,13 +133,13 @@ let throttle = (throttleF, source, sink) => {
   source((.signal) => {
     switch (signal) {
     | Start(tb) => {
-      sink(.Start(signal => {
+      sink(.Start((.signal) => {
         switch (signal) {
         | Close => {
           clearTimeout();
-          tb(Close);
+          tb(.Close);
         }
-        | _ => tb(signal)
+        | _ => tb(.signal)
         }
       }));
     }
@@ -164,16 +164,16 @@ let throttle = (throttleF, source, sink) => {
 type sampleStateT('a) = {
   mutable ended: bool,
   mutable value: option('a),
-  mutable sourceTalkback: talkbackT => unit,
-  mutable notifierTalkback: talkbackT => unit
+  mutable sourceTalkback: (.talkbackT) => unit,
+  mutable notifierTalkback: (.talkbackT) => unit
 };
 
 let sample = (notifier, source, sink) => {
   let state = {
     ended: false,
     value: None,
-    sourceTalkback: (_: talkbackT) => (),
-    notifierTalkback: (_: talkbackT) => ()
+    sourceTalkback: (._: talkbackT) => (),
+    notifierTalkback: (._: talkbackT) => ()
   };
 
   source((.signal) => {
@@ -181,7 +181,7 @@ let sample = (notifier, source, sink) => {
     | Start(tb) => state.sourceTalkback = tb
     | End => {
       state.ended = true;
-      state.notifierTalkback(Close);
+      state.notifierTalkback(.Close);
       sink(.End);
     }
     | Push(x) => state.value = Some(x)
@@ -193,7 +193,7 @@ let sample = (notifier, source, sink) => {
     | (Start(tb), _) => state.notifierTalkback = tb
     | (End, _) => {
       state.ended = true;
-      state.sourceTalkback(Close);
+      state.sourceTalkback(.Close);
       sink(.End);
     }
     | (Push(_), Some(x)) when !state.ended => {
@@ -204,30 +204,30 @@ let sample = (notifier, source, sink) => {
     }
   });
 
-  sink(.Start(signal => {
+  sink(.Start((.signal) => {
     switch (signal) {
     | Pull => {
-      state.sourceTalkback(Pull);
-      state.notifierTalkback(Pull);
+      state.sourceTalkback(.Pull);
+      state.notifierTalkback(.Pull);
     }
     | Close => {
       state.ended = true;
-      state.sourceTalkback(Close);
-      state.notifierTalkback(Close);
+      state.sourceTalkback(.Close);
+      state.notifierTalkback(.Close);
     }
     }
   }));
 };
 
 type delayStateT = {
-  mutable talkback: talkbackT => unit,
+  mutable talkback: (.talkbackT) => unit,
   mutable active: int,
   mutable gotEndSignal: bool
 };
 
 let delay = (wait, source, sink) => {
   let state: delayStateT = {
-    talkback: (_: talkbackT) => (),
+    talkback: Wonka_helpers.talkbackPlaceholder,
     active: 0,
     gotEndSignal: false
   };
@@ -251,13 +251,13 @@ let delay = (wait, source, sink) => {
     }
   });
 
-  sink(.Start(signal => {
+  sink(.Start((.signal) => {
     switch (signal) {
     | Close => {
       state.gotEndSignal = true;
       if (state.active === 0) sink(.End);
     }
-    | _ when !state.gotEndSignal => state.talkback(signal)
+    | _ when !state.gotEndSignal => state.talkback(.signal)
     | _ => ()
     }
   }));

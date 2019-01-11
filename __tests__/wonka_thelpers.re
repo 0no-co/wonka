@@ -5,12 +5,12 @@ let testWithListenable = operator => {
   let signals = [||];
   let source = x => {
     sink := x;
-    x(.Start(signal => {
+    x(.Start((.signal) => {
       ignore(Js.Array.push(signal, signals))
     }));
   };
 
-  let talkback = ref((_: talkbackT) => ());
+  let talkback = ref((._: talkbackT) => ());
   let res = [||];
   operator(source)((.signal) => {
     switch (signal) {
@@ -37,11 +37,11 @@ let testTalkbackEnd = operator => {
   let sink = ref((._: signalT(int)) => ());
   let signals: array(talkbackT) = [||];
   let source = x => {
-    x(.Start(signal => ignore(Js.Array.push(signal, signals))));
+    x(.Start((.signal) => ignore(Js.Array.push(signal, signals))));
     sink := x;
   };
 
-  let talkback = ref((_: talkbackT) => ());
+  let talkback = ref((._: talkbackT) => ());
   let res = [||];
   operator(source)((.signal) => {
     switch (signal) {
@@ -53,7 +53,7 @@ let testTalkbackEnd = operator => {
   Js.Promise.make((~resolve, ~reject as _) => {
     sink^(.Push(1));
     ignore(Js.Global.setTimeout(() => {
-      talkback^(Close);
+      talkback^(.Close);
       ignore(Js.Global.setTimeout(() => {
         resolve(.(signals, res));
       }, 0));

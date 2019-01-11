@@ -1,10 +1,10 @@
 open Wonka_types;
 
-let talkbackPlaceholder = (_: talkbackT) => ();
+let talkbackPlaceholder = (._: talkbackT) => ();
 
 let captureTalkback = (
   source: sourceT('a),
-  sinkWithTalkback: (.signalT('a), talkbackT => unit) => unit
+  sinkWithTalkback: (.signalT('a), (.talkbackT) => unit) => unit
 ) => {
   let talkback = ref(talkbackPlaceholder);
 
@@ -50,7 +50,7 @@ let makeTrampoline = (sink: sinkT('a), f: (.unit) => option('a)) => {
     state.inLoop = false;
   };
 
-  sink(.Start(signal => {
+  sink(.Start((.signal) => {
     switch (signal, state.exhausted) {
     | (Pull, false) => {
       state.gotSignal = true;

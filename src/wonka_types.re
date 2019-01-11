@@ -32,9 +32,9 @@ type talkbackT =
   | Close;
 
 type signalT('a) =
-  | Start(talkbackT => unit)
+  | Start((.talkbackT) => unit)
   | Push('a)
   | End;
 
-type sinkT('a) = (. signalT('a)) => unit;
+type sinkT('a) = (.signalT('a)) => unit;
 type sourceT('a) = sinkT('a) => unit;
