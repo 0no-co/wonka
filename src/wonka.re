@@ -3,35 +3,90 @@ open Wonka_helpers;
 
 module Types = Wonka_types;
 
-let create = (gen, sink) => makeTrampoline(sink, [@bs] () => gen());
-
-let fromList = (l, sink) => {
-  let restL = ref(l);
-
-  makeTrampoline(sink, [@bs] () => {
-    switch (restL^) {
-    | [x, ...rest] => {
-      restL := rest;
-      Some(x)
-    }
-    | [] => None
-    }
-  });
+type fromListState('a) = {
+  mutable value: 'a,
+  mutable ended: bool,
+  mutable looping: bool,
+  mutable pull: bool
 };
 
-let fromArray = (a, sink) => {
-  let size = Array.length(a);
-  let i = ref(0);
+let fromList = (list_, sink) => {
+  let state = {
+    value: list_,
+    ended: false,
+    looping: false,
+    pull: false
+  };
 
-  makeTrampoline(sink, [@bs] () => {
-    if (i^ < size) {
-      let res = Some(Array.unsafe_get(a, i^));
-      i := i^ + 1;
-      res
-    } else {
-      None
+  sink(Start(signal => {
+    switch (signal, state.looping) {
+    | (Pull, false) => {
+      state.pull = true;
+      state.looping = true;
+
+      while (state.pull && !state.ended) {
+        switch (state.value) {
+        | [x, ...rest] => {
+          state.value = rest;
+          state.pull = false;
+          sink(Push(x));
+        }
+        | [] => {
+          state.ended = true;
+          sink(End);
+        }
+        }
+      };
+
+      state.looping = false;
     }
-  });
+    | (Pull, true) => state.pull = true
+    | (Close, _) => state.ended = true
+    }
+  }));
+};
+
+type fromArrayState('a) = {
+  mutable index: int,
+  mutable ended: bool,
+  mutable looping: bool,
+  mutable pull: bool
+};
+
+let fromArray = (arr, sink) => {
+  let size = Array.length(arr);
+  let state = {
+    index: 0,
+    ended: false,
+    looping: false,
+    pull: false
+  };
+
+  sink(Start(signal => {
+    switch (signal, state.looping) {
+    | (Pull, false) => {
+      state.pull = true;
+      state.looping = true;
+
+      while (state.pull && !state.ended) {
+        let index = state.index;
+        if (index < size) {
+          let x = Array.unsafe_get(arr, index);
+          state.index = index + 1;
+          state.pull = false;
+          sink(Push(x));
+        } else {
+          state.ended = true;
+          sink(End);
+        }
+      };
+
+      state.looping = false;
+    }
+    | (Pull, true) => state.pull = true
+    | (Close, _) => state.ended = true
+    }
+  }));
 };
 
 let fromValue = (x, sink) => {

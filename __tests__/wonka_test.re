@@ -4,41 +4,6 @@ open Wonka_types;
 let it = test;
 
 describe("source factories", () => {
-  describe("create", () => {
-    open Expect;
-
-    it("sends from a factory function to a puller sink", () => {
-      let num = ref(0);
-      let source = Wonka.create(() => {
-        if (num^ < 2) {
-          let i = num^;
-          num := num^ + 1;
-          Some(i)
-        } else {
-          None
-        }
-      });
-
-      let talkback = ref((_: Wonka_types.talkbackT) => ());
-      let signals = [||];
-
-      source(signal => {
-        switch (signal) {
-        | Start(x) => talkback := x;
-        | Push(_) => ignore(Js.Array.push(signal, signals));
-        | End => ignore(Js.Array.push(signal, signals))
-        };
-      });
-
-      talkback^(Pull);
-      talkback^(Pull);
-      talkback^(Pull);
-      talkback^(Pull);
-
-      expect(signals) |> toEqual([| Push(0), Push(1), End |]);
-    });
-  });
-
   describe("fromList", () => {
     open Expect;
     open! Expect.Operators;
