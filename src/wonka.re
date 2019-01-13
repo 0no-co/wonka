@@ -54,7 +54,7 @@ type fromArrayState('a) = {
 };
 
 let fromArray = (arr, sink) => {
-  let size = Array.length(arr);
+  let size = Rebel.Array.size(arr);
   let state = {
     index: 0,
     ended: false,
@@ -71,7 +71,7 @@ let fromArray = (arr, sink) => {
       while (state.pull && !state.ended) {
         let index = state.index;
         if (index < size) {
-          let x = Array.unsafe_get(arr, index);
+          let x = Rebel.Array.getUnsafe(arr, index);
           state.index = index + 1;
           state.pull = false;
           sink(.Push(x));
@@ -152,8 +152,8 @@ type mergeStateT = {
 
 let merge = (sources, sink) => {
   let noop = talkbackPlaceholder;
-  let size = Array.length(sources);
-  let talkbacks = Array.map((_) => noop, sources);
+  let size = Rebel.Array.size(sources);
+  let talkbacks = Rebel.Array.make(size, noop);
 
   let state: mergeStateT = {
     started: 0,
@@ -163,7 +163,7 @@ let merge = (sources, sink) => {
   let talkback = (.signal) => {
     let rec loopTalkbacks = (i: int) =>
       if (i < size) {
-        Array.unsafe_get(talkbacks, i)(.signal);
+        Rebel.Array.getUnsafe(talkbacks, i)(.signal);
         loopTalkbacks(i + 1);
       };
 
@@ -172,11 +172,11 @@ let merge = (sources, sink) => {
 
   let rec loopSources = (i: int) =>
     if (i < size) {
-      let source = Array.unsafe_get(sources, i);
+      let source = Rebel.Array.getUnsafe(sources, i);
       source((.signal) => {
         switch (signal) {
         | Start(tb) => {
-          Array.unsafe_set(talkbacks, i, tb);
+          Rebel.Array.setUnsafe(talkbacks, i, tb);
           state.started = state.started + 1;
           if (state.started === size) sink(.Start(talkback));
         }
@@ -195,12 +195,12 @@ let merge = (sources, sink) => {
 };
 
 let concat = (sources, sink) => {
-  let size = Array.length(sources);
+  let size = Rebel.Array.size(sources);
   let talkback = ref(talkbackPlaceholder);
 
   let rec nextSource = (i: int) =>
     if (i < size) {
-      let source = Array.unsafe_get(sources, i);
+      let source = Rebel.Array.getUnsafe(sources, i);
 
       source((.signal) => {
         switch (signal) {
@@ -408,21 +408,22 @@ let take = (max, source, sink) => {
 };
 
 let takeLast = (max, source, sink) => {
-  let queue = Belt.MutableQueue.make();
+  open Rebel;
+  let queue = MutableQueue.make();
 
   captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Start(_) => talkback(.Pull)
     | Push(x) => {
-      let size = Belt.MutableQueue.size(queue);
+      let size = MutableQueue.size(queue);
       if (size >= max && max > 0) {
-        ignore(Belt.MutableQueue.pop(queue));
+        ignore(MutableQueue.pop(queue));
       };
 
-      Belt.MutableQueue.add(queue, x);
+      MutableQueue.add(queue, x);
       talkback(.Pull);
     }
-    | End => makeTrampoline(sink, (.) => Belt.MutableQueue.pop(queue))
+    | End => makeTrampoline(sink, (.) => MutableQueue.pop(queue))
     }
   });
 };

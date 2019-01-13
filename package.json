@@ -2,7 +2,10 @@
   "name": "wonka",
   "version": "1.0.0",
   "author": "Phil Pluckthun <phil@kitten.sh>",
-  "main": "./src/wonka.js",
+  "main": "./lib/js/src/wonka.js",
+  "module": "./src/wonka.js",
+  "jsnext:main": "./src/wonka.js",
+  "types": "./src/wonka.d.ts",
   "files": [
     "dist",
     "src",
@@ -33,6 +36,9 @@
   "homepage": "https://github.com/kitten/wonka",
   "bugs": "https://github.com/kitten/wonka/issues",
   "license": "MIT",
+  "dependencies": {
+    "bs-rebel": "^0.2.2"
+  },
   "peerDependencies": {
     "bs-platform": ">=2.2.0"
   },

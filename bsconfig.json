@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "bsc-flags": ["-bs-super-errors", "-bs-no-version-header"],
   "refmt": 3,
-  "package-specs": {
-    "module": "commonjs",
-    "in-source": true
-  },
+  "package-specs": [
+    {
+      "module": "commonjs"
+    },
+    {
+      "module": "es6",
+      "in-source": true
+    }
+  ],
   "sources": [
     {
       "dir": "src",
@@ -20,7 +25,9 @@
       "type": "dev"
     }
   ],
-  "bs-dependencies" : [],
+  "bs-dependencies" : [
+    "bs-rebel"
+  ],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"
   ],
