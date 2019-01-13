@@ -53,7 +53,7 @@
       "js"
     ],
     "testMatch": [
-      "**/__tests__/*_test.js"
+      "**/lib/js/__tests__/*_test.js"
     ],
     "modulePathIgnorePatterns": [
       "/es6/"

@@ -221,8 +221,7 @@ let concat = (sources, sink) => {
 };
 
 type shareStateT('a) = {
-  sinks: Belt.MutableMap.Int.t(sinkT('a)),
-  mutable idCounter: int,
+  mutable sinks: Rebel.Array.t(sinkT('a)),
   mutable talkback: (.talkbackT) => unit,
   mutable ended: bool,
   mutable gotSignal: bool
@@ -230,30 +229,27 @@ type shareStateT('a) = {
 
 let share = source => {
   let state = {
-    sinks: Belt.MutableMap.Int.make(),
-    idCounter: 0,
+    sinks: Rebel.Array.makeEmpty(),
     talkback: talkbackPlaceholder,
     ended: false,
     gotSignal: false
   };
 
   sink => {
-    let id = state.idCounter;
-    Belt.MutableMap.Int.set(state.sinks, id, sink);
-    state.idCounter = state.idCounter + 1;
+    state.sinks = Rebel.Array.append(state.sinks, sink);
 
-    if (id === 0) {
+    if (Rebel.Array.size(state.sinks) === 1) {
       source((.signal) => {
         switch (signal) {
         | Push(_) when !state.ended => {
           state.gotSignal = false;
-          Belt.MutableMap.Int.forEachU(state.sinks, (._, sink) => sink(.signal));
+          Rebel.Array.forEach(state.sinks, sink => sink(.signal));
         }
         | Push(_) => ()
         | Start(x) => state.talkback = x
         | End => {
           state.ended = true;
-          Belt.MutableMap.Int.forEachU(state.sinks, (._, sink) => sink(.End));
+          Rebel.Array.forEach(state.sinks, sink => sink(.End));
         }
         }
       });
@@ -262,8 +258,8 @@ let share = source => {
     sink(.Start((.signal) => {
       switch (signal) {
       | Close => {
-        Belt.MutableMap.Int.remove(state.sinks, id);
-        if (Belt.MutableMap.Int.isEmpty(state.sinks)) {
+        state.sinks = Rebel.Array.filter(state.sinks, x => x !== sink);
+        if (Rebel.Array.size(state.sinks) === 0) {
           state.ended = true;
           state.talkback(.Close);
         };
