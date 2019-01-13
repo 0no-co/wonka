@@ -223,7 +223,6 @@ let concat = (sources, sink) => {
 type shareStateT('a) = {
   mutable sinks: Rebel.Array.t(sinkT('a)),
   mutable talkback: (.talkbackT) => unit,
-  mutable ended: bool,
   mutable gotSignal: bool
 };
 
@@ -231,7 +230,6 @@ let share = source => {
   let state = {
     sinks: Rebel.Array.makeEmpty(),
     talkback: talkbackPlaceholder,
-    ended: false,
     gotSignal: false
   };
 
@@ -241,15 +239,14 @@ let share = source => {
     if (Rebel.Array.size(state.sinks) === 1) {
       source((.signal) => {
         switch (signal) {
-        | Push(_) when !state.ended => {
+        | Push(_) => {
           state.gotSignal = false;
           Rebel.Array.forEach(state.sinks, sink => sink(.signal));
         }
-        | Push(_) => ()
         | Start(x) => state.talkback = x
         | End => {
-          state.ended = true;
           Rebel.Array.forEach(state.sinks, sink => sink(.End));
+          state.sinks = Rebel.Array.makeEmpty();
         }
         }
       });
@@ -260,7 +257,6 @@ let share = source => {
       | Close => {
         state.sinks = Rebel.Array.filter(state.sinks, x => x !== sink);
         if (Rebel.Array.size(state.sinks) === 0) {
-          state.ended = true;
           state.talkback(.Close);
         };
       }

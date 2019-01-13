@@ -23,6 +23,7 @@ lib/bs
 *.mliast
 .vscode
 .merlin
+.bsb.lock
 
 yarn-error.log
 dist/
