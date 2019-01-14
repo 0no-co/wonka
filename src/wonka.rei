@@ -68,6 +68,18 @@ let scan: (('b, 'a) => 'b, 'b, sourceT('a), sinkT('b)) => unit;
    the resulting inner source is merged into the output source. */
 let mergeMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
 
+/* Takes a mapping function from one types to a source output,
+   and a source, and creates a sink & source.
+   The mapping function is called with each value it receives and
+   the latest inner source is merged into the output source. When
+   a new value comes in the previous source is dicarded. */
+let switchMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
+
+/* Takes a mapping function from one types to a source output,
+   and a source, and creates a sink & source.
+   The mapping function is called with each value it receives and
+   the resulting inner sources are subscribed to and piped through
+   to the output source in order. */
 let concatMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
 
 /* Takes an array of sources and creates a sink & source.
@@ -79,6 +91,15 @@ let merge: (array(sourceT('a)), sinkT('a)) => unit;
    The values from each sources will be emitted on the sink, one after another.
    When one source ends, the next one will start. */
 let concat: (array(sourceT('a)), sinkT('a)) => unit;
+
+/* Works the same as mergeMap but as an operator on a source
+   of nested sources. */
+let mergeAll: (sourceT(sourceT('a)), sinkT('a)) => unit;
+let flatten: (sourceT(sourceT('a)), sinkT('a)) => unit;
+
+/* Works the same as concatMap but as an operator on a source
+   of nested sources. */
+let concatAll: (sourceT(sourceT('a)), sinkT('a)) => unit;
 
 /* Takes a listenable or a pullable source and creates a new source that
    will ensure that the source is shared between all sinks that follow.
@@ -136,13 +157,6 @@ let skipWhile: ('a => bool, sourceT('a), sinkT('a)) => unit;
    emits a value, at which point it will start acting like a noop
    operator, passing through every signal. */
 let skipUntil: (sourceT('a), sourceT('b), sinkT('b)) => unit;
-
-/* Takes a source emitting sources, and creates a synk & source.
-   It will pass through all values from a source that it receives,
-   until it either receives a new source, which will cause the last
-   one to be ended and swapped out.
-   The sink will also attempt to pull new sources when one ends. */
-let flatten: (sourceT(sourceT('a)), sinkT('a)) => unit;
 
 /* -- sink factories */
 

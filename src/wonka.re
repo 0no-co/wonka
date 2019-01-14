@@ -282,6 +282,8 @@ let mergeMap = f => curry(source => curry(sink => {
 }));
 
 let merge = sources => mergeMap(identity, fromArray(sources));
+let mergeAll = source => mergeMap(identity, source);
+let flatten = mergeAll;
 
 type concatMapStateT('a) = {
   inputQueue: Rebel.MutableQueue.t('a),
@@ -356,7 +358,7 @@ let concatMap = f => curry(source => curry(sink => {
 
   sink(.Start((.signal) => {
     switch (signal) {
-    | Pull => if (!state.ended) state.innerTalkback(.Close)
+    | Pull => if (!state.ended) state.innerTalkback(.Pull)
     | Close when !state.ended => {
       state.ended = true;
       state.closed = true;
@@ -368,7 +370,84 @@ let concatMap = f => curry(source => curry(sink => {
   }));
 }));
 
+let concatAll = source => concatMap(identity, source);
 let concat = sources => concatMap(identity, fromArray(sources));
+
+type switchMapStateT('a) = {
+  mutable outerTalkback: (.talkbackT) => unit,
+  mutable innerTalkback: (.talkbackT) => unit,
+  mutable innerActive: bool,
+  mutable closed: bool,
+  mutable ended: bool
+};
+
+let switchMap = f => curry(source => curry(sink => {
+  let state: switchMapStateT('a) = {
+    outerTalkback: talkbackPlaceholder,
+    innerTalkback: talkbackPlaceholder,
+    innerActive: false,
+    closed: false,
+    ended: false
+  };
+
+  let applyInnerSource = innerSource =>
+    innerSource((.signal) => {
+      switch (signal) {
+      | End => {
+        state.innerActive = false;
+        state.innerTalkback = talkbackPlaceholder;
+        if (state.ended) sink(.End);
+      }
+      | Start(tb) => {
+        state.innerActive = true;
+        state.innerTalkback = tb;
+        tb(.Pull);
+      }
+      | Push(x) when !state.closed => {
+        sink(.Push(x));
+        state.innerTalkback(.Pull);
+      }
+      | Push(_) => ()
+      }
+    });
+
+  source((.signal) => {
+    switch (signal) {
+    | End when !state.ended => {
+      state.ended = true;
+      if (!state.innerActive) sink(.End);
+    }
+    | End => ()
+    | Start(tb) => {
+      state.outerTalkback = tb;
+      tb(.Pull);
+    }
+    | Push(x) when !state.ended => {
+      if (state.innerActive) {
+        state.innerTalkback(.Close);
+        state.innerTalkback = talkbackPlaceholder;
+      }
+      applyInnerSource(f(x));
+      state.outerTalkback(.Pull);
+    }
+    | Push(_) => ()
+    }
+  });
+
+  sink(.Start((.signal) => {
+    switch (signal) {
+    | Pull => state.innerTalkback(.Pull)
+    | Close when !state.ended => {
+      state.ended = true;
+      state.closed = true;
+      state.outerTalkback(.Close);
+      state.innerTalkback(.Close);
+      state.innerTalkback = talkbackPlaceholder;
+    }
+    | Close => ()
+    }
+  }));
+}));
 
 type shareStateT('a) = {
   mutable sinks: Rebel.Array.t(sinkT('a)),
@@ -767,65 +846,6 @@ let skipUntil = notifier => curry(source => curry(sink => {
     }
   }));
 }));
-
-type flattenStateT = {
-  mutable sourceTalkback: (.talkbackT) => unit,
-  mutable innerTalkback: (.talkbackT) => unit,
-  mutable sourceEnded: bool,
-  mutable innerEnded: bool
-};
-
-let flatten = source => curry(sink => {
-  let state: flattenStateT = {
-    sourceTalkback: talkbackPlaceholder,
-    innerTalkback: talkbackPlaceholder,
-    sourceEnded: false,
-    innerEnded: true
-  };
-
-  let applyInnerSource = innerSource => {
-    innerSource((.signal) => {
-      switch (signal) {
-      | Start(tb) => {
-        if (!state.innerEnded) {
-          state.innerTalkback(.Close);
-        };
-
-        state.innerEnded = false;
-        state.innerTalkback = tb;
-        tb(.Pull);
-      }
-      | End when !state.sourceEnded => {
-        state.innerEnded = true;
-        state.sourceTalkback(.Pull);
-      }
-      | End => state.sourceTalkback(.Close)
-      | Push(_) => sink(.signal)
-      }
-    });
-  };
-
-  source((.signal) => {
-    switch (signal) {
-    | Start(tb) => state.sourceTalkback = tb
-    | Push(innerSource) => applyInnerSource(innerSource)
-    | End when !state.innerEnded => state.sourceEnded = true
-    | End => sink(.End)
-    }
-  });
-
-  sink(.Start((.signal) => {
-    switch (signal) {
-    | Close => {
-      state.sourceTalkback(.Close);
-      state.innerTalkback(.Close);
-    }
-    | Pull when !state.innerEnded && !state.sourceEnded => state.innerTalkback(.Pull)
-    | Pull when !state.sourceEnded => state.sourceTalkback(.Pull)
-    | Pull => ()
-    }
-  }));
-});
 
 let forEach = f => curry(source => {
   captureTalkback(source, (.signal, talkback) => {
