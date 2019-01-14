@@ -30,6 +30,8 @@ dist/
 node_modules/
 lib/
 src/**/*.js
-!src/index.js
 __tests__/**/*.js
 coverage/
+
+!src/index.js
+!src/pipe.js

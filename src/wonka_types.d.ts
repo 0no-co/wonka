@@ -16,6 +16,6 @@ export type Signal<A> =
   | { tag: 1, [0]: A }
   | 0;
 
-export type Sink<A> = (signal: Signal<A>) => void;
-export type Source<A> = (sink: Sink<A>) => void;
-export type Operator<A, B> = (source: Source<A>) => Source<B>;
+export interface Sink<A> { (signal: Signal<A>): void; }
+export interface Source<A> { (sink: Sink<A>): void; }
+export interface Operator<A, B> { (source: Source<A>): Source<B>; }
