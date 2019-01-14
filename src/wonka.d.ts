@@ -9,6 +9,7 @@ export const fromValue: <A>(value: A) => Source<A>;
 export const empty: Source<{}>;
 export const never: Source<{}>;
 
+export const tap: <A>(f: (value: A) => void) => Operator<A, A>;
 export const map: <A, B>(f: (value: A) => B) => Operator<A, B>;
 export const filter: <A>(f: (value: A) => boolean) => Operator<A, A>;
 export const scan: <A, B>(f: (acc: B, value: A) => B, acc: B) => Operator<A, B>;
