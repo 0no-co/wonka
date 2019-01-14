@@ -68,6 +68,8 @@ let scan: (('b, 'a) => 'b, 'b, sourceT('a), sinkT('b)) => unit;
    the resulting inner source is merged into the output source. */
 let mergeMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
 
+let concatMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
+
 /* Takes an array of sources and creates a sink & source.
    All values that the sink receives from all sources will be passed through
    to the new source. */
