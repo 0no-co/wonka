@@ -38,6 +38,12 @@ type signalT('a) =
 type sinkT('a) = (.signalT('a)) => unit;
 type sourceT('a) = sinkT('a) => unit;
 
+type subjectT('a) = {
+  source: sourceT('a),
+  next: 'a => unit,
+  complete: unit => unit
+};
+
 /* Sinks and sources need to explicitly be their own callbacks;
  * This means that currying needs to be forced for Bucklescript
  * not to optimise them away

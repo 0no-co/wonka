@@ -18,4 +18,11 @@ export type Signal<A> =
 
 export interface Sink<A> { (signal: Signal<A>): void; }
 export interface Source<A> { (sink: Sink<A>): void; }
+
 export interface Operator<A, B> { (source: Source<A>): Source<B>; }
+
+export interface Subject<A> {
+  [0]: Source<A>,
+  [1]: (value: A) => void,
+  [2]: () => void
+}

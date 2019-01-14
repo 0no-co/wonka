@@ -2,6 +2,10 @@ open Wonka_types;
 
 module Types = Wonka_types;
 
+/* -- subject factory */
+
+let makeSubject: unit => subjectT('a);
+
 /* -- source factories */
 
 /* Accepts a list and creates a pullable source for that list.

@@ -1,4 +1,6 @@
-import { List, Sink, Source, Operator } from './wonka_types';
+import { List, Sink, Source, Operator, Subject } from './wonka_types';
+
+export const makeSubject: <A>() => Subject<A>;
 
 export const fromList: <A>(list: List<A>) => Source<A>;
 export const fromArray: <A>(array: A[]) => Source<A>;
