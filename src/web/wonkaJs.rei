@@ -60,3 +60,7 @@ let sample: (sourceT('a), sourceT('b), sinkT('b)) => unit;
 /* Takes a projection to a period in milliseconds and a source, and creates
    a listenable source that delays every emission by that passed period. */
 let delay: (int, sourceT('a), sinkT('a)) => unit;
+
+/* Converts a stream into a promise by resolving to the last value of the
+   stream. */
+let toPromise: (sourceT('a)) => Js.Promise.t('a);

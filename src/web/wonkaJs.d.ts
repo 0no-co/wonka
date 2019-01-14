@@ -13,3 +13,5 @@ export const debounce: <A>(f: (x: A) => number) => Operator<A, A>;
 export const throttle: <A>(f: (x: A) => number) => Operator<A, A>;
 export const sample: <A>(signal: Source<any>) => Operator<A, A>;
 export const delay: <A>(duration: number) => Operator<A, A>;
+
+export const toPromise: <A>(source: Source<A>) => Promise<A>;

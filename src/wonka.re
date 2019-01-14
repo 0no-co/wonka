@@ -748,7 +748,7 @@ let subscribe = f => curry(source => {
     switch (signal) {
     | Start(x) => {
       talkback := x;
-      talkback^(.Pull);
+      x(.Pull);
     }
     | Push(x) when !ended^ => {
       f(x);
