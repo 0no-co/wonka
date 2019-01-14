@@ -780,10 +780,10 @@ bs-platform@^4.0.17:
   resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-4.0.18.tgz#d17b8693ba1f714d9b27e0ddb365f2069ba4b8a0"
   integrity sha512-BwzW0iYHvREqUZIgQxJmdJrxexppLvJxYQ4LLexbhCp7uZU5DIZ5ub4ZHpkCkc8fn8bsXWc+Rrejb3csi+BoAQ==
 
-bs-rebel@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/bs-rebel/-/bs-rebel-0.2.2.tgz#831d946db49173715e561a9cd7bc8cc72da8a62a"
-  integrity sha512-fHdyxs7iKWQ3QQpHwq/CwbFCuoQC39wX2c1RZaojP7wpjTrGobl2fgaq6q5zJaaPD1DEyiNn3ZrDNkyThWapIg==
+bs-rebel@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/bs-rebel/-/bs-rebel-0.2.3.tgz#11e1a95a4a3f16311575e8853a004cec6b9d19de"
+  integrity sha512-NTDUSkJ+KkIqmKHUE48luD2YaYh49XaU1zVSSk9lJ6KFNQzlRQnIfR+paNWYyvzxf5+TZ2inVgxBUHdCsZEiYA==
 
 bser@^2.0.0:
   version "2.0.0"

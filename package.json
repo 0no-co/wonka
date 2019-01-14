@@ -40,10 +40,12 @@
   "homepage": "https://github.com/kitten/wonka",
   "bugs": "https://github.com/kitten/wonka/issues",
   "license": "MIT",
+  "dependencies": {
+    "bs-rebel": "^0.2.3"
+  },
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.6",
     "bs-platform": "^4.0.17",
-    "bs-rebel": "^0.2.2",
     "bundlesize": "^0.17.0",
     "coveralls": "^3.0.0",
     "microbundle": "^0.9.0",
