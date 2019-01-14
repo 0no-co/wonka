@@ -21,7 +21,7 @@
     "clean": "run-p clean:bs clean:dist",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
-    "bundle": "microbundle --no-compress --format es,cjs",
+    "bundle": "microbundle --external none --no-compress --format es,cjs",
     "prebundlesize": "run-s bundle",
     "bundlesize": "bundlesize",
     "test": "jest",
