@@ -38,6 +38,11 @@ type signalT('a) =
 type sinkT('a) = (.signalT('a)) => unit;
 type sourceT('a) = sinkT('a) => unit;
 
+type observerT('a) = {
+  next: 'a => unit,
+  complete: unit => unit
+};
+
 type subjectT('a) = {
   source: sourceT('a),
   next: 'a => unit,

@@ -8,6 +8,13 @@ let makeSubject: unit => subjectT('a);
 
 /* -- source factories */
 
+/* When constructed, calls a function that receives an observer
+   and creates a push-based stream of events. This is useful
+   for constructing any kind of asynchronous stream. The return
+   callback from the passed observer function will be called when
+   the stream is closed or ends */
+let make: (observerT('a) => (unit => unit), sinkT('a)) => unit;
+
 /* Accepts a list and creates a pullable source for that list.
    The source will emit events when being pulled until the list
    is exhausted and it completes */

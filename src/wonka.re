@@ -37,6 +37,20 @@ let makeSubject = () => {
   { source, next, complete }
 };
 
+let make = f => curry(sink => {
+  let teardown = f({
+    next: value => sink(.Push(value)),
+    complete: () => sink(.End)
+  });
+
+  sink(.Start((.signal) => {
+    switch (signal) {
+    | Close => teardown()
+    | Pull => ()
+    }
+  }));
+});
+
 type fromListState('a) = {
   mutable value: 'a,
   mutable ended: bool,
