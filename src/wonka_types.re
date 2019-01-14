@@ -48,4 +48,4 @@ type subjectT('a) = {
  * This means that currying needs to be forced for Bucklescript
  * not to optimise them away
  */
-let curry = (x: 'a): 'a => x;
+external curry: 'a => 'a = "%identity";

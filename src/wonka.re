@@ -1,8 +1,6 @@
 open Wonka_types;
 open Wonka_helpers;
 
-external curry: 'a => 'a = "%identity";
-
 module Types = Wonka_types;
 
 type subjectState('a) = {
