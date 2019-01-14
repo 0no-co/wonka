@@ -1,9 +1,11 @@
 {
   "keep_fnames": true,
   "ie8": false,
-  "ecma": 6,
   "compress": {
+    "toplevel": true,
+    "booleans_as_integers": false,
     "keep_fnames": true,
+    "keep_fargs": true,
     "if_return": false,
     "ie8": false,
     "sequences": false,
@@ -11,6 +13,7 @@
     "conditionals": false,
     "join_vars": false
   },
+  "mangle": false,
   "output": {
     "beautify": true,
     "braces": true,
