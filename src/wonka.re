@@ -1,6 +1,8 @@
 open Wonka_types;
 open Wonka_helpers;
 
+external curry: 'a => 'a = "%identity";
+
 module Types = Wonka_types;
 
 type fromListState('a) = {
@@ -10,9 +12,9 @@ type fromListState('a) = {
   mutable pull: bool
 };
 
-let fromList = (list_, sink) => {
+let fromList = ls => curry(sink => {
   let state = {
-    value: list_,
+    value: ls,
     ended: false,
     looping: false,
     pull: false
@@ -44,7 +46,7 @@ let fromList = (list_, sink) => {
     | (Close, _) => state.ended = true
     }
   }));
-};
+});
 
 type fromArrayState('a) = {
   mutable index: int,
@@ -53,7 +55,7 @@ type fromArrayState('a) = {
   mutable pull: bool
 };
 
-let fromArray = (arr, sink) => {
+let fromArray = arr => curry(sink => {
   let size = Rebel.Array.size(arr);
   let state = {
     index: 0,
@@ -87,9 +89,9 @@ let fromArray = (arr, sink) => {
     | (Close, _) => state.ended = true
     }
   }));
-};
+});
 
-let fromValue = (x, sink) => {
+let fromValue = x => curry(sink => {
   let ended = ref(false);
 
   sink(.Start((.signal) => {
@@ -102,7 +104,7 @@ let fromValue = (x, sink) => {
     | _ => ()
     }
   }));
-};
+});
 
 let empty = sink => {
   sink(.Start(talkbackPlaceholder));
@@ -113,7 +115,7 @@ let never = sink => {
   sink(.Start(talkbackPlaceholder));
 };
 
-let map = (f, source, sink) =>
+let map = f => curry(source => curry(sink => {
   source((.signal) => sink(.
     switch (signal) {
     | Start(x) => Start(x)
@@ -121,16 +123,18 @@ let map = (f, source, sink) =>
     | End => End
     }
   ));
+}));
 
-let filter = (f, source, sink) =>
+let filter = f => curry(source => curry(sink => {
   captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Push(x) when !f(x) => talkback(.Pull)
     | _ => sink(.signal)
     }
   });
+}));
 
-let scan = (f, seed, source, sink) => {
+let scan = (f, seed) => curry(source => curry(sink => {
   let acc = ref(seed);
 
   source((.signal) => sink(.
@@ -143,14 +147,14 @@ let scan = (f, seed, source, sink) => {
     | End => End
     }
   ));
-};
+}));
 
 type mergeStateT = {
   mutable started: int,
   mutable ended: int
 };
 
-let merge = (sources, sink) => {
+let merge = sources => curry(sink => {
   let noop = talkbackPlaceholder;
   let size = Rebel.Array.size(sources);
   let talkbacks = Rebel.Array.make(size, noop);
@@ -192,9 +196,9 @@ let merge = (sources, sink) => {
     };
 
   loopSources(0);
-};
+});
 
-let concat = (sources, sink) => {
+let concat = sources => curry(sink => {
   let size = Rebel.Array.size(sources);
   let talkback = ref(talkbackPlaceholder);
 
@@ -218,7 +222,7 @@ let concat = (sources, sink) => {
     };
 
   nextSource(0);
-};
+});
 
 type shareStateT('a) = {
   mutable sinks: Rebel.Array.t(sinkT('a)),
@@ -280,7 +284,7 @@ type combineStateT('a, 'b) = {
   mutable ended: bool,
 };
 
-let combine = (sourceA, sourceB, sink) => {
+let combine = (sourceA, sourceB) => curry(sink => {
   let state = {
     talkbackA: talkbackPlaceholder,
     talkbackB: talkbackPlaceholder,
@@ -352,14 +356,14 @@ let combine = (sourceA, sourceB, sink) => {
       }
     };
   }));
-};
+});
 
 type takeStateT = {
   mutable taken: int,
   mutable talkback: (.talkbackT) => unit
 };
 
-let take = (max, source, sink) => {
+let take = max => curry(source => curry(sink => {
   let state: takeStateT = {
     taken: 0,
     talkback: talkbackPlaceholder
@@ -397,9 +401,9 @@ let take = (max, source, sink) => {
       }
     };
   }));
-};
+}));
 
-let takeLast = (max, source, sink) => {
+let takeLast = max => curry(source => curry(sink => {
   open Rebel;
   let queue = MutableQueue.make();
 
@@ -418,9 +422,9 @@ let takeLast = (max, source, sink) => {
     | End => makeTrampoline(sink, (.) => MutableQueue.pop(queue))
     }
   });
-};
+}));
 
-let takeWhile = (predicate, source, sink) => {
+let takeWhile = predicate => curry(source => curry(sink => {
   let ended = ref(false);
   let talkback = ref(talkbackPlaceholder);
 
@@ -459,7 +463,7 @@ let takeWhile = (predicate, source, sink) => {
       }
     };
   }));
-};
+}));
 
 type takeUntilStateT = {
   mutable ended: bool,
@@ -467,7 +471,7 @@ type takeUntilStateT = {
   mutable notifierTalkback: (.talkbackT) => unit
 };
 
-let takeUntil = (notifier, source, sink) => {
+let takeUntil = notifier => curry(source => curry(sink => {
   let state: takeUntilStateT = {
     ended: false,
     sourceTalkback: talkbackPlaceholder,
@@ -517,9 +521,9 @@ let takeUntil = (notifier, source, sink) => {
       }
     };
   }));
-};
+}));
 
-let skip = (wait, source, sink) => {
+let skip = wait => curry(source => curry(sink => {
   let rest = ref(wait);
 
   captureTalkback(source, (.signal, talkback) => {
@@ -531,9 +535,9 @@ let skip = (wait, source, sink) => {
     | _ => sink(.signal)
     }
   });
-};
+}));
 
-let skipWhile = (predicate, source, sink) => {
+let skipWhile = predicate => curry(source => curry(sink => {
   let skip = ref(true);
 
   captureTalkback(source, (.signal, talkback) => {
@@ -549,7 +553,7 @@ let skipWhile = (predicate, source, sink) => {
     | _ => sink(.signal)
     }
   });
-};
+}));
 
 type skipUntilStateT = {
   mutable skip: bool,
@@ -559,7 +563,7 @@ type skipUntilStateT = {
   mutable notifierTalkback: (.talkbackT) => unit
 };
 
-let skipUntil = (notifier, source, sink) => {
+let skipUntil = notifier => curry(source => curry(sink => {
   let state: skipUntilStateT = {
     skip: true,
     ended: false,
@@ -616,7 +620,7 @@ let skipUntil = (notifier, source, sink) => {
     | Pull => ()
     }
   }));
-};
+}));
 
 type flattenStateT = {
   mutable sourceTalkback: (.talkbackT) => unit,
@@ -625,7 +629,7 @@ type flattenStateT = {
   mutable innerEnded: bool
 };
 
-let flatten = (source, sink) => {
+let flatten = source => curry(sink => {
   let state: flattenStateT = {
     sourceTalkback: talkbackPlaceholder,
     innerTalkback: talkbackPlaceholder,
@@ -675,9 +679,9 @@ let flatten = (source, sink) => {
     | Pull => ()
     }
   }));
-};
+});
 
-let forEach = (f, source) =>
+let forEach = f => curry(source => {
   captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Start(_) => talkback(.Pull)
@@ -688,8 +692,9 @@ let forEach = (f, source) =>
     | End => ()
     }
   });
+});
 
-let subscribe = (f, source) => {
+let subscribe = f => curry(source => {
   let talkback = ref(talkbackPlaceholder);
   let ended = ref(false);
 
@@ -711,4 +716,4 @@ let subscribe = (f, source) => {
     ended := true;
     talkback^(.Close);
   }
-};
+});

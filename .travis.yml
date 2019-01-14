@@ -1,7 +1,6 @@
 dist: trusty
 language: node_js
 node_js:
-  - "8"
   - "10"
 sudo: false
 branches:
@@ -17,3 +16,4 @@ script:
   - yarn run test
   - yarn run coverage
   - cat coverage/lcov.info | node_modules/.bin/coveralls || echo "Coveralls upload failed"
+  - yarn run bundlesize

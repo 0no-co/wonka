@@ -3,9 +3,6 @@
     "js"
   ],
   "testMatch": [
-    "**/__tests__/*_test.js"
-  ],
-  "modulePathIgnorePatterns": [
-    "/es6/"
+    "**/lib/js/__tests__/*_test.js"
   ]
 }

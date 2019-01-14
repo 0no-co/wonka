@@ -2,10 +2,11 @@
   "name": "wonka",
   "version": "1.0.1",
   "author": "Phil Pluckthun <phil@kitten.sh>",
-  "main": "./lib/js/src/wonka.js",
-  "module": "./src/wonka.js",
-  "jsnext:main": "./src/wonka.js",
-  "types": "./src/wonka.d.ts",
+  "source": "./src/index.js",
+  "main": "./dist/wonka.js",
+  "module": "./dist/wonka.es.js",
+  "jsnext:main": "./dist/wonka.es.js",
+  "types": "./src/index.d.ts",
   "files": [
     "src",
     "lib/js",
@@ -17,10 +18,13 @@
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
+    "bundle": "microbundle --no-compress --format es,cjs",
+    "prebundlesize": "run-s bundle",
+    "bundlesize": "bundlesize",
     "test": "jest",
     "coverage": "jest -c ./.jest.coverage.json --coverage",
     "test:watch": "jest --watch",
-    "prepublishOnly": "run-s clean build test"
+    "prepublishOnly": "run-s clean build bundle test"
   },
   "keywords": [
     "wonka",
@@ -36,16 +40,13 @@
   "homepage": "https://github.com/kitten/wonka",
   "bugs": "https://github.com/kitten/wonka/issues",
   "license": "MIT",
-  "dependencies": {
-    "bs-rebel": "^0.2.2"
-  },
-  "peerDependencies": {
-    "bs-platform": ">=2.2.0"
-  },
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.6",
     "bs-platform": "^4.0.17",
+    "bs-rebel": "^0.2.2",
+    "bundlesize": "^0.17.0",
     "coveralls": "^3.0.0",
+    "microbundle": "^0.9.0",
     "npm-run-all": "^4.1.2"
   },
   "jest": {
@@ -54,9 +55,12 @@
     ],
     "testMatch": [
       "**/lib/js/__tests__/*_test.js"
-    ],
-    "modulePathIgnorePatterns": [
-      "/es6/"
     ]
-  }
+  },
+  "bundlesize": [
+    {
+      "path": "./dist/wonka.es.js",
+      "maxSize": "9 kB"
+    }
+  ]
 }

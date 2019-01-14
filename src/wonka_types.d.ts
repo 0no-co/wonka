@@ -18,4 +18,4 @@ export type Signal<A> =
 
 export type Sink<A> = (signal: Signal<A>) => void;
 export type Source<A> = (sink: Sink<A>) => void;
-export type Operator<A, B> = (source: Source<A>) => (sink: Sink<B>) => void;
+export type Operator<A, B> = (source: Source<A>) => Source<B>;

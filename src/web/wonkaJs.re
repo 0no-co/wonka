@@ -1,17 +1,19 @@
 open Wonka_types;
 
-let fromListener = (addListener, removeListener, sink) => {
+let fromListener = (addListener, removeListener) => curry(sink => {
   let handler = event => sink(.Push(event));
+
   sink(.Start((.signal) => {
     switch (signal) {
     | Close => removeListener(handler)
     | _ => ()
     }
   }));
-  addListener(handler);
-};
 
-let fromDomEvent = (element, event, sink) => {
+  addListener(handler);
+});
+
+let fromDomEvent = (element, event) => curry(sink => {
   let addEventListener: (
     Dom.element,
     string,
@@ -37,9 +39,9 @@ let fromDomEvent = (element, event, sink) => {
     handler => removeEventListener(element, event, handler),
     sink
   )
-};
+});
 
-let interval = (p, sink) => {
+let interval = p => curry(sink => {
   let i = ref(0);
   let id = Js.Global.setInterval(() => {
     let num = i^;
@@ -53,9 +55,9 @@ let interval = (p, sink) => {
     | _ => ()
     }
   }));
-};
+});
 
-let fromPromise = (promise, sink) => {
+let fromPromise = promise => curry(sink => {
   let ended = ref(false);
 
   ignore(Js.Promise.then_(value => {
@@ -73,9 +75,9 @@ let fromPromise = (promise, sink) => {
     | _ => ()
     }
   }));
-};
+});
 
-let debounce = (debounceF, source, sink) => {
+let debounce = debounceF => curry(source => curry(sink => {
   let gotEndSignal = ref(false);
   let id: ref(option(Js.Global.timeoutId)) = ref(None);
 
@@ -119,9 +121,9 @@ let debounce = (debounceF, source, sink) => {
     }
     }
   });
-};
+}));
 
-let throttle = (throttleF, source, sink) => {
+let throttle = throttleF => curry(source => curry(sink => {
   let skip = ref(false);
   let id: ref(option(Js.Global.timeoutId)) = ref(None);
   let clearTimeout = () =>
@@ -159,7 +161,7 @@ let throttle = (throttleF, source, sink) => {
     | Push(_) => ()
     }
   });
-};
+}));
 
 type sampleStateT('a) = {
   mutable ended: bool,
@@ -168,7 +170,7 @@ type sampleStateT('a) = {
   mutable notifierTalkback: (.talkbackT) => unit
 };
 
-let sample = (notifier, source, sink) => {
+let sample = notifier => curry(source => curry(sink => {
   let state = {
     ended: false,
     value: None,
@@ -217,7 +219,7 @@ let sample = (notifier, source, sink) => {
     }
     }
   }));
-};
+}));
 
 type delayStateT = {
   mutable talkback: (.talkbackT) => unit,
@@ -225,7 +227,7 @@ type delayStateT = {
   mutable gotEndSignal: bool
 };
 
-let delay = (wait, source, sink) => {
+let delay = wait => curry(source => curry(sink => {
   let state: delayStateT = {
     talkback: Wonka_helpers.talkbackPlaceholder,
     active: 0,
@@ -261,4 +263,4 @@ let delay = (wait, source, sink) => {
     | _ => ()
     }
   }));
-};
+}));
