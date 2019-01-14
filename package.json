@@ -10,12 +10,15 @@
   "files": [
     "src",
     "lib/js",
+    "dist",
     "docs/*.md",
     "*.md",
     "bsconfig.json"
   ],
   "scripts": {
-    "clean": "bsb -clean-world",
+    "clean:bs": "bsb -clean-world",
+    "clean:dist": "rimraf dist",
+    "clean": "run-p clean:bs clean:dist",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
     "bundle": "microbundle --no-compress --format es,cjs",
@@ -49,7 +52,8 @@
     "bundlesize": "^0.17.0",
     "coveralls": "^3.0.0",
     "microbundle": "^0.9.0",
-    "npm-run-all": "^4.1.2"
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^2.6.3"
   },
   "jest": {
     "moduleFileExtensions": [
