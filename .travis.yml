@@ -13,7 +13,6 @@ notifications:
 cache: yarn
 script:
   - yarn run build
-  - yarn run test
   - yarn run coverage
   - cat coverage/lcov.info | node_modules/.bin/coveralls || echo "Coveralls upload failed"
   - yarn run bundlesize

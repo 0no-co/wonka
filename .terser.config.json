@@ -1,0 +1,19 @@
+{
+  "keep_fnames": true,
+  "ie8": false,
+  "ecma": 6,
+  "compress": {
+    "keep_fnames": true,
+    "if_return": false,
+    "ie8": false,
+    "sequences": false,
+    "loops": false,
+    "conditionals": false,
+    "join_vars": false
+  },
+  "output": {
+    "beautify": true,
+    "braces": true,
+    "indent_level": 2
+  }
+}
