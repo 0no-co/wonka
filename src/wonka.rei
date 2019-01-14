@@ -37,6 +37,10 @@ let never: (sinkT('a)) => unit;
 
 /* -- operators */
 
+/* Takes a callback and a source, and creates a sink & source.
+   The callback will be called for each value that it receives */
+let tap: ('a => unit, sourceT('a), sinkT('a)) => unit;
+
 /* Takes a mapping function from one type to another, and a source,
    and creates a sink & source.
    All values that it receives will be transformed using the mapping

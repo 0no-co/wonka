@@ -161,6 +161,17 @@ let never = sink => {
   sink(.Start(talkbackPlaceholder));
 };
 
+let tap = f => curry(source => curry(sink => {
+  source((.signal) => {
+    switch (signal) {
+    | Push(x) => f(x)
+    | _ => ()
+    };
+
+    sink(.signal);
+  });
+}));
+
 let map = f => curry(source => curry(sink => {
   source((.signal) => sink(.
     switch (signal) {
