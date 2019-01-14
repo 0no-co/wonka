@@ -206,54 +206,82 @@ let scan = (f, seed) => curry(source => curry(sink => {
   ));
 }));
 
-type mergeStateT = {
-  mutable started: int,
-  mutable ended: int
+type mergeMapStateT = {
+  mutable outerTalkback: (.talkbackT) => unit,
+  mutable innerTalkbacks: Rebel.Array.t((.talkbackT) => unit),
+  mutable ended: bool
 };
 
-let merge = sources => curry(sink => {
-  let noop = talkbackPlaceholder;
-  let size = Rebel.Array.size(sources);
-  let talkbacks = Rebel.Array.make(size, noop);
-
-  let state: mergeStateT = {
-    started: 0,
-    ended: 0
+let mergeMap = f => curry(source => curry(sink => {
+  let state: mergeMapStateT = {
+    outerTalkback: talkbackPlaceholder,
+    innerTalkbacks: Rebel.Array.makeEmpty(),
+    ended: false
   };
 
-  let talkback = (.signal) => {
-    let rec loopTalkbacks = (i: int) =>
-      if (i < size) {
-        Rebel.Array.getUnsafe(talkbacks, i)(.signal);
-        loopTalkbacks(i + 1);
-      };
+  let applyInnerSource = innerSource => {
+    let talkback = ref(talkbackPlaceholder);
 
-    loopTalkbacks(0);
+    innerSource((.signal) => {
+      switch (signal) {
+      | End => {
+        state.innerTalkbacks = Rebel.Array.filter(state.innerTalkbacks, x => x !== talkback^);
+        if (state.ended && Rebel.Array.size(state.innerTalkbacks) === 0) {
+          sink(.End);
+        }
+      }
+      | Start(tb) => {
+        talkback := tb;
+        state.innerTalkbacks = Rebel.Array.append(state.innerTalkbacks, tb);
+        tb(.Pull);
+      }
+      | Push(x) when Rebel.Array.size(state.innerTalkbacks) !== 0 => {
+        sink(.Push(x));
+        talkback^(.Pull);
+      }
+      | Push(_) => ()
+      }
+    });
   };
 
-  let rec loopSources = (i: int) =>
-    if (i < size) {
-      let source = Rebel.Array.getUnsafe(sources, i);
-      source((.signal) => {
-        switch (signal) {
-        | Start(tb) => {
-          Rebel.Array.setUnsafe(talkbacks, i, tb);
-          state.started = state.started + 1;
-          if (state.started === size) sink(.Start(talkback));
-        }
-        | End => {
-          state.ended = state.ended + 1;
-          if (state.ended === size) sink(.End);
-        }
-        | Push(_) => sink(.signal)
-        }
-      });
+  source((.signal) => {
+    switch (signal) {
+    | End when !state.ended => {
+      state.ended = true;
+      if (Rebel.Array.size(state.innerTalkbacks) === 0) {
+        sink(.End);
+      }
+    }
+    | End => ()
+    | Start(tb) => {
+      state.outerTalkback = tb;
+      tb(.Pull);
+    }
+    | Push(x) when !state.ended => {
+      applyInnerSource(f(x));
+      state.outerTalkback(.Pull);
+    }
+    | Push(_) => ()
+    }
+  });
 
-      loopSources(i + 1);
-    };
+  sink(.Start((.signal) => {
+    switch (signal) {
+    | Close when !state.ended => {
+      state.ended = true;
+      state.outerTalkback(.Close);
+      Rebel.Array.forEach(state.innerTalkbacks, talkback => talkback(.Close));
+      state.innerTalkbacks = Rebel.Array.makeEmpty();
+    }
+    | Close => ()
+    | Pull when !state.ended =>
+      Rebel.Array.forEach(state.innerTalkbacks, talkback => talkback(.Pull));
+    | Pull => ()
+    }
+  }));
+}));
 
-  loopSources(0);
-});
+let merge = sources => mergeMap(identity, fromArray(sources));
 
 let concat = sources => curry(sink => {
   let size = Rebel.Array.size(sources);

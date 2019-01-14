@@ -52,8 +52,7 @@ let map: ('a => 'b, sourceT('a), sinkT('b)) => unit;
    All values that it receives will be filtered using the predicate,
    and only truthy values will be passed on to the new source.
    The sink will attempt to pull a new value when one was filtered. */
-let filter:
-  ('a => bool, sourceT('a), sinkT('a)) => unit;
+let filter: ('a => bool, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a reducer function, a seed value, and a source, and creates
    a sink & source.
@@ -61,9 +60,13 @@ let filter:
    initially) will be passed to the reducer together with the value
    that the sink receives. All return values of the reducer function
    are emitted on the new source. */
-let scan:
-  (('b, 'a) => 'b, 'b, sourceT('a), sinkT('b)) =>
-  unit;
+let scan: (('b, 'a) => 'b, 'b, sourceT('a), sinkT('b)) => unit;
+
+/* Takes a mapping function from one types to a source output,
+   and a source, and creates a sink & source.
+   The mapping function is called with each value it receives and
+   the resulting inner source is merged into the output source. */
+let mergeMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
 
 /* Takes an array of sources and creates a sink & source.
    All values that the sink receives from all sources will be passed through

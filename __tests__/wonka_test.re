@@ -361,25 +361,23 @@ describe("operator factories", () => {
         };
       });
 
-      expect(signals) == [| Push(1), Push(4), Push(5), Push(6), Push(2), Push(3), End |];
+      expect(signals) == [| Push(1), Push(2), Push(3), Push(4), Push(5), Push(6), End |];
     });
 
     testPromise("follows the spec for listenables", () => {
       Wonka_thelpers.testWithListenable(source => Wonka.merge([|source|]))
         |> Js.Promise.then_(x => {
           expect(x)
-            |> toEqual(([||], [| Push(1), Push(2), End |]))
+            |> toEqual(([| Pull, Pull, Pull |], [| Push(1), Push(2), End |]))
             |> Js.Promise.resolve
         })
     });
 
     testPromise("ends itself and source when its talkback receives the End signal", () => {
-      let end_: talkbackT = Close;
-
       Wonka_thelpers.testTalkbackEnd(source => Wonka.merge([|source|]))
         |> Js.Promise.then_(x => {
           expect(x)
-            |> toEqual(([| end_ |], [| Push(1) |]))
+            |> toEqual(([| Pull, Pull |], [| Push(1) |]))
             |> Js.Promise.resolve
         })
     });
