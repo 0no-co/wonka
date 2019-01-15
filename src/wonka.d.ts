@@ -1,40 +1,29 @@
-import { List, Sink, Source, Subscription, Operator, Observer, Subject } from './wonka_types';
+/* sources */
+export * from './sources/wonka_source_fromArray';
+export * from './sources/wonka_source_fromList';
+export * from './sources/wonka_source_fromValue';
+export * from './sources/wonka_source_make';
+export * from './sources/wonka_source_makeSubject';
+export * from './sources/wonka_source_primitives';
 
-export const makeSubject: <A>() => Subject<A>;
+/* operators */
+export * from './operators/wonka_operator_combine';
+export * from './operators/wonka_operator_concatMap';
+export * from './operators/wonka_operator_filter';
+export * from './operators/wonka_operator_map';
+export * from './operators/wonka_operator_mergeMap';
+export * from './operators/wonka_operator_scan';
+export * from './operators/wonka_operator_share';
+export * from './operators/wonka_operator_skip';
+export * from './operators/wonka_operator_skipUntil';
+export * from './operators/wonka_operator_skipWhile';
+export * from './operators/wonka_operator_switchMap';
+export * from './operators/wonka_operator_take';
+export * from './operators/wonka_operator_takeLast';
+export * from './operators/wonka_operator_takeUntil';
+export * from './operators/wonka_operator_takeWhile';
+export * from './operators/wonka_operator_tap';
 
-export const make: <A>(f: (observer: Observer<A>) => (() => void)) => Source<A>;
-export const fromList: <A>(list: List<A>) => Source<A>;
-export const fromArray: <A>(array: A[]) => Source<A>;
-export const fromValue: <A>(value: A) => Source<A>;
-export const empty: Source<{}>;
-export const never: Source<{}>;
-
-export const tap: <A>(f: (value: A) => void) => Operator<A, A>;
-export const map: <A, B>(f: (value: A) => B) => Operator<A, B>;
-export const filter: <A>(f: (value: A) => boolean) => Operator<A, A>;
-export const scan: <A, B>(f: (acc: B, value: A) => B, acc: B) => Operator<A, B>;
-
-export const mergeMap: <A, B>(f: (value: A) => Source<B>) => Operator<A, B>;
-export const switchMap: <A, B>(f: (value: A) => Source<B>) => Operator<A, B>;
-export const concatMap: <A, B>(f: (value: A) => Source<B>) => Operator<A, B>;
-
-export const merge: <A>(sources: Array<Source<A>>) => Source<A>;
-export const concat: <A>(sources: Array<Source<A>>) => Source<A>;
-export const share: <A>(source: Source<A>) => Source<A>;
-export const combine: <A, B>(a: Source<A>, b: Source<B>) => Source<[A, B]>;
-
-export const concatAll: <A>(source: Source<Source<A>>) => Source<A>;
-export const mergeAll: <A>(source: Source<Source<A>>) => Source<A>;
-export const flatten: <A>(source: Source<Source<A>>) => Source<A>;
-
-export const take: <A>(max: number) => Operator<A, A>;
-export const takeLast: <A>(max: number) => Operator<A, A>;
-export const takeWhile: <A>(f: (x: A) => boolean) => Operator<A, A>;
-export const takeUntil: <A>(signal: Source<any>) => Operator<A, A>;
-export const skip: <A>(max: number) => Operator<A, A>;
-export const skipWhile: <A>(f: (x: A) => boolean) => Operator<A, A>;
-export const skipUntil: <A>(signal: Source<any>) => Operator<A, A>;
-
-export const publish: <A>(source: Source<A>) => Subscription;
-export const forEach: <A>(f: (x: A) => void) => (source: Source<A>) => void;
-export const subscribe: <A>(f: (x: A) => void) => (source: Source<A>) => Subscription;
+/* sinks */
+export * from './sinks/wonka_sink_publish';
+export * from './sinks/wonka_sink_subscribe';

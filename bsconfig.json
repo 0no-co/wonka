@@ -15,10 +15,21 @@
   "sources": [
     {
       "dir": "src",
-      "subdirs": [{
-        "dir": "web",
-        "backend": ["js"]
-      }]
+      "subdirs": [
+        {
+          "dir": "operators"
+        },
+        {
+          "dir": "sources"
+        },
+        {
+          "dir": "sinks"
+        },
+        {
+          "dir": "web",
+          "backend": ["js"]
+        }
+      ]
     },
     {
       "dir": "__tests__",
