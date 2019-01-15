@@ -74,6 +74,11 @@ export function pipe<T, A, B, C, D, E, F, G, H>(
 
 /* pipe definitions for source + operators + consumer composition */
 
+export function pipe<T, R>(
+  source: Source<T>,
+  consumer: UnaryFn<Source<T>, R>
+): R;
+
 export function pipe<T, A, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
