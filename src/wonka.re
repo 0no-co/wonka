@@ -38,14 +38,14 @@ let makeSubject = () => {
 };
 
 let make = f => curry(sink => {
-  let teardown = f({
+  let teardown = f(.{
     next: value => sink(.Push(value)),
     complete: () => sink(.End)
   });
 
   sink(.Start((.signal) => {
     switch (signal) {
-    | Close => teardown()
+    | Close => teardown(.)
     | Pull => ()
     }
   }));
@@ -176,7 +176,7 @@ let map = f => curry(source => curry(sink => {
   source((.signal) => sink(.
     switch (signal) {
     | Start(x) => Start(x)
-    | Push(x) => Push(f(x))
+    | Push(x) => Push(f(.x))
     | End => End
     }
   ));
@@ -185,7 +185,7 @@ let map = f => curry(source => curry(sink => {
 let filter = f => curry(source => curry(sink => {
   captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
-    | Push(x) when !f(x) => talkback(.Pull)
+    | Push(x) when !f(.x) => talkback(.Pull)
     | _ => sink(.signal)
     }
   });
@@ -258,7 +258,7 @@ let mergeMap = f => curry(source => curry(sink => {
       tb(.Pull);
     }
     | Push(x) when !state.ended => {
-      applyInnerSource(f(x));
+      applyInnerSource(f(.x));
       state.outerTalkback(.Pull);
     }
     | Push(_) => ()
@@ -281,8 +281,8 @@ let mergeMap = f => curry(source => curry(sink => {
   }));
 }));
 
-let merge = sources => mergeMap(identity, fromArray(sources));
-let mergeAll = source => mergeMap(identity, source);
+let merge = sources => mergeMap((.x) => x, fromArray(sources));
+let mergeAll = source => mergeMap((.x) => x, source);
 let flatten = mergeAll;
 
 type concatMapStateT('a) = {
@@ -312,7 +312,7 @@ let concatMap = f => curry(source => curry(sink => {
         state.innerTalkback = talkbackPlaceholder;
 
         switch (Rebel.MutableQueue.pop(state.inputQueue)) {
-        | Some(input) => applyInnerSource(f(input))
+        | Some(input) => applyInnerSource(f(.input))
         | None when state.ended => sink(.End)
         | None => ()
         };
@@ -347,7 +347,7 @@ let concatMap = f => curry(source => curry(sink => {
       if (state.innerActive) {
         Rebel.MutableQueue.add(state.inputQueue, x);
       } else {
-        applyInnerSource(f(x));
+        applyInnerSource(f(.x));
       }
 
       state.outerTalkback(.Pull);
@@ -370,8 +370,8 @@ let concatMap = f => curry(source => curry(sink => {
   }));
 }));
 
-let concatAll = source => concatMap(identity, source);
-let concat = sources => concatMap(identity, fromArray(sources));
+let concatAll = source => concatMap((.x) => x, source);
+let concat = sources => concatMap((.x) => x, fromArray(sources));
 
 type switchMapStateT('a) = {
   mutable outerTalkback: (.talkbackT) => unit,
@@ -427,7 +427,7 @@ let switchMap = f => curry(source => curry(sink => {
         state.innerTalkback(.Close);
         state.innerTalkback = talkbackPlaceholder;
       }
-      applyInnerSource(f(x));
+      applyInnerSource(f(.x));
       state.outerTalkback(.Pull);
     }
     | Push(_) => ()
@@ -649,7 +649,7 @@ let takeLast = max => curry(source => curry(sink => {
   });
 }));
 
-let takeWhile = predicate => curry(source => curry(sink => {
+let takeWhile = f => curry(source => curry(sink => {
   let ended = ref(false);
   let talkback = ref(talkbackPlaceholder);
 
@@ -665,7 +665,7 @@ let takeWhile = predicate => curry(source => curry(sink => {
     }
     | End => ()
     | Push(x) when !ended^ => {
-      if (!predicate(x)) {
+      if (!f(.x)) {
         ended := true;
         sink(.End);
         talkback^(.Close);
@@ -762,13 +762,13 @@ let skip = wait => curry(source => curry(sink => {
   });
 }));
 
-let skipWhile = predicate => curry(source => curry(sink => {
+let skipWhile = f => curry(source => curry(sink => {
   let skip = ref(true);
 
   captureTalkback(source, (.signal, talkback) => {
     switch (signal) {
     | Push(x) when skip^ => {
-      if (predicate(x)) {
+      if (f(.x)) {
         talkback(.Pull);
       } else {
         skip := false;

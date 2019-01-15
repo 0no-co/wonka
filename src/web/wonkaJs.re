@@ -77,7 +77,7 @@ let fromPromise = promise => curry(sink => {
   }));
 });
 
-let debounce = debounceF => curry(source => curry(sink => {
+let debounce = f => curry(source => curry(sink => {
   let gotEndSignal = ref(false);
   let id: ref(option(Js.Global.timeoutId)) = ref(None);
 
@@ -109,7 +109,7 @@ let debounce = debounceF => curry(source => curry(sink => {
         id := None;
         sink(.signal);
         if (gotEndSignal^) sink(.End);
-      }, debounceF(x)));
+      }, f(.x)));
     }
     | End => {
       gotEndSignal := true;
@@ -123,7 +123,7 @@ let debounce = debounceF => curry(source => curry(sink => {
   });
 }));
 
-let throttle = throttleF => curry(source => curry(sink => {
+let throttle = f => curry(source => curry(sink => {
   let skip = ref(false);
   let id: ref(option(Js.Global.timeoutId)) = ref(None);
   let clearTimeout = () =>
@@ -155,7 +155,7 @@ let throttle = throttleF => curry(source => curry(sink => {
       id := Some(Js.Global.setTimeout(() => {
         id := None;
         skip := false;
-      }, throttleF(x)));
+      }, f(.x)));
       sink(.signal);
     }
     | Push(_) => ()

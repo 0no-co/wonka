@@ -13,7 +13,7 @@ let makeSubject: unit => subjectT('a);
    for constructing any kind of asynchronous stream. The return
    callback from the passed observer function will be called when
    the stream is closed or ends */
-let make: (observerT('a) => (unit => unit), sinkT('a)) => unit;
+let make: ((.observerT('a)) => teardownT, sinkT('a)) => unit;
 
 /* Accepts a list and creates a pullable source for that list.
    The source will emit events when being pulled until the list
@@ -45,14 +45,14 @@ let tap: ((.'a) => unit, sourceT('a), sinkT('a)) => unit;
    and creates a sink & source.
    All values that it receives will be transformed using the mapping
    function and emitted on the new source */
-let map: ('a => 'b, sourceT('a), sinkT('b)) => unit;
+let map: ((.'a) => 'b, sourceT('a), sinkT('b)) => unit;
 
 /* Takes a predicate function returning a boolean, and a source,
    and creates a sink & source.
    All values that it receives will be filtered using the predicate,
    and only truthy values will be passed on to the new source.
    The sink will attempt to pull a new value when one was filtered. */
-let filter: ('a => bool, sourceT('a), sinkT('a)) => unit;
+let filter: ((.'a) => bool, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a reducer function, a seed value, and a source, and creates
    a sink & source.
@@ -66,21 +66,21 @@ let scan: (('b, 'a) => 'b, 'b, sourceT('a), sinkT('b)) => unit;
    and a source, and creates a sink & source.
    The mapping function is called with each value it receives and
    the resulting inner source is merged into the output source. */
-let mergeMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
+let mergeMap: ((.'a) => sourceT('b), sourceT('a), sinkT('b)) => unit;
 
 /* Takes a mapping function from one types to a source output,
    and a source, and creates a sink & source.
    The mapping function is called with each value it receives and
    the latest inner source is merged into the output source. When
    a new value comes in the previous source is dicarded. */
-let switchMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
+let switchMap: ((.'a) => sourceT('b), sourceT('a), sinkT('b)) => unit;
 
 /* Takes a mapping function from one types to a source output,
    and a source, and creates a sink & source.
    The mapping function is called with each value it receives and
    the resulting inner sources are subscribed to and piped through
    to the output source in order. */
-let concatMap: ('a => sourceT('b), sourceT('a), sinkT('b)) => unit;
+let concatMap: ((.'a) => sourceT('b), sourceT('a), sinkT('b)) => unit;
 
 /* Takes an array of sources and creates a sink & source.
    All values that the sink receives from all sources will be passed through
@@ -127,7 +127,7 @@ let takeLast: (int, sourceT('a), sinkT('a)) => unit;
    It will emit values that the sink receives until the predicate returns false
    for a value, at which point it will end the source and the returned, new
    source. */
-let takeWhile: ('a => bool, sourceT('a), sinkT('a)) => unit;
+let takeWhile: ((.'a) => bool, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a notifier source and an input source, and creates a sink & source.
    It will not emit values that the sink receives until the notifier source
@@ -150,7 +150,7 @@ let skip: (int, sourceT('a), sinkT('a)) => unit;
    It will not emit values that the sink receives until the passed predicate
    returns false for a value, at which point it will start acting like a noop
    operator, passing through every signal. */
-let skipWhile: ('a => bool, sourceT('a), sinkT('a)) => unit;
+let skipWhile: ((.'a) => bool, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a notifier source and an input source, and creates a sink & source.
    It will not emit values that the sink receives until the notifier source

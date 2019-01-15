@@ -44,12 +44,12 @@ let fromPromise: (Js.Promise.t('a), sinkT('a)) => unit;
 /* Takes a projection to a period in milliseconds and a source, and creates
    a listenable source that emits the last emitted value if no other value
    has been emitted during the passed debounce period. */
-let debounce: ('a => int, sourceT('a), sinkT('a)) => unit;
+let debounce: ((.'a) => int, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a projection to a period in milliseconds and a source, and creates
    a listenable source that ignores values after the last emitted value for
    the duration of the returned throttle period. */
-let throttle: ('a => int, sourceT('a), sinkT('a)) => unit;
+let throttle: ((.'a) => int, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a notifier source and an input source, and creates a sink & source.
    When the notifier emits a value, it will emit the value that it most recently
@@ -63,4 +63,4 @@ let delay: (int, sourceT('a), sinkT('a)) => unit;
 
 /* Converts a stream into a promise by resolving to the last value of the
    stream. */
-let toPromise: (sourceT('a)) => Js.Promise.t('a);
+let toPromise: sourceT('a) => Js.Promise.t('a);

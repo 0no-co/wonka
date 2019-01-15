@@ -1,7 +1,5 @@
 open Wonka_types;
 
-external identity: 'a => 'a = "%identity";
-
 let talkbackPlaceholder = (._: talkbackT) => ();
 
 let captureTalkback = (

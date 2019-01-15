@@ -162,7 +162,7 @@ describe("operator factories", () => {
       let nums = [||];
       let talkback = ref((._: Wonka_types.talkbackT) => ());
 
-      Wonka.map((_) => {
+      Wonka.map((._) => {
         let res = num^;
         num := num^ + 1;
         res
@@ -191,7 +191,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables", () => {
-      Wonka_thelpers.testWithListenable(Wonka.map(x => x))
+      Wonka_thelpers.testWithListenable(Wonka.map((.x) => x))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([||], [| Push(1), Push(2), End |]))
@@ -202,7 +202,7 @@ describe("operator factories", () => {
     testPromise("ends itself and source when its talkback receives the End signal", () => {
       let end_: talkbackT = Close;
 
-      Wonka_thelpers.testTalkbackEnd(Wonka.map(x => x))
+      Wonka_thelpers.testTalkbackEnd(Wonka.map((.x) => x))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| end_ |], [| Push(1) |]))
@@ -219,7 +219,7 @@ describe("operator factories", () => {
       let nums = [||];
       let talkback = ref((._: Wonka_types.talkbackT) => ());
 
-      Wonka.filter(x => x mod 2 === 0, sink => {
+      Wonka.filter((.x) => x mod 2 === 0, sink => {
         sink(.Start((.signal) => {
           switch (signal) {
           | Pull => {
@@ -248,7 +248,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables", () => {
-      Wonka_thelpers.testWithListenable(Wonka.filter((_) => true))
+      Wonka_thelpers.testWithListenable(Wonka.filter((._) => true))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([||], [| Push(1), Push(2), End |]))
@@ -257,7 +257,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables when filtering", () => {
-      Wonka_thelpers.testWithListenable(Wonka.filter((_) => false))
+      Wonka_thelpers.testWithListenable(Wonka.filter((._) => false))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| Pull, Pull |], [| End |]))
@@ -268,7 +268,7 @@ describe("operator factories", () => {
     testPromise("ends itself and source when its talkback receives the End signal", () => {
       let end_: talkbackT = Close;
 
-      Wonka_thelpers.testTalkbackEnd(Wonka.filter((_) => true))
+      Wonka_thelpers.testTalkbackEnd(Wonka.filter((._) => true))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| end_ |], [| Push(1) |]))
@@ -742,7 +742,7 @@ describe("operator factories", () => {
       let talkback = ref((._: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.takeWhile(x => x <= 2, sink => sink(.Start((.signal) => {
+      let source = Wonka.takeWhile((.x) => x <= 2, sink => sink(.Start((.signal) => {
         switch (signal) {
         | Pull => {
           let i = num^;
@@ -774,7 +774,7 @@ describe("operator factories", () => {
       let talkback = ref((._: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.takeWhile(x => x <= 5, sink => sink(.Start((.signal) => {
+      let source = Wonka.takeWhile((.x) => x <= 5, sink => sink(.Start((.signal) => {
         switch (signal) {
         | Pull => {
           let i = num^;
@@ -806,7 +806,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables", () => {
-      Wonka_thelpers.testWithListenable(Wonka.takeWhile((_) => true))
+      Wonka_thelpers.testWithListenable(Wonka.takeWhile((._) => true))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([||], [| Push(1), Push(2), End |]))
@@ -817,7 +817,7 @@ describe("operator factories", () => {
     testPromise("follows the spec for listenables when ending the source", () => {
       let end_: talkbackT = Close;
 
-      Wonka_thelpers.testWithListenable(Wonka.takeWhile((_) => false))
+      Wonka_thelpers.testWithListenable(Wonka.takeWhile((._) => false))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| end_ |], [| End |]))
@@ -828,7 +828,7 @@ describe("operator factories", () => {
     testPromise("ends itself and source when its talkback receives the End signal", () => {
       let end_: talkbackT = Close;
 
-      Wonka_thelpers.testTalkbackEnd(Wonka.takeWhile((_) => true))
+      Wonka_thelpers.testTalkbackEnd(Wonka.takeWhile((._) => true))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| end_ |], [| Push(1) |]))
@@ -1023,7 +1023,7 @@ describe("operator factories", () => {
       let talkback = ref((._: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.skipWhile(x => x <= 2, sink => sink(.Start((.signal) => {
+      let source = Wonka.skipWhile((.x) => x <= 2, sink => sink(.Start((.signal) => {
         switch (signal) {
         | Pull when num^ <= 4 => {
           let i = num^;
@@ -1051,7 +1051,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables", () => {
-      Wonka_thelpers.testWithListenable(Wonka.skipWhile((_) => false))
+      Wonka_thelpers.testWithListenable(Wonka.skipWhile((._) => false))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([||], [| Push(1), Push(2), End |]))
@@ -1060,7 +1060,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables when skipping the source", () => {
-      Wonka_thelpers.testWithListenable(Wonka.skipWhile((_) => true))
+      Wonka_thelpers.testWithListenable(Wonka.skipWhile((._) => true))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| Pull, Pull |], [| End |]))
@@ -1071,7 +1071,7 @@ describe("operator factories", () => {
     testPromise("ends itself and source when its talkback receives the End signal", () => {
       let end_: talkbackT = Close;
 
-      Wonka_thelpers.testTalkbackEnd(Wonka.skipWhile((_) => false))
+      Wonka_thelpers.testTalkbackEnd(Wonka.skipWhile((._) => false))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| end_ |], [| Push(1) |]))
@@ -1288,7 +1288,7 @@ describe("chains (integration)", () => {
 
     input
       |> Wonka.fromArray
-      |> Wonka.map(x => string_of_int(x))
+      |> Wonka.map((.x) => string_of_int(x))
       |> Wonka.forEach((.x) => ignore(Js.Array.push(x, actual)));
 
     expect(output) |> toEqual(output)
