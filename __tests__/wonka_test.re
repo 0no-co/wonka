@@ -1294,3 +1294,119 @@ describe("chains (integration)", () => {
     expect(output) |> toEqual(output)
   });
 });
+
+describe("subject", () => {
+  open Expect;
+  open! Expect.Operators;
+
+  it("sends values passed to .next to puller sinks", () => {
+    let signals = [||];
+
+    let subject = Wonka.makeSubject();
+
+    subject.source((.signal) =>
+      switch (signal) {
+      | Start(_) => ignore()
+      | Push(_) => ignore(Js.Array.push(signal, signals))
+      | End => ignore(Js.Array.push(signal, signals))
+      }
+    );
+
+    subject.next(10);
+    subject.next(20);
+    subject.next(30);
+    subject.next(40);
+    subject.complete();
+
+    expect(signals) == [|Push(10), Push(20), Push(30), Push(40), End|];
+  });
+
+  it("handles multiple sinks", () => {
+    let talkback = ref((._: Wonka_types.talkbackT) => ());
+    let signalsOne = [||];
+    let signalsTwo = [||];
+
+    let subject = Wonka.makeSubject();
+
+    subject.source((.signal) =>
+      switch (signal) {
+      | Start(x) => talkback := x
+      | Push(_) => ignore(Js.Array.push(signal, signalsOne))
+      | End => ignore(Js.Array.push(signal, signalsOne))
+      }
+    );
+
+    subject.source((.signal) =>
+      switch (signal) {
+      | Start(_) => ignore()
+      | Push(_) => ignore(Js.Array.push(signal, signalsTwo))
+      | End => ignore(Js.Array.push(signal, signalsTwo))
+      }
+    );
+
+    subject.next(10);
+    subject.next(20);
+    subject.next(30);
+
+    talkback^(.Close);
+
+    subject.next(40);
+    subject.next(50);
+
+    subject.complete();
+
+    expect((signalsOne, signalsTwo))
+    == (
+         [|Push(10), Push(20), Push(30)|],
+         [|Push(10), Push(20), Push(30), Push(40), Push(50), End|],
+       );
+  });
+
+  it("handles multiple sinks that subscribe and close at different times", () => {
+    let talkbackOne = ref((._: Wonka_types.talkbackT) => ());
+    let talkbackTwo = ref((._: Wonka_types.talkbackT) => ());
+    let signalsOne = [||];
+    let signalsTwo = [||];
+
+    let subject = Wonka.makeSubject();
+
+    subject.next(10);
+    subject.next(20);
+
+    subject.source((.signal) =>
+      switch (signal) {
+      | Start(x) => talkbackOne := x
+      | Push(_) => ignore(Js.Array.push(signal, signalsOne))
+      | End => ignore(Js.Array.push(signal, signalsOne))
+      }
+    );
+
+    subject.next(30);
+
+    subject.source((.signal) =>
+      switch (signal) {
+      | Start(x) => talkbackTwo := x
+      | Push(_) => ignore(Js.Array.push(signal, signalsTwo))
+      | End => ignore(Js.Array.push(signal, signalsTwo))
+      }
+    );
+
+    subject.next(40);
+    subject.next(50);
+
+    talkbackTwo^(.Close);
+
+    subject.next(60);
+
+    talkbackOne^(.Close);
+
+    subject.next(70);
+    subject.complete();
+
+    expect((signalsOne, signalsTwo))
+    == (
+         [|Push(30), Push(40), Push(50), Push(60)|],
+         [|Push(40), Push(50)|],
+       );
+  });
+});
