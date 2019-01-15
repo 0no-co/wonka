@@ -1265,7 +1265,7 @@ describe("sink factories", () => {
         sink(.Start(Wonka_helpers.talkbackPlaceholder));
       };
 
-      let unsubscribe = Wonka.subscribe(x => ignore(Js.Array.push(x, nums)), source);
+      let { unsubscribe } = Wonka.subscribe(x => ignore(Js.Array.push(x, nums)), source);
 
       push^();
       push^();

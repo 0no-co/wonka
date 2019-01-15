@@ -878,8 +878,11 @@ let subscribe = f => curry(source => {
     }
   });
 
-  () => if (!ended^) {
-    ended := true;
-    talkback^(.Close);
+  {
+    unsubscribe: () =>
+      if (!ended^) {
+        ended := true;
+        talkback^(.Close);
+      }
   }
 });

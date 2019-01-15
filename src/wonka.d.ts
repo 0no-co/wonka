@@ -1,4 +1,4 @@
-import { List, Sink, Source, Operator, Observer, Subject } from './wonka_types';
+import { List, Sink, Source, Subscription, Operator, Observer, Subject } from './wonka_types';
 
 export const makeSubject: <A>() => Subject<A>;
 
@@ -32,8 +32,8 @@ export const takeLast: <A>(max: number) => Operator<A, A>;
 export const takeWhile: <A>(f: (x: A) => boolean) => Operator<A, A>;
 export const takeUntil: <A>(signal: Source<any>) => Operator<A, A>;
 export const skip: <A>(max: number) => Operator<A, A>;
-export const skipWhile: <A>(f: (value: A) => boolean) => Operator<A, A>;
+export const skipWhile: <A>(f: (x: A) => boolean) => Operator<A, A>;
 export const skipUntil: <A>(signal: Source<any>) => Operator<A, A>;
 
 export const forEach: <A>(f: (x: A) => void) => (source: Source<A>) => void;
-export const subscribe: <A>(f: (x: A) => void) => (source: Source<A>) => (() => void);
+export const subscribe: <A>(f: (x: A) => void) => (source: Source<A>) => Subscription;

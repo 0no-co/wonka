@@ -169,4 +169,4 @@ let forEach: ('a => unit, sourceT('a)) => unit;
 /* Similar to the `forEach` sink factory, but returns an anonymous function
    that when called will end the stream immediately.
    Ending the stream will propagate an End signal upwards to the root source. */
-let subscribe: ('a => unit, sourceT('a)) => (unit => unit);
+let subscribe: ('a => unit, sourceT('a)) => subscriptionT;

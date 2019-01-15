@@ -38,6 +38,10 @@ type signalT('a) =
 type sinkT('a) = (.signalT('a)) => unit;
 type sourceT('a) = sinkT('a) => unit;
 
+type subscriptionT = {
+  unsubscribe: unit => unit
+};
+
 type observerT('a) = {
   next: 'a => unit,
   complete: unit => unit

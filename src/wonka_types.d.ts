@@ -20,13 +20,8 @@ export interface Sink<A> { (signal: Signal<A>): void; }
 export interface Source<A> { (sink: Sink<A>): void; }
 export interface Operator<A, B> { (source: Source<A>): Source<B>; }
 
-export interface Observer<A> {
-  [0]: (value: A) => void,
-  [1]: () => void
-}
+export type Subscription = [() => void];
 
-export interface Subject<A> {
-  [0]: Source<A>,
-  [1]: (value: A) => void,
-  [2]: () => void
-}
+export type Observer<A> = [(value: A) => void, () => void];
+
+export type Subject<A> = [Source<A>, (value: A) => void, () => void];
