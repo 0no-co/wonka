@@ -35,5 +35,6 @@ export const skip: <A>(max: number) => Operator<A, A>;
 export const skipWhile: <A>(f: (x: A) => boolean) => Operator<A, A>;
 export const skipUntil: <A>(signal: Source<any>) => Operator<A, A>;
 
+export const publish: <A>(source: Source<A>) => Subscription;
 export const forEach: <A>(f: (x: A) => void) => (source: Source<A>) => void;
 export const subscribe: <A>(f: (x: A) => void) => (source: Source<A>) => Subscription;

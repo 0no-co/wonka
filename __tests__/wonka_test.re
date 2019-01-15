@@ -1242,7 +1242,7 @@ describe("sink factories", () => {
         }));
       };
 
-      Wonka.forEach(x => ignore(Js.Array.push(x, nums)), source);
+      Wonka.forEach((.x) => ignore(Js.Array.push(x, nums)), source);
       expect(nums) |> toEqual([| 0, 1, 2, 3 |])
     });
   });
@@ -1265,7 +1265,7 @@ describe("sink factories", () => {
         sink(.Start(Wonka_helpers.talkbackPlaceholder));
       };
 
-      let { unsubscribe } = Wonka.subscribe(x => ignore(Js.Array.push(x, nums)), source);
+      let { unsubscribe } = Wonka.subscribe((.x) => ignore(Js.Array.push(x, nums)), source);
 
       push^();
       push^();
@@ -1289,7 +1289,7 @@ describe("chains (integration)", () => {
     input
       |> Wonka.fromArray
       |> Wonka.map(x => string_of_int(x))
-      |> Wonka.forEach(x => ignore(Js.Array.push(x, actual)));
+      |> Wonka.forEach((.x) => ignore(Js.Array.push(x, actual)));
 
     expect(output) |> toEqual(output)
   });

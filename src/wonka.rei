@@ -39,7 +39,7 @@ let never: (sinkT('a)) => unit;
 
 /* Takes a callback and a source, and creates a sink & source.
    The callback will be called for each value that it receives */
-let tap: ('a => unit, sourceT('a), sinkT('a)) => unit;
+let tap: ((.'a) => unit, sourceT('a), sinkT('a)) => unit;
 
 /* Takes a mapping function from one type to another, and a source,
    and creates a sink & source.
@@ -160,13 +160,16 @@ let skipUntil: (sourceT('a), sourceT('b), sinkT('b)) => unit;
 
 /* -- sink factories */
 
+/* Accepts a source and returns a subscription, but does otherwise not surface values */
+let publish: sourceT('a) => subscriptionT;
+
 /* Takes a function and a source, and creates a sink.
    The function will be called for each value that the sink receives.
    The sink will attempt to pull new values as values come in, until
    the source ends. */
-let forEach: ('a => unit, sourceT('a)) => unit;
+let forEach: ((.'a) => unit, sourceT('a)) => unit;
 
 /* Similar to the `forEach` sink factory, but returns an anonymous function
    that when called will end the stream immediately.
    Ending the stream will propagate an End signal upwards to the root source. */
-let subscribe: ('a => unit, sourceT('a)) => subscriptionT;
+let subscribe: ((.'a) => unit, sourceT('a)) => subscriptionT;

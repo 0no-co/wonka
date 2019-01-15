@@ -164,7 +164,7 @@ let never = sink => {
 let tap = f => curry(source => curry(sink => {
   source((.signal) => {
     switch (signal) {
-    | Push(x) => f(x)
+    | Push(x) => f(.x)
     | _ => ()
     };
 
@@ -847,42 +847,67 @@ let skipUntil = notifier => curry(source => curry(sink => {
   }));
 }));
 
-let forEach = f => curry(source => {
-  captureTalkback(source, (.signal, talkback) => {
-    switch (signal) {
-    | Start(_) => talkback(.Pull)
-    | Push(x) => {
-      f(x);
-      talkback(.Pull);
-    }
-    | End => ()
-    }
-  });
-});
+type publishStateT = {
+  mutable talkback: (.talkbackT) => unit,
+  mutable ended: bool
+};
 
-let subscribe = f => curry(source => {
-  let talkback = ref(talkbackPlaceholder);
-  let ended = ref(false);
+let publish = source => {
+  let state: publishStateT = {
+    talkback: talkbackPlaceholder,
+    ended: false
+  };
 
   source((.signal) => {
     switch (signal) {
     | Start(x) => {
-      talkback := x;
+      state.talkback = x;
       x(.Pull);
     }
-    | Push(x) when !ended^ => {
-      f(x);
-      talkback^(.Pull);
-    }
-    | _ => ()
+    | Push(_) => if (!state.ended) state.talkback(.Pull);
+    | End => state.ended = true;
     }
   });
 
   {
     unsubscribe: () =>
-      if (!ended^) {
-        ended := true;
-        talkback^(.Close);
+      if (!state.ended) {
+        state.ended = true;
+        state.talkback(.Close);
       }
   }
+};
+
+let subscribe = f => curry(source => {
+  let state: publishStateT = {
+    talkback: talkbackPlaceholder,
+    ended: false
+  };
+
+  source((.signal) => {
+    switch (signal) {
+    | Start(x) => {
+      state.talkback = x;
+      x(.Pull);
+    }
+    | Push(x) when !state.ended => {
+      f(.x);
+      state.talkback(.Pull);
+    }
+    | Push(_) => ()
+    | End => state.ended = true;
+    }
+  });
+
+  {
+    unsubscribe: () =>
+      if (!state.ended) {
+        state.ended = true;
+        state.talkback(.Close);
+      }
+  }
+});
+
+let forEach = f => curry(source => {
+  ignore(subscribe(f, source));
 });
