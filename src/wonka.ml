@@ -34,4 +34,6 @@ include Wonka_sink_subscribe
   #if BSB_BACKEND = "js" then
     include WonkaJs
   #end
+#else
+  include WonkaJs
 #end
