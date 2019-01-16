@@ -75,13 +75,15 @@ let concatMap = f => curry(source => curry(sink => {
   sink(.Start((.signal) => {
     switch (signal) {
     | Pull => if (!state.ended) state.innerTalkback(.Pull)
-    | Close when !state.ended => {
-      state.ended = true;
-      state.closed = true;
-      state.outerTalkback(.Close);
+    | Close => {
       state.innerTalkback(.Close);
+      if (!state.ended) {
+        state.ended = true;
+        state.closed = true;
+        state.outerTalkback(.Close);
+        state.innerTalkback = talkbackPlaceholder;
+      }
     }
-    | Close => ()
     }
   }));
 }));

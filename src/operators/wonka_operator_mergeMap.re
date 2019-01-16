@@ -62,13 +62,15 @@ let mergeMap = f => curry(source => curry(sink => {
 
   sink(.Start((.signal) => {
     switch (signal) {
-    | Close when !state.ended => {
-      state.ended = true;
-      state.outerTalkback(.Close);
+    | Close => {
       Rebel.Array.forEach(state.innerTalkbacks, talkback => talkback(.Close));
-      state.innerTalkbacks = Rebel.Array.makeEmpty();
+      if (!state.ended) {
+        state.ended = true;
+        state.outerTalkback(.Close);
+        Rebel.Array.forEach(state.innerTalkbacks, talkback => talkback(.Close));
+        state.innerTalkbacks = Rebel.Array.makeEmpty();
+      }
     }
-    | Close => ()
     | Pull when !state.ended =>
       Rebel.Array.forEach(state.innerTalkbacks, talkback => talkback(.Pull));
     | Pull => ()
