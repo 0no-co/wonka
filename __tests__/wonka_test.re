@@ -377,7 +377,7 @@ describe("operator factories", () => {
       Wonka_thelpers.testTalkbackEnd(source => Wonka.merge([|source|]))
         |> Js.Promise.then_(x => {
           expect(x)
-            |> toEqual(([| Pull, Pull |], [| Push(1) |]))
+            |> toEqual(([| Pull, Pull, Close |], [| Push(1) |]))
             |> Js.Promise.resolve
         })
     });
@@ -424,7 +424,7 @@ describe("operator factories", () => {
       Wonka_thelpers.testTalkbackEnd(source => Wonka.concat([|source|]))
         |> Js.Promise.then_(x => {
           expect(x)
-            |> toEqual(([| Pull, Pull |], [| Push(1) |]))
+            |> toEqual(([| Pull, Pull, Close |], [| Push(1) |]))
             |> Js.Promise.resolve
         })
     });
