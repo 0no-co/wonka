@@ -6,7 +6,7 @@ let scan = (f, seed) => curry(source => curry(sink => {
   source((.signal) => sink(.
     switch (signal) {
     | Push(x) => {
-      acc := f(acc^, x);
+      acc := f(.acc^, x);
       Push(acc^)
     }
     | Start(x) => Start(x)

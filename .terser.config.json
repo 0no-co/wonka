@@ -2,6 +2,7 @@
   "keep_fnames": true,
   "ie8": false,
   "compress": {
+    "pure_getters": true,
     "toplevel": true,
     "booleans_as_integers": false,
     "keep_fnames": true,

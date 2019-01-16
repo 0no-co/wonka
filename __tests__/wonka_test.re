@@ -284,7 +284,7 @@ describe("operator factories", () => {
       let talkback = ref((._: Wonka_types.talkbackT) => ());
       let num = ref(1);
 
-      let source = Wonka.scan((acc, x) => acc + x, 0, sink => sink(.Start((.signal) => {
+      let source = Wonka.scan((.acc, x) => acc + x, 0, sink => sink(.Start((.signal) => {
         switch (signal) {
         | Pull => {
           let i = num^;
@@ -316,7 +316,7 @@ describe("operator factories", () => {
     });
 
     testPromise("follows the spec for listenables", () => {
-      Wonka_thelpers.testWithListenable(Wonka.scan((_, x) => x, 0))
+      Wonka_thelpers.testWithListenable(Wonka.scan((._, x) => x, 0))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([||], [| Push(1), Push(2), End |]))
@@ -327,7 +327,7 @@ describe("operator factories", () => {
     testPromise("ends itself and source when its talkback receives the End signal", () => {
       let end_: talkbackT = Close;
 
-      Wonka_thelpers.testTalkbackEnd(Wonka.scan((_, x) => x, 0))
+      Wonka_thelpers.testTalkbackEnd(Wonka.scan((._, x) => x, 0))
         |> Js.Promise.then_(x => {
           expect(x)
             |> toEqual(([| end_ |], [| Push(1) |]))

@@ -27,3 +27,5 @@ export * from './operators/wonka_operator_tap';
 /* sinks */
 export * from './sinks/wonka_sink_publish';
 export * from './sinks/wonka_sink_subscribe';
+
+export * from './web/wonkaJs';

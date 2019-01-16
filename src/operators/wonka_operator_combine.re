@@ -11,7 +11,7 @@ type combineStateT('a, 'b) = {
   mutable ended: bool,
 };
 
-let combine = (sourceA, sourceB) => curry(sink => {
+let combine = sourceA => curry(sourceB => curry(sink => {
   let state = {
     talkbackA: talkbackPlaceholder,
     talkbackB: talkbackPlaceholder,
@@ -83,4 +83,4 @@ let combine = (sourceA, sourceB) => curry(sink => {
       }
     };
   }));
-});
+}));
