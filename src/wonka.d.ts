@@ -23,6 +23,7 @@ export * from './operators/wonka_operator_takeLast';
 export * from './operators/wonka_operator_takeUntil';
 export * from './operators/wonka_operator_takeWhile';
 export * from './operators/wonka_operator_tap';
+export * from './operators/wonka_operator_tapAll';
 
 /* sinks */
 export * from './sinks/wonka_sink_publish';

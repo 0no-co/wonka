@@ -25,6 +25,7 @@ include Wonka_operator_takeLast
 include Wonka_operator_takeUntil
 include Wonka_operator_takeWhile
 include Wonka_operator_tap
+include Wonka_operator_tapAll
 
 (* sinks *)
 include Wonka_sink_publish
