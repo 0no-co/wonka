@@ -77,3 +77,5 @@ let switchMap = f => curry(source => curry(sink => {
     }
   }));
 }));
+
+let switchAll = source => switchMap((.x) => x, source);
