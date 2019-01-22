@@ -1218,6 +1218,86 @@ describe("operator factories", () => {
       expect(res) |> toEqual([| Push(1), Push(2), Push(1), Push(2), End |]);
     });
   });
+
+  describe("switchMap", () => {
+    afterEach(() => Jest.useRealTimers());
+
+    open Expect;
+    open! Expect.Operators;
+
+    it("maps from a source and switches to a new source", () => {
+      let a = Wonka.fromList([1, 2, 3]);
+
+      let talkback = ref((. _: Wonka_types.talkbackT) => ());
+      let signals = [||];
+      let source = Wonka.switchMap((.x) => Wonka.fromList([x * x]), a);
+
+      source((.signal) =>
+        switch (signal) {
+        | Start(x) =>
+          talkback := x;
+          x(.Pull);
+        | Push(_) =>
+          ignore(Js.Array.push(signal, signals));
+          talkback^(.Pull);
+        | End => ignore(Js.Array.push(signal, signals))
+        }
+      );
+
+      expect(signals) == [|Push(1), Push(4), Push(9), End|];
+    });
+
+    it("unsubscribes from previous subscriptions", () => {
+      Jest.useFakeTimers();
+
+      let a = Wonka.interval(100);
+
+      let talkback = ref((._: Wonka_types.talkbackT) => ());
+      let signals = [||];
+      let source =
+        Wonka.switchMap((._) => Wonka.interval(25), a) |> Wonka.take(5);
+
+      source((.signal) =>
+        switch (signal) {
+        | Start(x) =>
+          talkback := x;
+          x(.Pull);
+        | Push(_) =>
+          ignore(Js.Array.push(signal, signals));
+          talkback^(.Pull);
+        | End => ignore(Js.Array.push(signal, signals))
+        }
+      );
+
+      Jest.runTimersToTime(300);
+
+      expect(signals)
+      == [|Push(0), Push(1), Push(2), Push(0), Push(1), End|];
+    });
+
+    testPromise("follows the spec for listenables", () =>
+      Wonka_thelpers.testWithListenable(source =>
+        Wonka.switchMap((.x) => x, Wonka.fromList([source]))
+      )
+      |> Js.Promise.then_(x =>
+           expect(x)
+           |> toEqual(([|Pull, Pull, Pull|], [|Push(1), Push(2), End|]))
+           |> Js.Promise.resolve
+         )
+    );
+
+    testPromise(
+      "ends itself and source when its talkback receives the End signal", () =>
+      Wonka_thelpers.testTalkbackEnd(source =>
+        Wonka.switchMap((.x) => x, Wonka.fromList([source]))
+      )
+      |> Js.Promise.then_(x =>
+           expect(x)
+           |> toEqual(([|Pull, Pull, Close|], [|Push(1)|]))
+           |> Js.Promise.resolve
+         )
+    );
+  });
 });
 
 describe("sink factories", () => {
