@@ -1,0 +1,17 @@
+{
+  "name": "@wonka/perf",
+  "private": true,
+  "version": "1.0.0",
+  "main": "suite.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "benchr suite.js"
+  },
+  "devDependencies": {
+    "benchr": "^4.3.0"
+  },
+  "dependencies": {
+    "most": "^1.7.3",
+    "rxjs": "^6.3.3"
+  }
+}
