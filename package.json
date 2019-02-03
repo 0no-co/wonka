@@ -1,6 +1,6 @@
 {
   "name": "wonka",
-  "version": "1.4.4",
+  "version": "2.0.0",
   "author": "Phil Pluckthun <phil@kitten.sh>",
   "source": "./src/index.js",
   "main": "./dist/wonka.js",
