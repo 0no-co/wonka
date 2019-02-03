@@ -12,6 +12,9 @@ export * from './operators/wonka_operator_concatMap';
 export * from './operators/wonka_operator_filter';
 export * from './operators/wonka_operator_map';
 export * from './operators/wonka_operator_mergeMap';
+export * from './operators/wonka_operator_onEnd';
+export * from './operators/wonka_operator_onPush';
+export * from './operators/wonka_operator_onStart';
 export * from './operators/wonka_operator_scan';
 export * from './operators/wonka_operator_share';
 export * from './operators/wonka_operator_skip';
@@ -22,8 +25,6 @@ export * from './operators/wonka_operator_take';
 export * from './operators/wonka_operator_takeLast';
 export * from './operators/wonka_operator_takeUntil';
 export * from './operators/wonka_operator_takeWhile';
-export * from './operators/wonka_operator_tap';
-export * from './operators/wonka_operator_tapAll';
 
 /* sinks */
 export * from './sinks/wonka_sink_publish';

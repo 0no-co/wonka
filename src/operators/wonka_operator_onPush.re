@@ -1,6 +1,6 @@
 open Wonka_types;
 
-let tap = f => curry(source => curry(sink => {
+let onPush = f => curry(source => curry(sink => {
   source((.signal) => {
     switch (signal) {
     | Push(x) => f(.x)
@@ -10,3 +10,5 @@ let tap = f => curry(source => curry(sink => {
     sink(.signal);
   });
 }));
+
+let tap = onPush;
