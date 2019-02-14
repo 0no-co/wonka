@@ -7,11 +7,13 @@ let onEnd = f => curry(source => curry(sink => {
     switch (signal) {
     | Start(talkback) => {
       sink(.Start((.signal) => {
-        talkback(.signal);
-
-        if (!ended^) {
+        switch (signal) {
+        | Close when !ended^ => {
           ended := true;
           f(.);
+        }
+        | Close => ()
+        | Pull => talkback(.Pull)
         }
       }));
     }
