@@ -91,9 +91,9 @@ a new number every `50ms` and to stop after seven values.
 ```reason
 WonkaJs.interval(50)
   |> Wonka.take(7)
-  |> Wonka.filter(x => x mod 2 === 0)
-  |> Wonka.map(x => x * 2)
-  |> Wonka.forEach(x => print_endline(string_of_int(x)));
+  |> Wonka.filter((.x) => x mod 2 === 0)
+  |> Wonka.map((.x) => x * 2)
+  |> Wonka.forEach((.x) => print_endline(string_of_int(x)));
 
 /* prints: 4, 8, 12 */
 ```
