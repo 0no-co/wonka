@@ -1,30 +1,33 @@
 open Wonka_types;
 
-let onEnd = f => curry(source => curry(sink => {
-  let ended = ref(false);
+let onEnd = f =>
+  curry(source =>
+    curry(sink => {
+      let ended = ref(false);
 
-  source((.signal) => {
-    switch (signal) {
-    | Start(talkback) => {
-      sink(.Start((.signal) => {
+      source((. signal) =>
         switch (signal) {
-        | Close when !ended^ => {
-          ended := true;
-          f(.);
+        | Start(talkback) =>
+          sink(.
+            Start(
+              (. signal) =>
+                switch (signal) {
+                | Close when ! ended^ =>
+                  ended := true;
+                  f(.);
+                | Close => ()
+                | Pull => talkback(. Pull)
+                },
+            ),
+          )
+        | End =>
+          if (! ended^) {
+            ended := true;
+            sink(. signal);
+            f(.);
+          }
+        | _ => sink(. signal)
         }
-        | Close => ()
-        | Pull => talkback(.Pull)
-        }
-      }));
-    }
-    | End => {
-      if (!ended^) {
-        ended := true;
-        sink(.signal);
-        f(.);
-      }
-    }
-    | _ => sink(.signal)
-    };
-  });
-}));
+      );
+    })
+  );

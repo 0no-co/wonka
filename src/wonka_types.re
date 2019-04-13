@@ -31,28 +31,26 @@ type talkbackT =
   | Close;
 
 type signalT('a) =
-  | Start((.talkbackT) => unit)
+  | Start((. talkbackT) => unit)
   | Push('a)
   | End;
 
-type sinkT('a) = (.signalT('a)) => unit;
+type sinkT('a) = (. signalT('a)) => unit;
 type sourceT('a) = sinkT('a) => unit;
 
-type teardownT = (.unit) => unit;
+type teardownT = (. unit) => unit;
 
-type subscriptionT = {
-  unsubscribe: unit => unit
-};
+type subscriptionT = {unsubscribe: unit => unit};
 
 type observerT('a) = {
   next: 'a => unit,
-  complete: unit => unit
+  complete: unit => unit,
 };
 
 type subjectT('a) = {
   source: sourceT('a),
   next: 'a => unit,
-  complete: unit => unit
+  complete: unit => unit,
 };
 
 /* Sinks and sources need to explicitly be their own callbacks;
