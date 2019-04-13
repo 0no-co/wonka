@@ -1,21 +1,30 @@
 open Wonka_types;
 
-let fromPromise = promise => curry(sink => {
-  let ended = ref(false);
+let fromPromise = promise =>
+  curry(sink => {
+    let ended = ref(false);
 
-  ignore(Js.Promise.then_(value => {
-    if (!ended^) {
-      sink(.Push(value));
-      sink(.End);
-    };
+    ignore(
+      Js.Promise.then_(
+        value => {
+          if (! ended^) {
+            sink(. Push(value));
+            sink(. End);
+          };
 
-    Js.Promise.resolve(())
-  }, promise));
+          Js.Promise.resolve();
+        },
+        promise,
+      ),
+    );
 
-  sink(.Start((.signal) => {
-    switch (signal) {
-    | Close => ended := true
-    | _ => ()
-    }
-  }));
-});
+    sink(.
+      Start(
+        (. signal) =>
+          switch (signal) {
+          | Close => ended := true
+          | _ => ()
+          },
+      ),
+    );
+  });
