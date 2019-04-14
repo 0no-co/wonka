@@ -7,59 +7,52 @@
 
 const path = require('path');
 const fs = require('fs');
-const meow = require('meow');
-const ignore = require('ignore');
+const globby = require('globby');
 
 const { promisify } = require('util');
 const { compiler, beautify } = require('flowgen');
 
 const writeFile = promisify(fs.writeFile);
-const cwd = process.cwd();
 const preamble = '// @flow\n\n';
-const cli = meow();
-const ig = ignore();
 
-let input = cli.input.slice().map(x => path.relative(cwd, x));
+const gen = async () => {
+  const cwd = process.cwd();
 
-const gitignorePath = path.resolve(cwd, '.gitignore');
-
-let gitignoreContents;
-try {
-  gitignoreContents = fs.readFileSync(gitignorePath).toString();
-} catch (_error) {}
-
-if (gitignoreContents) {
-  console.log('Found gitignore file.');
-  ig.add(gitignoreContents);
-  input = ig.filter(input);
-}
-
-if (input.length === 0) {
-  console.error('No input files passed as arguments.');
-  process.exit(1);
-}
-
-console.log(`Compiling ${input.length} TS definitions to Flow...`);
-
-const defs = input.map(filename => {
-  const fullpath = path.resolve(cwd, filename);
-  const flowdef = beautify(compiler.compileDefinitionFile(fullpath));
-  return { fullpath, flowdef };
-});
-
-const write = defs.map(({ fullpath, flowdef }) => {
-  const basename = path.basename(fullpath, '.d.ts');
-  const filepath = path.dirname(fullpath);
-  const newpath = path.join(filepath, basename + '.js.flow');
-
-  return writeFile(newpath, preamble + flowdef, {
-    encoding: 'utf8'
+  const input = await globby([
+    'src/*.d.ts',
+    'src/**/*.d.ts'
+  ], {
+    gitignore: true
   });
-});
 
-Promise.all(write).then(() => {
+  if (input.length === 0) {
+    throw new Error('No input files passed as arguments.');
+  }
+
+  console.log(`Compiling ${input.length} TS definitions to Flow...`);
+
+  const defs = input.map(filename => {
+    const fullpath = path.resolve(cwd, filename);
+    const flowdef = beautify(compiler.compileDefinitionFile(fullpath));
+    return { fullpath, flowdef };
+  });
+
+  const write = defs.map(({ fullpath, flowdef }) => {
+    const basename = path.basename(fullpath, '.d.ts');
+    const filepath = path.dirname(fullpath);
+    const newpath = path.join(filepath, basename + '.js.flow');
+
+    return writeFile(newpath, preamble + flowdef, {
+      encoding: 'utf8'
+    });
+  });
+
+  return Promise.all(write);
+};
+
+gen().then(() => {
   process.exit(0);
 }).catch(err => {
-  console.error(err);
+  console.error(err.message);
   process.exit(1);
 });
