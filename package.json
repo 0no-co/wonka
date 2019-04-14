@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.6",
-    "bs-platform": "^4.0.17",
+    "bs-platform": "^5.0.2",
     "bundlesize": "^0.17.0",
     "coveralls": "^3.0.0",
     "flowgen": "^1.8.0",
