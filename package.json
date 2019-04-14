@@ -13,6 +13,7 @@
     "dist",
     "docs/*.md",
     "*.md",
+    "index.js.flow",
     "bsconfig.json"
   ],
   "scripts": {
@@ -27,9 +28,10 @@
     "terser": "run-p terser:es terser:cjs",
     "prettier": "prettier --write ./dist/*.js",
     "refmt": "bsrefmt --in-place **/**/*.{re,rei}",
-    "prebundle": "rimraf ./dist",
+    "flowgen": "./scripts/generate-flow-files.js ./src/{**/,}*.d.ts",
+    "prebundle": "rimraf ./dist ./src/{**/,}*.js.flow",
     "bundle": "microbundle --external none --no-compress --no-sourcemap --format es,cjs",
-    "postbundle": "run-s terser prettier",
+    "postbundle": "run-s terser prettier flowgen",
     "prebundlesize": "run-s bundle",
     "bundlesize": "bundlesize",
     "prepublishOnly": "run-s clean build bundle test"
@@ -56,8 +58,11 @@
     "bs-platform": "^4.0.17",
     "bundlesize": "^0.17.0",
     "coveralls": "^3.0.0",
+    "flowgen": "^1.8.0",
     "husky": "^1.3.1",
+    "ignore": "^5.1.0",
     "lint-staged": "^8.1.5",
+    "meow": "^5.0.0",
     "microbundle": "^0.9.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^1.15.3",

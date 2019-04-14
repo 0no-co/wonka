@@ -1,19 +1,10 @@
-// Reason Helper Types:
-
-interface ListNode<T> {
-  [0]: T,
-  [1]: 0 | List<T>
-}
-
-export type List<T> = ListNode<T> | 0;
-
-// Wonka Types:
+export type List<T> = [T, any] | 0;
 
 export type Talkback = 0 | 1;
 
 export type Signal<A> =
-  | { tag: 0, [0]: (talkback: Talkback) => void }
-  | { tag: 1, [0]: A }
+  | ({ tag: 0 } & [(talkback: Talkback) => void])
+  | ({ tag: 1 } & [A])
   | 0;
 
 export interface Sink<A> { (signal: Signal<A>): void; }
