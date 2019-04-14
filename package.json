@@ -26,7 +26,7 @@
     "terser:cjs": "terser --config-file .terser.config.json -o ./dist/wonka.js ./dist/wonka.js",
     "terser": "run-p terser:es terser:cjs",
     "prettier": "prettier --write ./dist/*.js",
-    "refmt": "bsrefmt --in-place **/**/*.re",
+    "refmt": "bsrefmt --in-place **/**/*.{re,rei}",
     "prebundle": "rimraf ./dist",
     "bundle": "microbundle --external none --no-compress --no-sourcemap --format es,cjs",
     "postbundle": "run-s terser prettier",
@@ -65,7 +65,7 @@
     "terser": "^3.14.1"
   },
   "lint-staged": {
-    "*.re": [
+    "*.{re, rei}": [
       "bsrefmt --in-place",
       "git add"
     ]
