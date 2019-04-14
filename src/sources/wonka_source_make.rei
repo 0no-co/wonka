@@ -1,3 +1,3 @@
 open Wonka_types;
 
-let make: ((.observerT('a)) => teardownT, sinkT('a)) => unit;
+let make: ((. observerT('a)) => teardownT, sinkT('a)) => unit;
