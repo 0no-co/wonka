@@ -65,6 +65,10 @@
     "terser": "^3.17.0"
   },
   "lint-staged": {
+    "*.d.ts": [
+      "prettier --write",
+      "git add"
+    ],
     "*.{re, rei}": [
       "bsrefmt --in-place",
       "git add"
@@ -76,6 +80,7 @@
     }
   },
   "prettier": {
+    "singleQuote": true,
     "printWidth": 100
   },
   "jest": {
