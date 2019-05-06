@@ -9,6 +9,7 @@
   "types": "./src/index.d.ts",
   "files": [
     "src",
+    "include",
     "lib/js",
     "dist",
     "docs/*.md",
