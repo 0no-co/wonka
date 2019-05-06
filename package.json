@@ -40,9 +40,7 @@
   "homepage": "https://github.com/kitten/wonka",
   "bugs": "https://github.com/kitten/wonka/issues",
   "license": "MIT",
-  "dependencies": {
-    "bs-rebel": "^0.2.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.8",
     "bs-platform": "^5.0.4",
@@ -83,11 +81,5 @@
     "testMatch": [
       "**/lib/js/__tests__/*_test.js"
     ]
-  },
-  "bundlesize": [
-    {
-      "path": "./dist/wonka.es.js",
-      "maxSize": "9 kB"
-    }
-  ]
+  }
 }

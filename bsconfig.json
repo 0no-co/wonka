@@ -1,5 +1,6 @@
 {
   "name": "wonka",
+  "namespace": true,
   "version": "0.1.0",
   "bsc-flags": ["-bs-super-errors", "-bs-no-version-header"],
   "refmt": 3,
@@ -32,15 +33,24 @@
       ]
     },
     {
+      "dir": "include",
+      "subdirs": [
+        {
+          "dir": "rebel_native"
+        },
+        {
+          "dir": "rebel_js",
+          "backend": ["js"]
+        }
+      ]
+    },
+    {
       "dir": "__tests__",
       "type": "dev"
     }
   ],
-  "bs-dependencies" : [
-    "bs-rebel"
-  ],
+  "bs-dependencies" : [],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"
-  ],
-  "namespace": false
+  ]
 }

@@ -30,6 +30,7 @@ dist/
 node_modules/
 lib/
 src/**/*.js
+include/**/*.js
 __tests__/**/*.js
 coverage/
 _esy/
