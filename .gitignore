@@ -31,6 +31,7 @@ dist/
 node_modules/
 lib/
 src/**/*.js
+src/**/*.js.flow
 include/**/*.js
 __tests__/**/*.js
 coverage/
