@@ -1,0 +1,6 @@
+opam-version: "1.2"
+version: "2.0.2"
+maintainer: "phil@kitten.sh"
+author: ["Phil Pluckthun"]
+synopsis: "A fast push & pull stream library"
+build: []

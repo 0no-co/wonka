@@ -14,7 +14,6 @@ type t('a) = array('a);
 [@bs.send] external copy: t('a) => t('a) = "slice";
 [@bs.send]
 external slice: (t('a), ~start: int, ~end_: int) => t('a) = "slice";
-[@bs.send] external sliceFrom: (t('a), int) => t('a) = "slice";
 [@bs.send] external append: (t('a), 'a) => t('a) = "concat";
 [@bs.send] external concat: (t('a), t('a)) => t('a) = "concat";
 
@@ -32,8 +31,6 @@ external slice: (t('a), ~start: int, ~end_: int) => t('a) = "slice";
 [@bs.send] external forEach: (t('a), 'a => unit) => unit = "forEach";
 [@bs.send] external forEachi: (t('a), ('a, int) => unit) => unit = "forEach";
 [@bs.send] external reduce: (t('a), ('b, 'a) => 'b, 'b) => 'b = "reduce";
-[@bs.send]
-external reducei: (t('a), ('b, 'a, int) => 'b, 'b) => 'b = "reduce";
 [@bs.send]
 external reduceRight: (t('a), ('b, 'a) => 'b, 'b) => 'b = "reduceRight";
 

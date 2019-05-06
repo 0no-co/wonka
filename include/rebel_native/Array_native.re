@@ -25,7 +25,6 @@ let slice = (arr: t('a), ~start: int, ~end_: int): t('a) => {
   Belt.Array.slice(arr, ~offset=start, ~len);
 };
 
-let sliceFrom = Belt.Array.sliceToEnd;
 let concat = Belt.Array.concat;
 
 let append = (arr: t('a), x: 'a) => Belt.Array.concat(arr, [|x|]);
@@ -105,13 +104,12 @@ let lastIndexOf = (arr: t('a), x: 'a): int => {
 
 let filteri = (arr: t('a), f: ('a, int) => bool): t('a) => {
   let len = size(arr);
-  let res = makeUninitialized(len);
+  let res: t('a) = copy(arr);
   let j = ref(-1);
 
   let rec filter = (i: int) =>
     if (i >= len) {
-      Belt.Array.truncateToLengthUnsafe(res, j^ + 1);
-      res;
+      Array.sub(res, 0, j^ + 1);
     } else {
       let x = getUnsafe(arr, i);
       if (f(x, i)) {
@@ -128,7 +126,7 @@ let filteri = (arr: t('a), f: ('a, int) => bool): t('a) => {
 let removeCount = (arr: t('a), ~pos: int, ~count: int): t('a) => {
   let len = size(arr);
   let pos2 = pos + count - 1;
-  let res = makeUninitialized(len - count);
+  let res = Array.sub(arr, 0, len - count);
 
   let rec copy = (i: int) =>
     if (i >= len) {
@@ -164,7 +162,5 @@ let forEachi = (arr: t('a), f: ('a, int) => unit): unit =>
   Belt.Array.forEachWithIndexU(arr, (. i, x) => f(x, i));
 let reduce = (arr: t('a), reducer: ('b, 'a) => 'b, acc: 'b): 'b =>
   Belt.Array.reduce(arr, acc, reducer);
-let reducei = (arr: t('a), reducer: ('b, 'a, int) => 'b, acc: 'b): 'b =>
-  Belt.Array.reduceWithIndex(arr, acc, reducer);
 let reduceRight = (arr: t('a), reducer: ('b, 'a) => 'b, acc: 'b): 'b =>
   Belt.Array.reduceReverse(arr, acc, reducer);
