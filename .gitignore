@@ -21,6 +21,7 @@
 lib/bs
 *.mlast
 *.mliast
+*.install
 .vscode
 .merlin
 .bsb.lock
@@ -31,8 +32,10 @@ node_modules/
 lib/
 src/**/*.js
 src/**/*.js.flow
+include/**/*.js
 __tests__/**/*.js
 coverage/
+_esy/
 
 !src/index.js
 !src/pipe.js

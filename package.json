@@ -1,6 +1,6 @@
 {
   "name": "wonka",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "Phil Pluckthun <phil@kitten.sh>",
   "source": "./src/index.js",
   "main": "./dist/wonka.js",
@@ -23,18 +23,10 @@
     "test": "jest",
     "coverage": "jest -c ./.jest.coverage.json --coverage",
     "test:watch": "jest --watch",
-    "terser:es": "terser --config-file .terser.config.json --module -o ./dist/wonka.es.js ./dist/wonka.es.js",
-    "terser:cjs": "terser --config-file .terser.config.json -o ./dist/wonka.js ./dist/wonka.js",
-    "terser": "run-p terser:es terser:cjs",
-    "prettier": "prettier --write ./dist/*.js",
     "refmt": "bsrefmt --in-place **/**/*.{re,rei}",
     "flowgen": "./scripts/generate-flow-files.js",
-    "prebundle": "rimraf ./dist ./src/**/*.js.flow ./src/*.js.flow",
-    "bundle": "microbundle --external none --no-compress --no-sourcemap --format es,cjs",
-    "postbundle": "run-s terser prettier flowgen",
-    "prebundlesize": "run-s bundle",
-    "bundlesize": "bundlesize",
-    "prepublishOnly": "run-s clean build bundle test"
+    "bundle": "rollup -c rollup.config.js",
+    "prepublishOnly": "run-s clean build bundle flowgen test"
   },
   "keywords": [
     "wonka",
@@ -50,26 +42,29 @@
   "homepage": "https://github.com/kitten/wonka",
   "bugs": "https://github.com/kitten/wonka/issues",
   "license": "MIT",
-  "dependencies": {
-    "bs-rebel": "^0.2.3"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@glennsl/bs-jest": "^0.4.6",
-    "bs-platform": "^5.0.2",
-    "bundlesize": "^0.17.0",
-    "coveralls": "^3.0.0",
+    "@glennsl/bs-jest": "^0.4.8",
+    "bs-platform": "^5.0.4",
     "flowgen": "^1.8.0",
     "globby": "^9.2.0",
     "husky": "^1.3.1",
-    "lint-staged": "^8.1.5",
-    "microbundle": "^0.9.0",
+    "lint-staged": "^8.1.6",
     "npm-run-all": "^4.1.5",
-    "prettier": "^1.15.3",
-    "rimraf": "^2.6.3",
-    "terser": "^3.14.1"
+    "prettier": "^1.17.0",
+    "rollup": "^1.11.3",
+    "rollup-plugin-buble": "^0.19.6",
+    "rollup-plugin-commonjs": "^9.3.4",
+    "rollup-plugin-node-resolve": "^4.2.3",
+    "rollup-plugin-prettier": "^0.6.0",
+    "rollup-plugin-terser": "^4.0.4"
   },
   "lint-staged": {
-    "*.{re, rei}": [
+    "*.{d.ts,js}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{re,rei}": [
       "bsrefmt --in-place",
       "git add"
     ]
@@ -80,6 +75,7 @@
     }
   },
   "prettier": {
+    "singleQuote": true,
     "printWidth": 100
   },
   "jest": {
@@ -89,11 +85,5 @@
     "testMatch": [
       "**/lib/js/__tests__/*_test.js"
     ]
-  },
-  "bundlesize": [
-    {
-      "path": "./dist/wonka.es.js",
-      "maxSize": "9 kB"
-    }
-  ]
+  }
 }
