@@ -1945,4 +1945,25 @@ describe("web operators", () => {
       expect(signals) == [|Push(1), Push(3), Push(5), End|];
     });
   });
+
+  describe("toPromise", () => {
+    open Expect;
+    open! Expect.Operators;
+
+    testPromise("should convert a source to a Promise", () => {
+      let a = Wonka.fromValue(1);
+
+      a
+      |> WonkaJs.toPromise
+      |> Js.Promise.then_(x => expect(x) |> toEqual(1) |> Js.Promise.resolve);
+    });
+
+    testPromise("should resolve only the last emitted value from a source", () => {
+      let a = Wonka.fromList([1, 2, 3]);
+
+      a
+      |> WonkaJs.toPromise
+      |> Js.Promise.then_(x => expect(x) |> toEqual(3) |> Js.Promise.resolve);
+    });
+  });
 });
