@@ -12,16 +12,27 @@ const globby = require('globby');
 const { promisify } = require('util');
 const { compiler, beautify } = require('flowgen');
 
+const cwd = process.cwd();
 const writeFile = promisify(fs.writeFile);
+const readFile = promisify(fs.readFile);
 const preamble = '// @flow\n\n';
 
-const gen = async () => {
-  const cwd = process.cwd();
+const genEntry = async () => {
+  let entry = await readFile(path.resolve(cwd, 'index.js.flow'), { encoding: 'utf8' });
 
-  const input = await globby([
-    'src/*.d.ts',
-    'src/**/*.d.ts'
-  ], {
+  entry = entry.replace(/.\/src/g, '../src');
+
+  const outputCJS = path.resolve(cwd, 'dist/wonka.js.flow');
+  const outputES = path.resolve(cwd, 'dist/wonka.es.js.flow');
+
+  return Promise.all([
+    writeFile(outputCJS, entry, { encoding: 'utf8' }),
+    writeFile(outputES, entry, { encoding: 'utf8' })
+  ]);
+};
+
+const gen = async () => {
+  const input = await globby(['src/*.d.ts', 'src/**/*.d.ts'], {
     gitignore: true
   });
 
@@ -42,17 +53,22 @@ const gen = async () => {
     const filepath = path.dirname(fullpath);
     const newpath = path.join(filepath, basename + '.js.flow');
 
-    return writeFile(newpath, preamble + flowdef, {
+    // Fix incorrect imports
+    const fixedFlowdef = flowdef.replace(/^import \{/g, 'import type {');
+
+    return writeFile(newpath, preamble + fixedFlowdef, {
       encoding: 'utf8'
     });
   });
 
-  return Promise.all(write);
+  return Promise.all([...write, genEntry()]);
 };
 
-gen().then(() => {
-  process.exit(0);
-}).catch(err => {
-  console.error(err.message);
-  process.exit(1);
-});
+gen()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error(err.message);
+    process.exit(1);
+  });
