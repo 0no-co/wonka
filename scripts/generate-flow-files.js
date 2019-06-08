@@ -18,6 +18,14 @@ const readFile = promisify(fs.readFile);
 const preamble = '// @flow\n\n';
 
 const genEntry = async () => {
+  try {
+    fs.mkdirSync(path.resolve(cwd, 'dist'));
+  } catch (err) {
+    if (err.code !== 'EEXIST') {
+      throw err;
+    }
+  }
+
   let entry = await readFile(path.resolve(cwd, 'index.js.flow'), { encoding: 'utf8' });
 
   entry = entry.replace(/.\/src/g, '../src');
