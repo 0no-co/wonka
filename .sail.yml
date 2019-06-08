@@ -1,0 +1,47 @@
+workflow:
+  - install
+  - build
+  - sail:parallel:
+    - test
+    - bundle
+    - flowgen
+tasks:
+  install:
+    image: node:10
+    command:
+      - yarn
+    args:
+      - install
+      - --frozen-lockfile
+  build:
+    image: node:10
+    command:
+      - yarn
+    args:
+      - run
+      - build
+  bundle:
+    image: node:10
+    command:
+      - yarn
+    args:
+      - run
+      - bundle
+  test:
+    image: node:10
+    env:
+      - CODECOV_TOKEN
+    command:
+      - yarn
+    args:
+      - run
+      - run-s
+      - coverage
+      - codecov
+  flowgen:
+    image: node:10
+    command:
+      - yarn
+    args:
+      - run
+      - flowgen

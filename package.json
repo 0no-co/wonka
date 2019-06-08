@@ -27,7 +27,8 @@
     "refmt": "bsrefmt --in-place **/**/*.{re,rei}",
     "flowgen": "./scripts/generate-flow-files.js",
     "bundle": "rollup -c rollup.config.js",
-    "prepublishOnly": "run-s clean build bundle flowgen test"
+    "prepublishOnly": "run-s clean build bundle flowgen test",
+    "codecov": "codecov"
   },
   "keywords": [
     "wonka",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.8",
     "bs-platform": "^5.0.4",
+    "codecov": "^3.5.0",
     "flowgen": "^1.8.0",
     "globby": "^9.2.0",
     "husky": "^1.3.1",
