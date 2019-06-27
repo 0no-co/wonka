@@ -5968,13 +5968,6 @@ gatsby-plugin-react-helmet@^3.1.0:
   dependencies:
     "@babel/runtime" "^7.0.0"
 
-gatsby-plugin-remove-trailing-slashes@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/gatsby-plugin-remove-trailing-slashes/-/gatsby-plugin-remove-trailing-slashes-2.1.0.tgz#4f0d2cec9dd45f2bbfd71dc5d79eccc7ba67b3ad"
-  integrity sha512-loOVqen2bdc2eeC3nnB6zuqEckItHOoIcSXiUuTMLwWWTbhmxSKKGBux+2wMkfdxWlzP0Bnxur1MOpaz9FMN2w==
-  dependencies:
-    "@babel/runtime" "^7.0.0"
-
 gatsby-plugin-sharp@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/gatsby-plugin-sharp/-/gatsby-plugin-sharp-2.2.1.tgz#a2c91e39cf33a958c108f44b71cc01a3a506c63b"
@@ -6108,10 +6101,10 @@ gatsby-telemetry@^1.1.1:
     stack-utils "1.0.2"
     uuid "3.3.2"
 
-gatsby-theme-docs-system@^0.1.9:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/gatsby-theme-docs-system/-/gatsby-theme-docs-system-0.1.9.tgz#7154225e05480027c93fb42ea07a130f1ade49a7"
-  integrity sha512-mlyz6TD7YcylF+7t+jMPYc5QA3xQXHMknt95WGCfYb6Eg/RqPizjfIDbQXwC7w7hBjd2olIXHBzQBiB7Z261WA==
+gatsby-theme-docs-system@^0.1.10:
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/gatsby-theme-docs-system/-/gatsby-theme-docs-system-0.1.10.tgz#00b778ff014f5561dbb1e7999c4476ba08bb300a"
+  integrity sha512-xePDH3fvez7Zl83ZMnpc0erTgZqMY1bzT3DtMNWVoaJVgcMqSqDCA+4cFr3EQ4mLlQI8Ulk8/MpqHhVFS0u1xg==
   dependencies:
     "@mdx-js/mdx" "^1.0.21"
     "@mdx-js/react" "^1.0.21"
@@ -6125,7 +6118,6 @@ gatsby-theme-docs-system@^0.1.9:
     gatsby-plugin-nprogress "^2.1.0"
     gatsby-plugin-page-creator "^2.1.1"
     gatsby-plugin-react-helmet "^3.1.0"
-    gatsby-plugin-remove-trailing-slashes "^2.1.0"
     gatsby-plugin-sharp "^2.2.1"
     gatsby-plugin-sitemap "^2.2.0"
     gatsby-plugin-styled-components "^3.1.0"
