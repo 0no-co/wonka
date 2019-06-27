@@ -25,6 +25,7 @@ lib/bs
 .vscode
 .merlin
 .bsb.lock
+.cache/
 
 yarn-error.log
 dist/
@@ -36,6 +37,7 @@ include/**/*.js
 __tests__/**/*.js
 coverage/
 _esy/
+public/
 
 !src/index.js
 !src/pipe.js
