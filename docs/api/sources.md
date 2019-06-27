@@ -101,6 +101,37 @@ const source = make(observer => {
 });
 ```
 
+## makeSubject
+
+`makeSubject` can be used to create a subject. This is similar to [`make`](#make) without
+having to define a source function. Instead a subject is a tuple of a source and
+the observer's `next` and `complete` functions combined.
+
+A subject can be very useful as a full event emitter. It allows you to pass a source
+around but also have access to the observer functions to emit events away from
+the source itself.
+
+```reason
+let subject = Wonka.makeSubject();
+let (source, next, complete) = subject;
+
+/* This will push the values synchronously to any subscribers of source */
+next(1);
+next(2);
+next(complete);
+```
+
+```typescript
+import { makeSubject } from 'wonka'
+const subject = Wonka.makeSubject();
+const [source, next, complete] = subject;
+
+/* This will push the values synchronously to any subscribers of source */
+next(1);
+next(2);
+next(complete);
+```
+
 ## fromDomEvent
 
 `fromDomEvent` will turn a DOM event into a Wonka source, emitting the DOM events
@@ -127,5 +158,53 @@ const element = document.getElementById('root');
 pipe(
   fromDomEvent(element, 'click'),
   subscribe(e => console.log(e))
+);
+```
+
+## empty
+
+This is a source that doesn't emit any values when subscribed to and
+immediately completes.
+
+```reason
+Wonka.empty
+  |> Wonka.forEach((. value) => {
+    /* This will never be called */
+    ()
+  });
+```
+
+```typescript
+import { pipe, empty, forEach } from 'wonka';
+
+pipe(
+  empty,
+  forEach(value => {
+    /* This will never be called */
+  })
+);
+```
+
+## never
+
+This is source is similar to [`empty`](#empty).
+It doesn't emit any values but also never completes.
+
+```reason
+Wonka.never
+  |> Wonka.forEach((. value) => {
+    /* This will never be called */
+    ()
+  });
+```
+
+```typescript
+import { pipe, never, forEach } from 'wonka';
+
+pipe(
+  never,
+  forEach(value => {
+    /* This will never be called */
+  })
 );
 ```
