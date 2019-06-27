@@ -1,5 +1,6 @@
 {
   "name": "wonka",
+  "description": "A fast push & pull stream library for Reason, OCaml, and TypeScript",
   "version": "3.0.0",
   "author": "Phil Pluckthun <phil@kitten.sh>",
   "source": "./src/index.js",
@@ -18,6 +19,8 @@
     "bsconfig.json"
   ],
   "scripts": {
+    "docs:dev": "gatsby develop",
+    "docs:build": "gatsby build",
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
@@ -51,7 +54,8 @@
     "codecov": "^3.5.0",
     "flowgen": "^1.8.0",
     "gatsby": "^2.11.0",
-    "gatsby-theme-docs-system": "^0.1.2",
+    "gatsby-plugin-netlify": "^2.1.0",
+    "gatsby-theme-docs-system": "^0.1.3",
     "globby": "^9.2.0",
     "husky": "^1.3.1",
     "lint-staged": "^8.1.6",

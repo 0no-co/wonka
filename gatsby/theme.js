@@ -29,7 +29,7 @@ export const colors = {
   fg: '#36313d',
   fgHeading: '#000000',
   fgPassive: '#78757a',
-  fgActive: '#8a4baf'
+  fgActive: '#f5735f'
 };
 
 export const prismTheme = nightOwlLight;
