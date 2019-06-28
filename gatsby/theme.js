@@ -38,8 +38,8 @@ export const fontWeights = ['300', '400', '500', '700', '800'];
 export const letterSpacings = ['normal', '0.01em', '0.05em', '0.1em'];
 export const borderWidths = ['1px', '0.1rem', '0.25rem'];
 export const space = [0, 4, 8, 16, 32, 64];
-export const sizes = [0, 64, 260, 430, 540, 760, 870, 980];
-export const breakpoints = ['50em', '55em', '64em'];
+export const sizes = [0, 64, 260, 430, 540, 650, 870, 980];
+export const breakpoints = ['55em', '70em'];
 export const radii = [4, 8, 16];
 export const zIndices = [0, 1, 2, 3];
 
