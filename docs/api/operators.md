@@ -213,6 +213,43 @@ pipe(
 // Prints 1 2 3 4 5 6 "Done" to the console.
 ```
 
+## onPush
+
+Run a callback on each `Push` signal dispatched by the sink to the source.
+
+```reason
+open Wonka;
+open Wonka_sources;
+open Wonka_operators;
+open Wonka_sinks;
+
+let source = fromArray([|1, 2, 3, 4, 5, 6|]);
+
+source
+|> onPush((. _val) => print_string({j|Push $_val|j}))
+|> subscribe((. _val) => print_int(_val));
+
+/* Prints Push 1 1 Push 2 2 Push 3 3 Push 4 4 Push 5 5 Push 6 6 to the console. */
+```
+
+```typescript
+import { fromArray, pipe, onPush, subscribe } from 'wonka';
+
+const source = fromArray([1, 2, 3, 4, 5, 6]);
+
+pipe(
+  source,
+  onPush(val => {
+    console.log(`Push ${val}`);
+  }),
+  subscribe(val => {
+    console.log(val);
+  })
+);
+
+// Prints Push 1 1 Push 2 2 Push 3 3 Push 4 4 Push 5 5 Push 6 6 to the console.
+```
+
 ## scan
 
 Accumulate emitted values of a source in a accumulator, similar to JavaScript `reduce`.
