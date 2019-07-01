@@ -180,42 +180,68 @@ pipe(
 
 ## onEnd
 
-Run a callback _after_ all values have been emitted by the source.
+Run a callback when the `End` signal has been sent to the sink by the source, whether by way of the talkback passing the `End` signal or the source being exhausted of values.
 
 ```reason
 open Wonka;
-open Wonka_sources;
 open Wonka_operators;
 open Wonka_sinks;
+open WonkaJs;
 
-let source = fromArray([|1, 2, 3, 4, 5, 6|]);
+let promiseOne =
+  Js.Promise.make((~resolve, ~reject as _) =>
+    Js.Global.setTimeout(() => resolve(. "ResolveOne"), 1000) |> ignore
+  );
+
+let promiseTwo =
+  Js.Promise.make((~resolve, ~reject as _) =>
+    Js.Global.setTimeout(() => resolve(. "ResolveTwo"), 2000) |> ignore
+  );
+
+let sourceOne = fromPromise(promiseOne);
+let sourceTwo = fromPromise(promiseTwo);
+let source = concat([|sourceOne, sourceTwo|]);
 
 source
-|> onEnd((.) => print_string("Done"))
-|> subscribe((. _val) => print_int(_val));
-
-/* Prints 1 2 3 4 5 6 "Done" to the console. */
+|> onEnd((.) => print_endline("onEnd"))
+|> subscribe((. _val) => print_endline(_val));
+/* Logs ResolveOne after one second, then ResolveTwo after an additional second, then onEnd immediately. */
 ```
 
 ```typescript
-import { fromArray, pipe, onEnd, subscribe } from 'wonka';
+import { fromPromise, pipe, concat, onEnd, subscribe } from 'wonka';
 
-const source = fromArray([1, 2, 3, 4, 5, 6]);
+const promiseOne = new Promise(resolve => {
+  setTimeout(() => {
+    resolve('ResolveOne');
+  }, 1000);
+});
+const promiseTwo = new Promise(resolve => {
+  setTimeout(() => {
+    resolve('ResolveTwo');
+  }, 2000);
+});
+
+const sourceOne = fromPromise(promiseOne);
+const sourceTwo = fromPromise(promiseTwo);
+const source = concat([sourceOne, sourceTwo]);
 
 pipe(
   source,
-  onEnd(() => console.log('Done')),
+  onEnd(() => {
+    console.log('onEnd');
+  }),
   subscribe(val => {
     console.log(val);
   })
 );
 
-// Prints 1 2 3 4 5 6 "Done" to the console.
+// Logs ResolveOne after one second, then ResolveTwo after an additional second, then onEnd immediately.
 ```
 
 ## onPush
 
-Run a callback on each `Push` signal dispatched by the sink to the source.
+Run a callback on each `Push` signal sent to the sink by the source.
 
 ```reason
 open Wonka;
@@ -250,6 +276,56 @@ pipe(
 // Prints Push 1 1 Push 2 2 Push 3 3 Push 4 4 Push 5 5 Push 6 6 to the console.
 ```
 
+## onStart
+
+Run a callback when the `Start` signal is sent to the sink by the source.
+
+```reason
+open Wonka;
+open Wonka_operators;
+open Wonka_sinks;
+open WonkaJs;
+
+let promise =
+  Js.Promise.make((~resolve, ~reject as _) =>
+    Js.Global.setTimeout(() => resolve(. "Resolve"), 1000) |> ignore
+  );
+
+let source = fromPromise(promise);
+
+source
+|> onStart((.) => print_endline("onStart"))
+|> subscribe((. _val) => print_endline(_val));
+
+/* Logs onStart to the console, pauses for one second to allow the timeout to finish,
+then logs "Resolve" to the console. */
+```
+
+```typescript
+import { pipe, onStart, fromPromise, subscribe } from 'wonka';
+
+const promise = new Promise(resolve => {
+  setTimeout(() => {
+    resolve('Resolve');
+  }, 1000);
+});
+
+const source = fromPromise(promise);
+
+pipe(
+  source,
+  onStart(() => {
+    console.log('onStart');
+  }),
+  subscribe(val => {
+    console.log(val);
+  })
+);
+
+// Logs onStart to the console, pauses for one second to allow the timeout to finish,
+// then logs "Resolve" to the console.
+```
+
 ## scan
 
 Accumulate emitted values of a source in a accumulator, similar to JavaScript `reduce`.
@@ -282,4 +358,35 @@ pipe(
 );
 
 // Prints 1 3 6 10 15 21 to the console.
+```
+
+## skip
+
+`skip` the specified number of emissions from the source.
+
+```reason
+open Wonka;
+open Wonka_sources;
+open Wonka_operators;
+open Wonka_sinks;
+
+let source = fromArray([|1, 2, 3, 4, 5, 6|]);
+
+source |> skip(2) |> subscribe((. _val) => print_int(_val));
+
+/* Prints 3 4 5 6 to the console, since the first two emissions from the source were skipped.
+```
+
+```typescript
+import { fromArray, pipe, skip, subscribe } from 'wonka';
+
+const source = fromArray([1, 2, 3, 4, 5, 6]);
+
+pipe(
+  source,
+  skip(2),
+  subscribe(val => {
+    console.log(val);
+  })
+);
 ```
