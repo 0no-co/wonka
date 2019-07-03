@@ -10,16 +10,11 @@ Operators in Wonka allow you to transform values from a source before they are s
 `combine` two sources together to a single source. The emitted value will be a combination of the two sources, with all values from the first source being emitted with the first value of the second source _before_ values of the second source are emitted.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
+let sourceOne = Wonka.fromArray([|1, 2, 3|]);
+let sourceTwo = Wonka.fromArray([|4, 5, 6|]);
 
-let sourceOne = fromArray([|1, 2, 3|]);
-let sourceTwo = fromArray([|4, 5, 6|]);
-
-combine(sourceOne, sourceTwo)
-  |> subscribe((. (_valOne, _valTwo)) => print_int(_valOne + _valTwo));
+Wonka.combine(sourceOne, sourceTwo)
+  |> Wonka.subscribe((. (_valOne, _valTwo)) => print_int(_valOne + _valTwo));
 
 /* Prints 56789 (1+4, 2+4, 3+4, 3+5, 3+6) to the console. */
 ```
@@ -45,15 +40,10 @@ pipe(
 `concat` will combine two sources together, subscribing to the next source after the previous source completes.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
+let sourceOne = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
+let sourceTwo = Wonka.fromArray([|6, 5, 4, 3, 2, 1|]);
 
-let sourceOne = fromArray([|1, 2, 3, 4, 5, 6|]);
-let sourceTwo = fromArray([|6, 5, 4, 3, 2, 1|]);
-
-concat([|sourceOne, sourceTwo|]) |> subscribe((. _val) => print_int(_val));
+Wonka.concat([|sourceOne, sourceTwo|]) |> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Prints 1 2 3 4 5 6 6 5 4 3 2 1 to the console. */
 ```
@@ -74,20 +64,52 @@ pipe(
 // Prints 1 2 3 4 5 6 6 5 4 3 2 1 to the console.
 ```
 
+## concatMap
+
+`concatMap` allows you to map values of an outer source to an inner source. The sink will not dispatch the `Pull` signal until the previous value has been emitted. This is in contrast to `mergeMap`, which will dispatch the `Pull` signal for new values even if the previous value has not yet been emitted.
+
+```reason
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
+
+source
+|> Wonka.concatMap((. _val) =>
+     Wonka.delay(_val * 1000, Wonka.fromValue(_val))
+   )
+|> Wonka.subscribe((. _val) => print_int(_val));
+
+/* After 1s, 1 will be emitted. After an additional 2s, 2 will be emitted.
+After an additional 3s, 3 will be emitted. After an additional 4s, 4 will be emitted.
+After an additional 5s, 5 will be emitted. After an additional 6s, 6 will be emitted. */
+```
+
+```typescript
+import { fromArray, pipe, concatMap, delay, fromValue, subscribe } from 'wonka';
+
+const source = fromArray([1, 2, 3, 4, 5, 6]);
+
+pipe(
+  source,
+  concatMap(val => {
+    return pipe(
+      fromValue(val),
+      delay(val * 1000)
+    );
+  }),
+  subscribe(val => {
+    console.log(val);
+  })
+);
+```
+
 ## filter
 
 `filter` will remove values from a source by passing them through an iteratee that returns a `bool`.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
-
-let source = fromArray([|1, 2, 3, 4, 5, 6|]);
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
 let isEven = (. n) => n mod 2 === 0;
 
-source |> filter(isEven) |> subscribe((. _val) => print_int(_val));
+source |> Wonka.filter(isEven) |> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Prints 246 to the console. */
 ```
@@ -114,15 +136,10 @@ pipe(
 `map` will transform values from a source by passing them through an iteratee that returns a new value.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
-
-let source = fromArray([|1, 2, 3, 4, 5, 6|]);
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
 let square = (. n) => n * n;
 
-source |> map(square) |> subscribe((. _val) => print_int(_val));
+source |> Wonka.map(square) |> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Prints 1 4 9 16 25 36 to the console. */
 ```
@@ -149,15 +166,10 @@ pipe(
 `merge` two sources together into a single source.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
+let sourceA = Wonka.fromArray([|1, 2, 3|]);
+let sourceB = Wonka.fromArray([|4, 5, 6|]);
 
-let sourceA = fromArray([|1, 2, 3|]);
-let sourceB = fromArray([|4, 5, 6|]);
-
-merge([|sourceA, sourceB|]) |> subscribe((. _val) => print_int(_val));
+Wonka.merge([|sourceA, sourceB|]) |> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Prints 1 2 3 4 5 6 to the console.
 ```
@@ -183,11 +195,6 @@ pipe(
 Run a callback when the `End` signal has been sent to the sink by the source, whether by way of the talkback passing the `End` signal or the source being exhausted of values.
 
 ```reason
-open Wonka;
-open Wonka_operators;
-open Wonka_sinks;
-open WonkaJs;
-
 let promiseOne =
   Js.Promise.make((~resolve, ~reject as _) =>
     Js.Global.setTimeout(() => resolve(. "ResolveOne"), 1000) |> ignore
@@ -198,13 +205,14 @@ let promiseTwo =
     Js.Global.setTimeout(() => resolve(. "ResolveTwo"), 2000) |> ignore
   );
 
-let sourceOne = fromPromise(promiseOne);
-let sourceTwo = fromPromise(promiseTwo);
-let source = concat([|sourceOne, sourceTwo|]);
+let sourceOne = Wonka.fromPromise(promiseOne);
+let sourceTwo = Wonka.fromPromise(promiseTwo);
+let source = Wonka.concat([|sourceOne, sourceTwo|]);
 
 source
-|> onEnd((.) => print_endline("onEnd"))
-|> subscribe((. _val) => print_endline(_val));
+|> Wonka.onEnd((.) => print_endline("onEnd"))
+|> Wonka.subscribe((. _val) => print_endline(_val));
+
 /* Logs ResolveOne after one second, then ResolveTwo after an additional second, then onEnd immediately. */
 ```
 
@@ -244,16 +252,11 @@ pipe(
 Run a callback on each `Push` signal sent to the sink by the source.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
 
-let source = fromArray([|1, 2, 3, 4, 5, 6|]);
-
-source
-|> onPush((. _val) => print_string({j|Push $_val|j}))
-|> subscribe((. _val) => print_int(_val));
+Wonka.source
+|> Wonka.onPush((. _val) => print_string({j|Push $_val|j}))
+|> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Prints Push 1 1 Push 2 2 Push 3 3 Push 4 4 Push 5 5 Push 6 6 to the console. */
 ```
@@ -281,21 +284,16 @@ pipe(
 Run a callback when the `Start` signal is sent to the sink by the source.
 
 ```reason
-open Wonka;
-open Wonka_operators;
-open Wonka_sinks;
-open WonkaJs;
-
 let promise =
   Js.Promise.make((~resolve, ~reject as _) =>
     Js.Global.setTimeout(() => resolve(. "Resolve"), 1000) |> ignore
   );
 
-let source = fromPromise(promise);
+let source = Wonka.fromPromise(promise);
 
 source
-|> onStart((.) => print_endline("onStart"))
-|> subscribe((. _val) => print_endline(_val));
+|> Wonka.onStart((.) => print_endline("onStart"))
+|> Wonka.subscribe((. _val) => print_endline(_val));
 
 /* Logs onStart to the console, pauses for one second to allow the timeout to finish,
 then logs "Resolve" to the console. */
@@ -331,16 +329,11 @@ pipe(
 Accumulate emitted values of a source in a accumulator, similar to JavaScript `reduce`.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
-
-let source = fromArray([|1, 2, 3, 4, 5, 6|]);
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
 
 source
-|> scan((. acc, x) => acc + x, 0)
-|> subscribe((. _val) => print_int(_val));
+|> Wonka.scan((. acc, x) => acc + x, 0)
+|> Wonka.subscribe((. _val) => print_int(_val));
 /* Prints 1 3 6 10 15 21 to the console. */
 ```
 
@@ -365,14 +358,9 @@ pipe(
 `skip` the specified number of emissions from the source.
 
 ```reason
-open Wonka;
-open Wonka_sources;
-open Wonka_operators;
-open Wonka_sinks;
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
 
-let source = fromArray([|1, 2, 3, 4, 5, 6|]);
-
-source |> skip(2) |> subscribe((. _val) => print_int(_val));
+source |> Wonka.skip(2) |> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Prints 3 4 5 6 to the console, since the first two emissions from the source were skipped.
 ```
@@ -396,15 +384,10 @@ pipe(
 Skip emissions from an outer source until an inner source (notifier) emits.
 
 ```reason
-open Wonka;
-open Wonka_operators;
-open Wonka_sinks;
-open WonkaJs;
+let source = Wonka.interval(100);
+let notifier = Wonka.interval(500);
 
-let source = interval(100);
-let notifier = interval(500);
-
-source |> skipUntil(notifier) |> subscribe((. _val) => print_int(_val));
+source |> Wonka.skipUntil(notifier) |> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Skips all values emitted by source (0, 1, 2, 3) until notifier emits at 500ms.
 Then logs 4 5 6 7 8 9 10... to the console every 500ms. */
@@ -433,16 +416,11 @@ pipe(
 Skip values emitted from the source while they return `true` for the provided predicate function.
 
 ```reason
-open Wonka;
-open Wonka_operators;
-open Wonka_sources;
-open Wonka_sinks;
-
-let source = fromArray([|1, 2, 3, 4, 5, 6|]);
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
 
 source
-|> skipWhile((. _val) => _val < 5)
-|> subscribe((. _val) => print_int(_val));
+|> Wonka.skipWhile((. _val) => _val < 5)
+|> Wonka.subscribe((. _val) => print_int(_val));
 
 /* Prints 5 6 to the console, as 1 2 3 4 all return true for the predicate function. */
 ```
@@ -461,4 +439,124 @@ pipe(
 );
 
 // Prints 5 6 to the console, as 1 2 3 4 all return true for the predicate function.
+```
+
+## take
+
+`take` only a specified number of emissions from the source before completing. `take` is the opposite of `skip`.
+
+```reason
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
+
+source |> Wonka.take(3) |> Wonka.subscribe((. _val) => print_int(_val));
+
+/* Prints 1 2 3 to the console. */
+```
+
+```typescript
+import { fromArray, pipe, take, subscribe } from 'wonka';
+
+const source = fromArray([1, 2, 3, 4, 5, 6]);
+
+pipe(
+  source,
+  take(3),
+  subscribe(val => {
+    console.log(val);
+  })
+);
+
+// Prints 1 2 3 to the console.
+```
+
+## takeLast
+
+`takeLast` will take only the last n emissions from the source.
+
+```reason
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
+
+source |> Wonka.takeLast(3) |> Wonka.subscribe((. _val) => print_int(_val));
+
+/* Prints 4 5 6 to the console. */
+```
+
+```typescript
+import { fromArray, pipe, takeLast, subscribe } from 'wonka';
+
+const source = fromArray([1, 2, 3, 4, 5, 6]);
+
+pipe(
+  source,
+  takeLast(3),
+  subscribe(val => {
+    console.log(val);
+  })
+);
+
+// Prints 4 5 6 to the console.
+```
+
+## takeUntil
+
+Take emissions from an outer source until an inner source (notifier) emits.
+
+```reason
+let source = Wonka.interval(100);
+let notifier = Wonka.interval(500);
+
+source
+|> Wonka.takeUntil(notifier)
+|> Wonka.subscribe((. _val) => print_int(_val));
+
+/* Pauses 100ms, prints 0, pauses 100ms, prints 1, pauses 100ms, prints 2, pauses 100ms,
+prints 3, pauses 100, then completes (notifier emits). */
+```
+
+```typescript
+import { interval, pipe, takeUntil, subscribe } from 'wonka';
+
+const source = interval(100);
+const notifier = interval(500);
+
+pipe(
+  source,
+  takeUntil(notifier),
+  subscribe(val => {
+    console.log(val);
+  })
+);
+
+// Pauses 100ms, prints 0, pauses 100ms, prints 1, pauses 100ms, prints 2, pauses 100ms,
+// prints 3, pauses 100, then completes (notifier emits).
+```
+
+## takeWhile
+
+Take emissions from the stream while they return `true` for the provided predicate function. If the first emission does not return `true`, no values will be `Push`ed to the sink.
+
+```reason
+let source = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
+
+source
+|> Wonka.takeWhile((. _val) => _val < 5)
+|> Wonka.subscribe((. _val) => print_int(_val));
+
+/* Prints 1 2 3 4 to the console. */
+```
+
+```typescript
+import { pipe, fromArray, takeWhile, subscribe } from 'wonka';
+
+const source = fromArray([1, 2, 3, 4, 5, 6]);
+
+pipe(
+  source,
+  takeWhile(val => val < 5),
+  subscribe(val => {
+    console.log(val);
+  })
+);
+
+// Prints 1 2 3 4 to the console.
 ```
