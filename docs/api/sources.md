@@ -137,7 +137,7 @@ next(complete);
 `fromDomEvent` will turn a DOM event into a Wonka source, emitting the DOM events
 on the source whenever the DOM emits them on the passed element.
 
-> This source will only work in a JavaScript environment, and will be excluded
+> _Note:_ This source is only available in JavaScript environments, and will be excluded
 > when compiling natively.
 
 ```reason
@@ -159,6 +159,33 @@ pipe(
   fromDomEvent(element, 'click'),
   subscribe(e => console.log(e))
 );
+```
+
+## fromPromise
+
+`fromPromise` transforms a promise into a source, emitting the promisified value on
+the source once it resolves.
+
+> _Note:_ This source is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+let promise = Js.Promise.resolve(1);
+
+Wonka.fromPromise(promise)
+  |> Wonka.subscribe((. x) => Js.log(x));
+/* Prints 1 to the console. */
+```
+
+```typescript
+import { pipe, fromPromise, subscribe } from 'wonka';
+
+const promise = Promise.resolve(1);
+
+pipe(
+  fromPromise(promise),
+  subscribe(e => console.log(e))
+); // Prints 1 to the console.
 ```
 
 ## empty

@@ -96,7 +96,8 @@ pipe(
 
 `toPromise` returns a promise, which resolves on the last value of a source.
 
-> _Note:_ This sink is only available in JavaScript environments
+> _Note:_ This source is only available in JavaScript environments, and will be excluded
+> when compiling natively.
 
 ```reason
 Wonka.fromArray([|1, 2, 3|])
