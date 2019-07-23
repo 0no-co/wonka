@@ -56,7 +56,7 @@ just accept a source and return a source:
 
 ``` reason
 type operatorT('a, 'b) = sourceT('a) => sourceT('b);
-// which is the same as:
+/* which is the same as: */
 type operatorT('a, 'b) = (sourceT('a), sinkT('b)) => unit;
 ```
 
