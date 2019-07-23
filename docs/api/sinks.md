@@ -91,3 +91,34 @@ pipe(
   publish
 ); // Prints 123 to the console.
 ```
+
+## toPromise
+
+`toPromise` returns a promise, which resolves on the last value of a source.
+
+> _Note:_ This sink is only available in JavaScript environments
+
+```reason
+Wonka.fromArray([|1, 2, 3|])
+  |> Wonka.toPromise
+  |> Js.Promise.then_(x => {
+    print_int(x);
+    Js.Promise.resolve(())
+  })
+/* Prints 3 to the console. */
+```
+
+```typescript
+import { pipe, fromArray, toPromise } from 'wonka';
+
+const promise = pipe(
+  fromArray([1, 2, 3]),
+  toPromise,
+);
+
+promise.then(x => console.log(x));
+// Prints 3 to the console.
+```
+
+If you have a source that doesn't complete and are looking to resolve on the first
+value instead of the last, you may have to apply `take(1)` to your source.
