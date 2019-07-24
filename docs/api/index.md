@@ -1,6 +1,6 @@
 ---
 title: API Reference
-order: 1
+order: 3
 ---
 
 Wonka, in essence, can be used to create sources, to transform sources with operators,
