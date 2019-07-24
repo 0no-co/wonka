@@ -1,7 +1,6 @@
 {
   "name": "wonka",
-  "namespace": true,
-  "version": "0.1.0",
+  "version": "3.0.0",
   "bsc-flags": ["-bs-super-errors", "-bs-no-version-header"],
   "refmt": 3,
   "package-specs": [
@@ -49,8 +48,6 @@
       "type": "dev"
     }
   ],
-  "bs-dependencies" : [],
-  "bs-dev-dependencies": [
-    "@glennsl/bs-jest"
-  ]
+  "bs-dependencies": [],
+  "bs-dev-dependencies": ["@glennsl/bs-jest"]
 }
