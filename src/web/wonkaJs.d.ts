@@ -13,3 +13,6 @@ export * from './wonka_source_fromDomEvent';
 export * from './wonka_source_fromListener';
 export * from './wonka_source_fromPromise';
 export * from './wonka_source_fromObservable';
+
+/* wrappers */
+export * from './wonka_observable';
