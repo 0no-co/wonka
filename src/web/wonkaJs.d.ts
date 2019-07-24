@@ -12,3 +12,4 @@ export * from './wonka_sink_toPromise';
 export * from './wonka_source_fromDomEvent';
 export * from './wonka_source_fromListener';
 export * from './wonka_source_fromPromise';
+export * from './wonka_source_fromObservable';

@@ -12,3 +12,4 @@ include Wonka_sink_toPromise;
 include Wonka_source_fromDomEvent;
 include Wonka_source_fromListener;
 include Wonka_source_fromPromise;
+include Wonka_source_fromObservable;
