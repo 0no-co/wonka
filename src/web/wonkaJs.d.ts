@@ -15,3 +15,4 @@ export * from './wonka_source_fromPromise';
 
 /* wrappers */
 export * from './wonka_observable';
+export * from './wonka_callbag';

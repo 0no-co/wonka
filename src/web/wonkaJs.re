@@ -15,3 +15,4 @@ include Wonka_source_fromPromise;
 
 /* wrappers */
 include Wonka_observable;
+include Wonka_callbag;
