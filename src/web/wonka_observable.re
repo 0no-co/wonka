@@ -39,6 +39,7 @@ let fromObservable = (input: observableT('a)): sourceT('a) => {
     };
 
   curry(sink => {
+    let unsubscribe = ref(() => ());
     let observer: observerT('a) =
       [@bs]
       {
@@ -48,17 +49,18 @@ let fromObservable = (input: observableT('a)): sourceT('a) => {
         pub error = _ => ()
       };
 
-    let subscription = observable##subscribe(observer);
-
     sink(.
       Start(
         (. signal) =>
           switch (signal) {
-          | Close => subscription##unsubscribe()
+          | Close => unsubscribe^()
           | _ => ()
           },
       ),
     );
+
+    let subscription = observable##subscribe(observer);
+    unsubscribe := (() => subscription##unsubscribe());
   });
 };
 
