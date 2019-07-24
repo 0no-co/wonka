@@ -51,6 +51,8 @@
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.8",
     "bs-platform": "^5.0.4",
+    "callbag-from-iter": "^1.2.0",
+    "callbag-from-obs": "^1.2.0",
     "codecov": "^3.5.0",
     "flowgen": "^1.8.0",
     "gatsby": "^2.11.0",
@@ -68,7 +70,8 @@
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-node-resolve": "^4.2.3",
     "rollup-plugin-prettier": "^0.6.0",
-    "rollup-plugin-terser": "^4.0.4"
+    "rollup-plugin-terser": "^4.0.4",
+    "zen-observable": "^0.8.14"
   },
   "lint-staged": {
     "*.{d.ts,js}": [

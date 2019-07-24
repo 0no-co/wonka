@@ -147,6 +147,48 @@ describe("source factories", () => {
       expect(ended^) === false;
     });
   });
+
+  describe("fromObservable", () =>
+    Expect.(
+      testPromise("creates a source from an observable", () => {
+        let observable = Wonka_thelpers.observableFromArray([|1, 2|]);
+
+        Wonka_thelpers.testSource(Wonka.fromObservable(observable))
+        |> Js.Promise.then_(x =>
+             expect(x)
+             |> toEqual([|Push(1), Push(2), End|])
+             |> Js.Promise.resolve
+           );
+      })
+    )
+  );
+
+  describe("fromCallbag", () => {
+    open Expect;
+
+    testPromise("creates a source from a callbag (observable)", () => {
+      let observable = Wonka_thelpers.observableFromArray([|1, 2|]);
+      let callbag = Wonka_thelpers.callbagFromObservable(observable);
+
+      Wonka_thelpers.testSource(Wonka.fromCallbag(callbag))
+      |> Js.Promise.then_(x =>
+           expect(x)
+           |> toEqual([|Push(1), Push(2), End|])
+           |> Js.Promise.resolve
+         );
+    });
+
+    testPromise("creates a source from a callbag (iterable)", () => {
+      let callbag = Wonka_thelpers.callbagFromArray([|1, 2|]);
+
+      Wonka_thelpers.testSource(Wonka.fromCallbag(callbag))
+      |> Js.Promise.then_(x =>
+           expect(x)
+           |> toEqual([|Push(1), Push(2), End|])
+           |> Js.Promise.resolve
+         );
+    });
+  });
 });
 
 describe("operator factories", () => {
