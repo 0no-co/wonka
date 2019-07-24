@@ -1,7 +1,7 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let symbol: string = [%raw
+let observableSymbol: string = [%raw
   {|
   typeof Symbol === 'function' && Symbol.observable || '@@observable'
 |}
@@ -32,7 +32,7 @@ external observableSet: (observableT('a), string, observableT('a)) => unit =
   "";
 
 let fromObservable = (observable: observableT('a)): sourceT('a) =>
-  switch (observableGet(observable, symbol)) {
+  switch (observableGet(observable, observableSymbol)) {
   | Some(observableFactory) =>
     curry(sink => {
       let observer: observerT('a) =
@@ -102,6 +102,6 @@ let toObservable = (source: sourceT('a)): observableT('a) => {
       }
     };
 
-  observableSet(observable, symbol, observable);
+  observableSet(observable, observableSymbol, observable);
   observable;
 };
