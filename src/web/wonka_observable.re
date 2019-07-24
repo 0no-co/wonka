@@ -3,7 +3,9 @@ open Wonka_helpers;
 
 let observableSymbol: string = [%raw
   {|
-  typeof Symbol === 'function' && Symbol.observable || '@@observable'
+  typeof Symbol === 'function'
+    ? Symbol.observable || (Symbol.observable = Symbol('observable'))
+    : '@@observable'
 |}
 ];
 
@@ -28,7 +30,8 @@ external observableGet:
   (observableT('a), string) => option(observableFactoryT('a)) =
   "";
 [@bs.set_index]
-external observableSet: (observableT('a), string, observableT('a)) => unit =
+external observableSet:
+  (observableT('a), string, unit => observableT('a)) => unit =
   "";
 
 let fromObservable = (input: observableT('a)): sourceT('a) => {
@@ -107,6 +110,6 @@ let toObservable = (source: sourceT('a)): observableT('a) => {
       }
     };
 
-  observableSet(observable, observableSymbol, observable);
+  observableSet(observable, observableSymbol, () => observable);
   observable;
 };
