@@ -170,7 +170,7 @@ the source once it resolves.
 > when compiling natively.
 
 ```reason
-let promise = Js.Promise.resolve(1);
+let promise = Js.Promise.make(1); /* Just an example promise */
 
 Wonka.fromPromise(promise)
   |> Wonka.subscribe((. x) => Js.log(x));
@@ -180,7 +180,7 @@ Wonka.fromPromise(promise)
 ```typescript
 import { pipe, fromPromise, subscribe } from 'wonka';
 
-const promise = Promise.resolve(1);
+const promise = Promise.resolve(1); // Just an example promise
 
 pipe(
   fromPromise(promise),

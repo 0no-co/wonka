@@ -42,10 +42,10 @@ TypeScript/Flow/Reason/OCaml environments with full type safety.
 ## About the docs
 
 As mentioned in the prior section, Wonka supports not one but a couple of
-environments and languages. To accommodate for this most of the docs
+environments and languages. To accommodate for this, most of the docs
 are written with examples and sections for TypeScript and Reason.
 
 We don't provide examples in most parts of the docs for Flow and OCaml because
 their respective usage is almost identical to TypeScript and Reason, so for
 the most part the examples mostly deal with the differences between a
-JavaScript and a Reason project.
+TypeScript and a Reason project.

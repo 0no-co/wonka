@@ -64,7 +64,7 @@ import { fromArray } from 'wonka';
 ```
 
 There are also some special operators in Wonka that will only be exposed in
-Web/JavaScript environments. They're utilities like `fromPromise`, `toPromise`,
+Web/JavaScript environments, like `fromPromise`, `toPromise`,
 or `fromEvent`, or even `debounce` and `throttle`.
 In TypeScript and Flow the typings also expose all types.
 
@@ -98,7 +98,7 @@ the pipeline operator to do the same and not use the `pipe` helper.
 ## Usage with Reason
 
 Everything in the Wonka package is exposed under a single module called `Wonka`.
-This modules also contains `Wonka.Types`, which contains all internal types of the Wonka
+This module also contains `Wonka.Types`, which contains all internal types of the Wonka
 library, but you will typically not need it.
 
 In `BuckleScript` when you're compiling to JavaScript you will also have access to

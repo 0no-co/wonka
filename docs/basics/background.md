@@ -17,11 +17,11 @@ When we're dealing with asynchronous lists of values things also
 become more complex. We're often confronted with event streams,
 where events or even regular values come in over time.
 
-In either cases what we're dealing with are essentially [immutable,
+In either case what we're dealing with are essentially [immutable,
 asynchronous iterables](https://medium.com/@andrestaltz/2-minute-introduction-to-rx-24c8ca793877).
 
 Wonka is a library to provide a primitive to solve these problems and
-is both: an iterable programming library, and a reactive stream programming
+is both an iterable programming library _and_ a reactive stream programming
 library.
 
 It can be compared to observables and iterables in one library, but is
@@ -55,12 +55,12 @@ just that.
 In general, **operators** will accept some arguments and a source
 and output a new, transformed source.
 
-Lastly, the sources we create wouldn't be of much use if we wouldn't
-be able to _consume_ them. This is similar to using `forEach` on an
-array to use its values. Wonka has a [`subscribe`](../api/sinks.md#subscribe) function which
+Lastly, the sources we create wouldn't be of much use if we weren't
+able to _consume_ them. This is similar to using `forEach` on an
+array to iterate over its values. Wonka has a [`subscribe`](../api/sinks.md#subscribe) function which
 works similarly to how an observable's subscribe method may work.
 This is because Wonka's sources are entirely cancellable.
 
-To summarise Wonka's streams are _sources_ of values, which
+To summarise, Wonka's streams are _sources_ of values, which
 can be transformed using _operators_, which create new _sources_.
 If we want to consume a _source_ we use a _sink_.

@@ -31,10 +31,11 @@ type signalT('a) =
 type sinkT('a) = (. signalT('a)) => unit;
 ```
 
-So the sink is just a function of `sinkT('a)`, which accepts a signal. When
-the stream starts then the sink is called with `Start`, when a new value
-comes in then the sink is called with `Push('a)`, and when the stream ends
-the sink is called with `End`.
+As shown, the sink is just a function accepting a signal as its argument.
+
+When the stream starts then the sink is called with `Start`,
+Then for every incoming, new value it's called with `Push('a)`,
+and when the stream ends it's finally called with `End`.
 
 Since we want a source to send these values to the sink, the source is
 also just a function and it accepts a sink as its argument.
@@ -44,15 +45,15 @@ type sourceT('a) = sinkT('a) => unit;
 ```
 
 This is completely sufficient to represent simple "push" streams, where
-values are pushed to the sink. They essentially flow from the "top" to the
-"bottom".
+values are pushed from the source to the sink. They essentially flow from
+the "top" to the "bottom".
 
-If we now think of operators, those are just functions that accept a
-source and return a new source. They wrap sources and may also
-wrap the sink that their sources are called with.
+Operators are just functions that transform a source. They take a
+source and some number of arguments and return a new source.
+Internally they may also create a new sink function that wraps the
+sink that their source will be called with.
 
-To put this simply though, an operator with no other arguments will
-just accept a source and return a source:
+The type signature of an operator with no other arguments is thus:
 
 ``` reason
 type operatorT('a, 'b) = sourceT('a) => sourceT('b);
@@ -64,15 +65,16 @@ type operatorT('a, 'b) = (sourceT('a), sinkT('b)) => unit;
 
 To complete this pattern we're still missing a single piece: callbacks!
 
-Before we've shown how sources are functions that accept sinks. These sources
-can push values down to the sink by calling it with signals.
-What we're now missing though is what makes Wonka's streams also work as
-iterables. We'd also like to be able to _cancel_ streams, so that we can interrupt
+Previously, we've looked at how sources are functions that accept sinks, which
+in turn are functions accepting a signal. What we're now missing is what makes
+Wonka's streams also work as iterables.
+
+We'd also like to be able to _cancel_ streams, so that we can interrupt
 them and not receive any more values.
 
-We achieve this by passing a callback function when a stream starts. The sink's
-`Start` signal also carries a callback that is used to communicate back to the
-source, making these "talkback signals" flow from the bottom to the top, in reverse.
+We can achieve this by passing a callback function on when a stream starts.
+In Wonka, a sink's `Start` signal also carries a callback that is used to communicate
+back to the source, making these "talkback signals" flow from the bottom to the top.
 
 ``` reason
 type talkbackT =
@@ -86,7 +88,7 @@ type signalT('a) =
 ```
 
 This is like the previous `signalT('a)` definition, but the `Start` signal has the
-callback definition now. The callback accepts two signals: `Pull` or `Close`.
+callback definition now. The callback accepts one of two signals: `Pull` or `Close`.
 
 `Close` is a signal that will cancel the stream. It tells the source to stop sending
 new values.
@@ -99,9 +101,9 @@ previous value from the stream.
 In asynchronous streams the `Pull` signal is of course a no-op. It won't do
 anything since we can't ask for asynchronous values.
 
-## Differences to Callbags
+## Comparison to Callbags
 
-This is the full pattern of Wonka's streams and it's a little different to callbags.
+This is the full pattern of Wonka's streams and it's a little different from callbags.
 These changes have been made to make Wonka's streams typesafe. But there's
 also a small omission that makes Wonka's streams easier to explain.
 
