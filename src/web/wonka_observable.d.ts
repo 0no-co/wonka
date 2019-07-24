@@ -15,3 +15,4 @@ export interface Observable<T> {
 }
 
 export const fromObservable: <T>(observable: Observable<T>) => Source<T>;
+export const toObservable: <T>(source: Source<T>) => Observable<T>;
