@@ -26,18 +26,22 @@ type observableT('a) = {
 type observableFactoryT('a) = (. unit) => observableT('a);
 
 [@bs.get_index]
-external observableGet:
+external observable_get:
   (observableT('a), string) => option(observableFactoryT('a)) =
   "";
+[@bs.get_index]
+external observable_unsafe_get:
+  (observableT('a), string) => observableFactoryT('a) =
+  "";
 [@bs.set_index]
-external observableSet:
+external observable_set:
   (observableT('a), string, unit => observableT('a)) => unit =
   "";
 
 let fromObservable = (input: observableT('a)): sourceT('a) => {
   let observable =
-    switch (observableGet(input, observableSymbol)) {
-    | Some(observableFactory) => observableFactory(.)
+    switch (input->observable_get(observableSymbol)) {
+    | Some(_) => (input->observable_unsafe_get(observableSymbol))(.)
     | None => input
     };
 
@@ -110,6 +114,6 @@ let toObservable = (source: sourceT('a)): observableT('a) => {
       }
     };
 
-  observableSet(observable, observableSymbol, () => observable);
+  observable->observable_set(observableSymbol, () => observable);
   observable;
 };
