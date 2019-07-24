@@ -53,6 +53,7 @@
     "bs-platform": "^5.0.4",
     "callbag-from-iter": "^1.2.0",
     "callbag-from-obs": "^1.2.0",
+    "callbag-iterate": "^1.0.0",
     "codecov": "^3.5.0",
     "flowgen": "^1.8.0",
     "gatsby": "^2.11.0",

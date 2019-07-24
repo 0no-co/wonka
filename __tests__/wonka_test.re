@@ -1534,6 +1534,47 @@ describe("sink factories", () => {
       )
     )
   );
+
+  describe("toObservable", () =>
+    Expect.(
+      testPromise("should convert a source to an Observable", () => {
+        let source = Wonka.fromArray([|1, 2|]);
+        let observable =
+          Wonka.toObservable(source) |> Wonka_thelpers.observableFrom;
+        let values = [||];
+
+        let promise =
+          observable->Wonka_thelpers.observableForEach(value =>
+            ignore(Js.Array.push(value, values))
+          );
+
+        promise
+        |> Js.Promise.then_(() =>
+             expect(values) |> toEqual([|1, 2|]) |> Js.Promise.resolve
+           );
+      })
+    )
+  );
+
+  describe("toCallbag", () =>
+    Expect.(
+      it("should convert a source to a Callbag", () => {
+        let source = Wonka.fromArray([|1, 2|]);
+        let callbag = Wonka.toCallbag(source);
+        let values = [||];
+
+        (
+          Wonka_thelpers.callbagIterate(. value =>
+            ignore(Js.Array.push(value, values))
+          )
+        )(.
+          callbag,
+        );
+
+        expect(values) |> toEqual([|1, 2|]);
+      })
+    )
+  );
 });
 
 describe("chains (integration)", () =>
