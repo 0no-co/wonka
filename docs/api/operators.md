@@ -73,28 +73,58 @@ pipe(
 `concat` will combine two sources together, subscribing to the next source after the previous source completes.
 
 ```reason
-let sourceOne = Wonka.fromArray([|1, 2, 3, 4, 5, 6|]);
-let sourceTwo = Wonka.fromArray([|6, 5, 4, 3, 2, 1|]);
+let sourceOne = Wonka.fromArray([|1, 2, 3|]);
+let sourceTwo = Wonka.fromArray([|6, 5, 4|]);
 
-Wonka.concat([|sourceOne, sourceTwo|]) |> Wonka.subscribe((. _val) => print_int(_val));
-
-/* Prints 1 2 3 4 5 6 6 5 4 3 2 1 to the console. */
+Wonka.concat([|sourceOne, sourceTwo|])
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 1 2 3 6 5 4 to the console. */
 ```
 
 ```typescript
 import { fromArray, pipe, concat, subscribe } from 'wonka';
 
-const sourceOne = fromArray([1, 2, 3, 4, 5, 6]);
-const sourceTwo = fromArray([6, 5, 4, 3, 2, 1]);
+const sourceOne = fromArray([1, 2, 3]);
+const sourceTwo = fromArray([6, 5, 4]);
 
 pipe(
   concat([sourceOne, sourceTwo]),
   subscribe(val => {
     console.log(val);
   })
-);
+); // Prints 1 2 3 6 5 4 to the console.
+```
 
-// Prints 1 2 3 4 5 6 6 5 4 3 2 1 to the console.
+## concatAll
+
+`concatAll` will combine all sources emitted on an outer source together, subscribing to the
+next source after the previous source completes.
+
+It's very similar to `concat`, but instead accepts a source of sources as an input.
+
+```reason
+let sourceOne = Wonka.fromArray([|1, 2, 3|]);
+let sourceTwo = Wonka.fromArray([|6, 5, 4|]);
+
+Wonka.fromList([sourceOne, sourceTwo])
+  |> Wonka.concatAll
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 1 2 3 6 5 4 to the console. */
+```
+
+```typescript
+import { pipe, fromArray, concatAll, subscribe } from 'wonka';
+
+const sourceOne = fromArray([1, 2, 3]);
+const sourceTwo = fromArray([6, 5, 4]);
+
+pipe(
+  fromArray([sourceOne, sourceTwo]),
+  concatAll,
+  subscribe(val => {
+    console.log(val);
+  })
+); // Prints 1 2 3 6 5 4 to the console.
 ```
 
 ## concatMap
