@@ -123,3 +123,80 @@ promise.then(x => console.log(x));
 
 If you have a source that doesn't complete and are looking to resolve on the first
 value instead of the last, you may have to apply `take(1)` to your source.
+
+## toObservable
+
+`toObservable` returns a [spec-compliant JS Observable](https://github.com/tc39/proposal-observable), which emits the same
+values as a source.
+
+As per the specification, the Observable is annotated using `Symbol.observable`.
+
+> _Note:_ This sink is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+let observable = Wonka.fromArray([|1, 2, 3|])
+  |> Wonka.toObservable;
+
+observable##subscribe([@bs] {
+  as _;
+  pub next = value => print_int(value);
+  pub complete = () => ();
+  pub error = _ => ();
+}); /* Prints 1 2 3 to the console. */
+```
+
+```typescript
+import { pipe, fromArray, toObservable } from 'wonka';
+
+const observable = pipe(
+  fromArray([1, 2, 3]),
+  toObservable,
+);
+
+observable.subscribe({
+  next: value => console.log(value),
+  complete: () => {},
+  error: () => {},
+}); // Prints 1 2 3 to the console.
+```
+
+## toCallbag
+
+`toCallbag` returns a [spec-compliant JS Callbag](https://github.com/callbag/callbag), which emits the same signals
+as a Wonka source.
+
+Since Wonka's sources are very similar to callbags and only diverge from the specification
+minimally, Callbags map to Wonka's sources very closely and `toCallbag` only creates a thin
+wrapper which is mostly concerned with converting between the type signatures.
+
+> _Note:_ This sink is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+/* This example uses the callbag-iterate package for illustrative purposes */
+[@bs.module] external callbagIterate:
+  (. ('a => unit)) => (. Wonka.callbagT('a)) => unit = "callbag-iterate";
+
+let callbag = Wonka.fromArray([|1, 2, 3|])
+  |> Wonka.toCallbag;
+
+callbagIterate(. value => {
+  print_int(value);
+})(. callbag); /* Prints 1 2 3 to the console. */
+```
+
+```typescript
+import { pipe, fromArray, toCallbag } from 'wonka';
+
+// This example uses the callbag-iterate package for illustrative purposes
+import callbagIterate from 'callbag-iterate';
+
+const callbag = pipe(
+  fromArray([1, 2, 3]),
+  toCallbag,
+);
+
+callbagIterate(value => console.log(value))(callbag);
+// Prints 1 2 3 to the console.
+```
