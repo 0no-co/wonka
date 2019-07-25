@@ -1464,6 +1464,64 @@ describe("operator factories", () => {
          )
     );
   });
+
+  describe("buffer", () => {
+    open Expect;
+    open! Expect.Operators;
+
+    beforeEach(() => Jest.useFakeTimers());
+    afterEach(() => Jest.useRealTimers());
+
+    it("should buffer values and emit them on each notifier tick", () => {
+      let a = Wonka.interval(50);
+
+      let talkback = ref((. _: Wonka_types.talkbackT) => ());
+      let signals = [||];
+
+      let source = Wonka.buffer(Wonka.interval(100), a) |> Wonka.take(2);
+
+      source((. signal) =>
+        switch (signal) {
+        | Start(x) =>
+          talkback := x;
+          x(. Pull);
+        | Push(_) =>
+          ignore(Js.Array.push(signal, signals));
+          talkback^(. Pull);
+        | End => ignore(Js.Array.push(signal, signals))
+        }
+      );
+
+      Jest.runTimersToTime(400);
+
+      expect(signals) == [|Push([|0, 1|]), Push([|2, 3|]), End|];
+    });
+
+    it("should end when the notifier ends", () => {
+      let a = Wonka.interval(50) |> Wonka.take(3);
+
+      let talkback = ref((. _: Wonka_types.talkbackT) => ());
+      let signals = [||];
+
+      let source = Wonka.buffer(Wonka.interval(100), a);
+
+      source((. signal) =>
+        switch (signal) {
+        | Start(x) =>
+          talkback := x;
+          x(. Pull);
+        | Push(_) =>
+          ignore(Js.Array.push(signal, signals));
+          talkback^(. Pull);
+        | End => ignore(Js.Array.push(signal, signals))
+        }
+      );
+
+      Jest.runTimersToTime(400);
+
+      expect(signals) == [|Push([|0, 1|]), Push([|2|]), End|];
+    });
+  });
 });
 
 describe("sink factories", () => {

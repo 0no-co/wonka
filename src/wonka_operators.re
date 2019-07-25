@@ -1,3 +1,4 @@
+include Wonka_operator_buffer;
 include Wonka_operator_combine;
 include Wonka_operator_concatMap;
 include Wonka_operator_filter;

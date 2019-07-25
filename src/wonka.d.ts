@@ -7,6 +7,7 @@ export * from './sources/wonka_source_makeSubject';
 export * from './sources/wonka_source_primitives';
 
 /* operators */
+export * from './operators/wonka_operator_buffer';
 export * from './operators/wonka_operator_combine';
 export * from './operators/wonka_operator_concatMap';
 export * from './operators/wonka_operator_filter';
