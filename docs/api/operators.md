@@ -257,6 +257,8 @@ pipe(
 `mergeAll` will merge all sources emitted on an outer source into a single one.
 It's very similar to `merge`, but instead accepts a source of sources as an input.
 
+> _Note:_ This operator is also exported as `flatten` which is just an alias for `mergeAll`
+
 ```reason
 let sourceA = Wonka.fromArray([|1, 2, 3|]);
 let sourceB = Wonka.fromArray([|4, 5, 6|]);
@@ -468,6 +470,47 @@ pipe(
 );
 
 // Prints 1 3 6 10 15 21 to the console.
+```
+
+## share
+
+`share` ensures that all subscriptions to the underlying source are shared.
+
+By default Wonka's sources are lazy. They only instantiate themselves and begin
+emitting signals when they're being subscribed to, since they're also immutable.
+This means that when a source is used in multiple places, their underlying subscription
+is not shared. Instead, the entire chain of sources and operators will be instantiated
+separately every time.
+
+The `share` operator prevents this by creating an output source that will reuse a single
+subscription to the parent source, which will be unsubscribed from when no sinks are
+listening to it anymore.
+
+This is especially useful if you introduce side-effects to your sources,
+for instance with `onStart`.
+
+```reason
+let source = Wonka.never
+  |> Wonka.onStart((.) => print_endline("start"))
+  |> Wonka.share;
+
+/* Without share this would print "start" twice: */
+Wonka.publish(source);
+Wonka.publish(source);
+```
+
+```typescript
+import { pipe, never, onStart, share, publish } from 'wonka';
+
+const source = pipe(
+  never
+  onStart(() => console.log('start')),
+  share
+);
+
+// Without share this would print "start" twice:
+publish(source);
+publish(source);
 ```
 
 ## skip
