@@ -293,7 +293,7 @@ and all their values will be emitted on the output source as they come in.
 
 ```reason
 Wonka.fromList([1, 2])
-  |> Wonka.mergeMap(value =>
+  |> Wonka.mergeMap((. value) =>
     Wonka.fromList([value - 1, value]))
   |> Wonka.subscribe((. x) => print_int(x));
 /* Prints 0 1 1 2 to the console. */
@@ -600,6 +600,73 @@ pipe(
 
 // Prints 5 6 to the console, as 1 2 3 4 all return true for the predicate function.
 ```
+
+## switchMap
+
+`switchMap` allows you to map values of an outer source to an inner source.
+The inner source's values will be emitted on the returned output source. If
+a new inner source is returned, because the outer source emitted a new value
+before the previous inner source completed, the inner source is closed and unsubscribed
+from.
+
+This is similar to `concatMap` but instead of waiting for the last inner source to complete
+before emitting values from the next, `switchMap` just cancels the previous inner source.
+
+```reason
+Wonka.interval(50)
+  |> Wonka.switchMap((. _value) =>
+    Wonka.interval(40))
+  |> Wonka.take(3)
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 1 2 3 to the console. */
+/* The inner interval is cancelled after its first value every time */
+```
+
+```typescript
+import { pipe, interval, switchMap, take, subscribe } from 'wonka';
+
+pipe(
+  interval(50),
+  // The inner interval is cancelled after its first value every time
+  switchMap(value => interval(40)),
+  take(3),
+  subscribe(x => console.log(x))
+); // Prints 1 2 3 to the console
+```
+
+## switchAll
+
+`switchAll` will combined sources emitted on an outer source together, subscribing
+to only one source at a time, and cancelling the previous inner source, when it hasn't
+ended while the next inner source is created.
+
+It's very similar to `switchMap`, but instead accepts a source of sources.
+
+```reason
+Wonka.interval(50)
+  |> Wonka.map((. _value) =>
+    Wonka.interval(40))
+  |> Wonka.switchAll
+  |> Wonka.take(3)
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 1 2 3 to the console. */
+```
+
+```typescript
+import { pipe, interval, map, switchAll, take, subscribe } from 'wonka';
+
+pipe(
+  interval(50),
+  map(() => interval(40)),
+  switchAll,
+  take(3),
+  subscribe(x => console.log(x))
+); // Prints 1 2 3 to the console
+```
+
+These examples are practically identical to the `switchMap` examples, but note
+that `map` was used instead of using `switchMap` directly. This is because combining
+`map` with a subsequent `switchAll` is the same as using `switchMap`.
 
 ## take
 
