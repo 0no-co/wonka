@@ -226,15 +226,16 @@ pipe(
 
 ## merge
 
-`merge` two sources together into a single source.
+`merge` merges an array of sources together into a single source. It subscribes
+to all sources that it's passed and emits all their values on the output source.
 
 ```reason
 let sourceA = Wonka.fromArray([|1, 2, 3|]);
 let sourceB = Wonka.fromArray([|4, 5, 6|]);
 
-Wonka.merge([|sourceA, sourceB|]) |> Wonka.subscribe((. _val) => print_int(_val));
-
-/* Prints 1 2 3 4 5 6 to the console.
+Wonka.merge([|sourceA, sourceB|])
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 1 2 3 4 5 6 to the console. */
 ```
 
 ```typescript
@@ -248,9 +249,62 @@ pipe(
   subscribe((val) => {
     console.log(val);
   })
-);
+); // Prints 1 2 3 4 5 6 to the console.
+```
 
-// Prints 1 2 3 4 5 6 to the console.
+## mergeAll
+
+`mergeAll` will merge all sources emitted on an outer source into a single one.
+It's very similar to `merge`, but instead accepts a source of sources as an input.
+
+```reason
+let sourceA = Wonka.fromArray([|1, 2, 3|]);
+let sourceB = Wonka.fromArray([|4, 5, 6|]);
+
+Wonka.fromList([sourceA, sourceB])
+  |> Wonka.mergeAll
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 1 2 3 4 5 6 to the console. */
+```
+
+```typescript
+import { pipe, fromArray, mergeAll, subscribe } from 'wonka';
+
+const sourceOne = fromArray([1, 2, 3]);
+const sourceTwo = fromArray([4, 5, 6]);
+
+pipe(
+  fromArray([sourceOne, sourceTwo]),
+  mergeAll,
+  subscribe(val => console.log(val))
+); // Prints 1 2 3 4 5 6 to the console.
+```
+
+## mergeMap
+
+`mergeMap` allows you to map values of an outer source to an inner source.
+This allows you to create nested sources for each emitted value, which will
+all be merged into a single source, like with `mergeAll`.
+
+Unlike `concatMap` all inner sources will be subscribed to at the same time
+and all their values will be emitted on the output source as they come in.
+
+```reason
+Wonka.fromList([1, 2])
+  |> Wonka.mergeMap(value =>
+    Wonka.fromList([value - 1, value]))
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 0 1 1 2 to the console. */
+```
+
+```typescript
+import { pipe, fromArray, mergeMap, subscribe } from 'wonka';
+
+pipe(
+  fromArray([1, 2]),
+  mergeMap(x => fromArray([x - 1, x])),
+  subscribe(val => console.log(val))
+); // Prints 0 1 1 2 to the console.
 ```
 
 ## onEnd
