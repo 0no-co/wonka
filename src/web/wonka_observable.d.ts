@@ -1,18 +1,18 @@
 import { Source } from '../wonka_types';
 
-export interface Subscription {
+export interface JsSubscription {
   unsubscribe(): void;
 }
 
-export interface Observer<T> {
+export interface JsObserver<T> {
   next(value: T): void;
   error(errorValue: any): void;
   complete(): void;
 }
 
-export interface Observable<T> {
-  subscribe(observer: Observer<T>): Subscription;
+export interface JsObservable<T> {
+  subscribe(observer: JsObserver<T>): JsSubscription;
 }
 
-export const fromObservable: <T>(observable: Observable<T>) => Source<T>;
-export const toObservable: <T>(source: Source<T>) => Observable<T>;
+export const fromObservable: <T>(observable: JsObservable<T>) => Source<T>;
+export const toObservable: <T>(source: Source<T>) => JsObservable<T>;
