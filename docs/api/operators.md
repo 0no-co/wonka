@@ -158,6 +158,69 @@ pipe(
 );
 ```
 
+
+## delay
+
+`delay` delays all emitted values of a source by the given amount of milliseconds.
+
+> _Note:_ This operator is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+Wonka.fromList([1, 2])
+  |> Wonka.delay(10)
+  |> Wonka.subscribe((. x) => print_int(x));
+/* waits 10ms then prints 1, waits 10ms then prints 2, waits 10ms then ends */
+```
+
+```typescript
+import { pipe, fromArray, delay, subscribe } from 'wonka';
+
+pipe(
+  fromArray([1, 2]),
+  delay(10)
+  subscribe(val => console.log(val))
+);
+// waits 10ms then prints 1, waits 10ms then prints 2, waits 10ms then ends
+```
+
+## debounce
+
+`debounce` doesn't emit values of a source until no values have been emitted after
+a given amount of milliseconds. Once this threshold of silence has been reached, the
+last value that has been received will be emitted.
+
+> _Note:_ This operator is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+let sourceA = Wonka.interval(10)
+  |> Wonka.take(5);
+let sourceB = Wonka.fromValue(1);
+
+Wonka.concat([|sourceA, sourceB|])
+  |> Wonka.debounce((. _x) => 20)
+  |> Wonka.subscribe((. x) => print_int(x));
+/* The five values from sourceA will be omitted */
+/* After these values and after 20ms `1` will be logged */
+```
+
+```typescript
+import { pipe, interval, take, fromValue, concat, debounce, subscribe } from 'wonka';
+
+const sourceA = pipe(interval(10), take(5));
+const sourceB = fromValue(1);
+
+pipe(
+  concat([sourceA, sourceB])
+  debounce(() => 20),
+  subscribe(val => console.log(val))
+);
+
+// The five values from sourceA will be omitted
+// After these values and after 20ms `1` will be logged
+```
+
 ## filter
 
 `filter` will remove values from a source by passing them through an iteratee that returns a `bool`.
@@ -401,6 +464,33 @@ pipe(
 
 // Logs onStart to the console, pauses for one second to allow the timeout to finish,
 // then logs "Resolve" to the console.
+```
+
+## sample
+
+`sample` emits the previously emitted value from an outer source every time
+an inner source (notifier) emits.
+
+In combination with `interval` it can be used to get values from a noisy source
+more regularly.
+
+```reason
+Wonka.interval(10)
+  |> Wonka.sample(Wonka.interval(100))
+  |> Wonka.take(2)
+  |> Wonka.subscribe((. x) => print_int(x));
+/* Prints 10 20 to the console. */
+```
+
+``` typescript
+import { pipe, interval, sample, take, subscribe } from 'wonka';
+
+pipe(
+  interval(10),
+  sample(interval(100)),
+  take(2),
+  subscribe(x => console.log(x))
+); // Prints 10 20 to the console.
 ```
 
 ## scan
@@ -717,68 +807,6 @@ pipe(
 );
 
 // Prints 1 2 3 4 to the console.
-```
-
-## delay
-
-`delay` delays all emitted values of a source by the given amount of milliseconds.
-
-> _Note:_ This operator is only available in JavaScript environments, and will be excluded
-> when compiling natively.
-
-```reason
-Wonka.fromList([1, 2])
-  |> Wonka.delay(10)
-  |> Wonka.subscribe((. x) => print_int(x));
-/* waits 10ms then prints 1, waits 10ms then prints 2, waits 10ms then ends */
-```
-
-```typescript
-import { pipe, fromArray, delay, subscribe } from 'wonka';
-
-pipe(
-  fromArray([1, 2]),
-  delay(10)
-  subscribe(val => console.log(val))
-);
-// waits 10ms then prints 1, waits 10ms then prints 2, waits 10ms then ends
-```
-
-## debounce
-
-`debounce` doesn't emit values of a source until no values have been emitted after
-a given amount of milliseconds. Once this threshold of silence has been reached, the
-last value that has been received will be emitted.
-
-> _Note:_ This operator is only available in JavaScript environments, and will be excluded
-> when compiling natively.
-
-```reason
-let sourceA = Wonka.interval(10)
-  |> Wonka.take(5);
-let sourceB = Wonka.fromValue(1);
-
-Wonka.concat([|sourceA, sourceB|])
-  |> Wonka.debounce((. _x) => 20)
-  |> Wonka.subscribe((. x) => print_int(x));
-/* The five values from sourceA will be omitted */
-/* After these values and after 20ms `1` will be logged */
-```
-
-```typescript
-import { pipe, interval, take, fromValue, concat, debounce, subscribe } from 'wonka';
-
-const sourceA = pipe(interval(10), take(5));
-const sourceB = fromValue(1);
-
-pipe(
-  concat([sourceA, sourceB])
-  debounce(() => 20),
-  subscribe(val => console.log(val))
-);
-
-// The five values from sourceA will be omitted
-// After these values and after 20ms `1` will be logged
 ```
 
 ## throttle
