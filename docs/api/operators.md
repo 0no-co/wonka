@@ -5,6 +5,41 @@ order: 1
 
 Operators in Wonka allow you to transform values from a source before they are sent to a sink. Wonka has the following operators.
 
+## buffer
+
+Buffers emissions from an outer source and emits a buffer array of items every time an
+inner source (notifier) emits.
+
+This operator can be used to group values into a arrays on a source. The emitted values will
+be sent when a notifier fires and will be arrays of all items before the notification event.
+
+In combination with `interval` this can be used to group values in chunks regularly.
+
+```reason
+Wonka.interval(50)
+  |> Wonka.buffer(Wonka.interval(100))
+  |> Wonka.take(2)
+  |> Wonka.subscribe((. buffer) => {
+    Js.Array.forEach(num => print_int(num), buffer);
+    print_endline(";");
+  });
+/* Prints 1 2; 2 3 to the console. */
+```
+
+``` typescript
+import { pipe, interval, buffer, take, subscribe } from 'wonka';
+
+pipe(
+  interval(50),
+  buffer(interval(100)),
+  take(2),
+  subscribe(buffer => {
+    buffer.forEach(x => console.log(x));
+    console.log(';');
+  })
+); // Prints 1 2; 2 3 to the console.
+```
+
 ## combine
 
 `combine` two sources together to a single source. The emitted value will be a combination of the two sources, with all values from the first source being emitted with the first value of the second source _before_ values of the second source are emitted.
@@ -30,9 +65,7 @@ pipe(
   subscribe(([valOne, valTwo]) => {
     console.log(valOne + valTwo);
   })
-);
-
-// Prints 56789 (1+4, 2+4, 3+4, 3+5, 3+6) to the console.
+); // Prints 56789 (1+4, 2+4, 3+4, 3+5, 3+6) to the console.
 ```
 
 ## concat
