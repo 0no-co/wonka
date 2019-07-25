@@ -1,7 +1,6 @@
 /* operators */
 export * from './wonka_operator_debounce';
 export * from './wonka_operator_delay';
-export * from './wonka_operator_interval';
 export * from './wonka_operator_sample';
 export * from './wonka_operator_throttle';
 
@@ -9,6 +8,7 @@ export * from './wonka_operator_throttle';
 export * from './wonka_sink_toPromise';
 
 /* sources */
+export * from './wonka_source_interval';
 export * from './wonka_source_fromDomEvent';
 export * from './wonka_source_fromListener';
 export * from './wonka_source_fromPromise';
