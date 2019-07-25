@@ -12,3 +12,7 @@ export * from './wonka_sink_toPromise';
 export * from './wonka_source_fromDomEvent';
 export * from './wonka_source_fromListener';
 export * from './wonka_source_fromPromise';
+
+/* wrappers */
+export * from './wonka_observable';
+export * from './wonka_callbag';

@@ -147,6 +147,48 @@ describe("source factories", () => {
       expect(ended^) === false;
     });
   });
+
+  describe("fromObservable", () =>
+    Expect.(
+      testPromise("creates a source from an observable", () => {
+        let observable = Wonka_thelpers.observableFromArray([|1, 2|]);
+
+        Wonka_thelpers.testSource(Wonka.fromObservable(observable))
+        |> Js.Promise.then_(x =>
+             expect(x)
+             |> toEqual([|Push(1), Push(2), End|])
+             |> Js.Promise.resolve
+           );
+      })
+    )
+  );
+
+  describe("fromCallbag", () => {
+    open Expect;
+
+    testPromise("creates a source from a callbag (observable)", () => {
+      let observable = Wonka_thelpers.observableFromArray([|1, 2|]);
+      let callbag = Wonka_thelpers.callbagFromObservable(observable);
+
+      Wonka_thelpers.testSource(Wonka.fromCallbag(callbag))
+      |> Js.Promise.then_(x =>
+           expect(x)
+           |> toEqual([|Push(1), Push(2), End|])
+           |> Js.Promise.resolve
+         );
+    });
+
+    testPromise("creates a source from a callbag (iterable)", () => {
+      let callbag = Wonka_thelpers.callbagFromArray([|1, 2|]);
+
+      Wonka_thelpers.testSource(Wonka.fromCallbag(callbag))
+      |> Js.Promise.then_(x =>
+           expect(x)
+           |> toEqual([|Push(1), Push(2), End|])
+           |> Js.Promise.resolve
+         );
+    });
+  });
 });
 
 describe("operator factories", () => {
@@ -1490,6 +1532,47 @@ describe("sink factories", () => {
           expect(nums) |> toEqual([|0, 1|]);
         },
       )
+    )
+  );
+
+  describe("toObservable", () =>
+    Expect.(
+      testPromise("should convert a source to an Observable", () => {
+        let source = Wonka.fromArray([|1, 2|]);
+        let observable =
+          Wonka.toObservable(source) |> Wonka_thelpers.observableFrom;
+        let values = [||];
+
+        let promise =
+          observable->Wonka_thelpers.observableForEach(value =>
+            ignore(Js.Array.push(value, values))
+          );
+
+        promise
+        |> Js.Promise.then_(() =>
+             expect(values) |> toEqual([|1, 2|]) |> Js.Promise.resolve
+           );
+      })
+    )
+  );
+
+  describe("toCallbag", () =>
+    Expect.(
+      it("should convert a source to a Callbag", () => {
+        let source = Wonka.fromArray([|1, 2|]);
+        let callbag = Wonka.toCallbag(source);
+        let values = [||];
+
+        (
+          Wonka_thelpers.callbagIterate(. value =>
+            ignore(Js.Array.push(value, values))
+          )
+        )(.
+          callbag,
+        );
+
+        expect(values) |> toEqual([|1, 2|]);
+      })
     )
   );
 });

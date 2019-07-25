@@ -71,3 +71,57 @@ let testTalkbackEnd = operator => {
     );
   });
 };
+
+let testSource = source => {
+  let talkback = ref((. _: talkbackT) => ());
+  let res = [||];
+
+  Js.Promise.make((~resolve, ~reject as _) =>
+    source((. signal) =>
+      switch (signal) {
+      | Start(x) =>
+        talkback := x;
+        talkback^(. Pull);
+      | Push(_) =>
+        ignore(Js.Array.push(signal, res));
+        talkback^(. Pull);
+      | End =>
+        ignore(Js.Array.push(signal, res));
+        resolve(. res);
+      }
+    )
+  );
+};
+
+type observableClassT;
+
+[@bs.module] external observableClass: observableClassT = "zen-observable";
+[@bs.send]
+external _observableFromArray:
+  (observableClassT, array('a)) => Wonka.observableT('a) =
+  "from";
+[@bs.send]
+external _observableFrom:
+  (observableClassT, Wonka.observableT('a)) => Wonka.observableT('a) =
+  "from";
+[@bs.send]
+external observableForEach:
+  (Wonka.observableT('a), 'a => unit) => Js.Promise.t(unit) =
+  "forEach";
+
+let observableFromArray = (arr: array('a)): Wonka.observableT('a) =>
+  _observableFromArray(observableClass, arr);
+let observableFrom = (obs: Wonka.observableT('a)): Wonka.observableT('a) =>
+  _observableFrom(observableClass, obs);
+
+[@bs.module]
+external callbagFromArray: array('a) => Wonka.callbagT('a) =
+  "callbag-from-iter";
+
+[@bs.module]
+external callbagFromObservable: Wonka.observableT('a) => Wonka.callbagT('a) =
+  "callbag-from-obs";
+
+[@bs.module]
+external callbagIterate: (. ('a => unit)) => (. Wonka.callbagT('a)) => unit =
+  "callbag-iterate";

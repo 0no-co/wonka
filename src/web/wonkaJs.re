@@ -12,3 +12,7 @@ include Wonka_sink_toPromise;
 include Wonka_source_fromDomEvent;
 include Wonka_source_fromListener;
 include Wonka_source_fromPromise;
+
+/* wrappers */
+include Wonka_observable;
+include Wonka_callbag;
