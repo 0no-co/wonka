@@ -198,7 +198,7 @@ passed, so it will start, end, and push values identically.
 > when compiling natively.
 
 ```typescript
-import { fromObservable, subscribe } from 'wonka';
+import { pipe, fromObservable, subscribe } from 'wonka';
 
 // This example uses zen-observable for illustrative purposes
 import Observable from 'zen-observable';
@@ -234,6 +234,43 @@ external asObservable: yourObservableType('a) => Wonka.observableT('a) = "%ident
 
 This snippet would create an `asObservable` function, which can type-cast your
 Observable type to `Wonka.observableT` and compiles away completely.
+
+## fromCallbag
+
+`fromCallbag` transforms a [spec-compliant JS Callbag](https://github.com/callbag/callbag) into a source.
+
+Since Wonka's sources are very similar to callbags and only diverge from the specification
+minimally, Callbags map to Wonka's sources very closely and the `fromCallbag` wrapper
+is very thin and mostly concerned with converting between the type signatures.
+
+> _Note:_ This source is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+/* This example uses the callbag-from-iter package for illustrative purposes */
+[@bs.module] external callbagFromArray:
+  array('a) => Wonka.callbagT('a) = "callbag-from-iter";
+
+let callbag = callbagFromArray([|1, 2, 3|]);
+
+Wonka.fromCallbag(callbag)
+  |> Wonka.subscribe((. x) => Js.log(x));
+/* Prints 1 2 3 to the console. */
+```
+
+```typescript
+import { pipe, fromCallbag, subscribe } from 'wonka';
+
+// This example uses the callbag-from-iter package for illustrative purposes
+import callbagFromArray from 'callbag-from-iter';
+
+const callbag = callbagFromArray([1, 2, 3]);
+
+pipe(
+  fromCallbag(callbag),
+  subscribe(e => console.log(e))
+); // Prints 1 2 3 to the console.
+```
 
 ## empty
 
