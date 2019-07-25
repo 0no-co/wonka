@@ -2,6 +2,7 @@ workflow:
   - install
   - build
   - sail:parallel:
+    - check
     - test
     - bundle
     - flowgen
@@ -20,6 +21,13 @@ tasks:
     args:
       - run
       - build
+  check:
+    image: node:10
+    command:
+      - yarn
+    args:
+      - run
+      - check
   bundle:
     image: node:10
     command:

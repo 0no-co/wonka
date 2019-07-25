@@ -21,6 +21,7 @@
   "scripts": {
     "docs:dev": "gatsby develop",
     "docs:build": "gatsby build",
+    "check": "tsc --noEmit",
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
@@ -30,7 +31,7 @@
     "refmt": "bsrefmt --in-place **/**/*.{re,rei}",
     "flowgen": "./scripts/generate-flow-files.js",
     "bundle": "rollup -c rollup.config.js",
-    "prepublishOnly": "run-s clean build bundle flowgen test",
+    "prepublishOnly": "run-s clean build bundle flowgen check test",
     "codecov": "codecov"
   },
   "keywords": [
@@ -72,6 +73,7 @@
     "rollup-plugin-node-resolve": "^4.2.3",
     "rollup-plugin-prettier": "^0.6.0",
     "rollup-plugin-terser": "^4.0.4",
+    "typescript": "^3.5.3",
     "zen-observable": "^0.8.14"
   },
   "lint-staged": {
