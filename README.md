@@ -26,64 +26,31 @@ A fast push & pull stream library for Reason, loosely following the [callbag spe
 
 ![Wonka](/docs/wonka.jpg?raw=true)
 
-* [What is `Wonka`](#what-is-wonka)
-* [Why it exists](#why-it-exists)
-* [Installation](#installation)
-* [Getting Started](#getting-started)
-* [Documentation (In Progress)](#documentation)
+Wonka is a lightweight iterable and observable library loosely based on
+the [callbag spec](https://github.com/callbag/callbag). It exposes a set of helpers to create streams,
+which are sources of multiple values, which allow you to create, transform
+and consume event streams or iterable sets of data.
 
-## What is `Wonka`
+Wonka is written in [Reason](https://reasonml.github.io/), a dialect of OCaml, and can hence be used
+for native applications. It is also compiled using [BuckleScript](https://bucklescript.github.io) to plain
+JavaScript and has typings for [TypeScript](https://www.typescriptlang.org/) and [Flow](https://flow.org/).
 
-`Wonka` is a library for lightweight observables and iterables loosely based on the [callbag spec](https://github.com/callbag/callbag).
-It exposes a set of helpers to create and transform sources and output sinks, meaning it helps you to turn an event source or an
-iterable set of data into streams, and manipulate these streams.
+This means that out of the box Wonka is usable in any project that use the following:
 
-Reason has been becoming increasingly popular, but it's missing a good pattern for streams that feels native to the language.
-The functional nature of callbags make them a perfect starting point to fix this, and to introduce a reactive programming
-pattern to a language that is well suited for it.
-
-This library also attempts to support as many Reason/JS environments as possible, which makes the adoption of streams across
-multiple projects a lot easier.  Hence `Wonka` is a library that aims to make complex streams of data easy to deal with.
-
-## Compatibility
-
-`Wonka` is not only compatible with Reason/Bucklescript, but out of the box with other environments as well.
-
+- Plain JavaScript
 - TypeScript
-- JS/Flow
-- Reason/OCaml Bucklescript
-- Reason/OCaml `bs-native`
-- Reason/OCaml Dune
+- Flow
+- Reason/OCaml with BuckleScript
+- Reason/OCaml with `bs-native`
+- Reason/OCaml with Dune and Esy
 
-In summary, it should work in any TypeScript/Flow/Reason/OCaml environment with full type safety.
+## [Documentation](https://wonka.kitten.sh/)
 
-## Installation
+**See the documentation at [wonka.kitten.sh](https://wonka.kitten.sh)** for more information about using `wonka`!
 
-Install the library first: `yarn add wonka` or `npm install --save wonka`,
+- [Introduction](https://wonka.kitten.sh/)
+- [**Getting started**](https://wonka.kitten.sh/getting-started)
+- [Basics](https://wonka.kitten.sh/basics/)
+- [API Reference](https://wonka.kitten.sh/api/)
 
-### BuckleScript
-
-For Bucklescript you will also need to add `wonka` to `bs-dependencies` in your `bsconfig.json` file like so:
-
-```diff
-{
-  "name": "<your name>",
-  "version": "0.1.0",
-  "sources": ["src"],
-  "bsc-flags": ["-bs-super-errors"],
-  "bs-dependencies": [
-+    "wonka"
-  ]
-}
-```
-
-## Documentation
-
-This is still a work-in-progress but will contain full information on the following
-across all supported languages:
-
-- The API, i.e. a list of all helpers
-- Examples
-- Usage Guides & Recipes
-- Developer Guides (How to write a source/operator/sink)
-- Modified Callbag spec
+The raw markdown files can be found [in this repository in the `docs` folder](https://github.com/kitten/wonka/tree/master/docs).

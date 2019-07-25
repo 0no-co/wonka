@@ -117,3 +117,20 @@ Wonka.fromValue("test")
 
 It's worth noting that most callbacks in Wonka need to be explicitly uncurried, since
 this will help them compile cleanly to JavaScript.
+
+## Interoperability
+
+In JavaScript environments, Wonka comes with several utilities that make it easier
+to interoperate with JavaScript primitives and other libraries:
+
+- [`fromPromise`](./api/sources.md#frompromise) & [`toPromise`](./api/sinks.md#topromise) can be used to interoperate with Promises
+- [`fromObservable`](./api/sources.md#fromobservable) & [`toObservable`](./api/sinks.md#toobservable) can be used to interoperate with spec-compliant Observables
+- [`fromCallbag`](./api/sources.md#fromcallbag) & [`toCallbag`](./api/sinks.md#tocallbag) can be used to interoperate with spec-compliant Callbags
+
+Furthermore there are a couple of operators that only work in JavaScript environments
+since they need timing primitives, like `setTimeout` and `setInterval`:
+
+- [`delay`](./api/operators.md#delay)
+- [`debounce`](./api/operators.md#debounce)
+- [`throttle`](./api/operators.md#throttle)
+- [`interval`](./api/sources.md#interval)

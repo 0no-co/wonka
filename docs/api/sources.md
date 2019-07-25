@@ -188,6 +188,115 @@ pipe(
 ); // Prints 1 to the console.
 ```
 
+## fromObservable
+
+`fromObservable` transforms a [spec-compliant JS Observable](https://github.com/tc39/proposal-observable) into a source.
+The resulting source will behave exactly the same as the Observable that it was
+passed, so it will start, end, and push values identically.
+
+> _Note:_ This source is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```typescript
+import { pipe, fromObservable, subscribe } from 'wonka';
+
+// This example uses zen-observable for illustrative purposes
+import Observable from 'zen-observable';
+
+const observable = Observable.from([1, 2, 3]);
+
+pipe(
+  fromObservable(observable),
+  subscribe(e => console.log(e))
+); // Prints 1 2 3 to the console
+```
+
+If you're using Reason in a JavaScript environment and you're interested in this
+operator, you may be using a library to create or get Observables.
+
+Some libraries don't expose Observables with the same BuckleScript type signature
+that Wonka uses to type them. So while Wonka's `observableT` type is fairly
+lenient it may not work for you.
+
+```reason
+type observableT('a) = {.
+  [@bs.meth] "subscribe": observerT('a) => subscriptionT
+};
+```
+
+To work around this you can create a function that casts your observable type
+to Wonka's `observableT`.
+
+```reason
+type yourObservableType('a);
+external asObservable: yourObservableType('a) => Wonka.observableT('a) = "%identity";
+```
+
+This snippet would create an `asObservable` function, which can type-cast your
+Observable type to `Wonka.observableT` and compiles away completely.
+
+## fromCallbag
+
+`fromCallbag` transforms a [spec-compliant JS Callbag](https://github.com/callbag/callbag) into a source.
+
+Since Wonka's sources are very similar to callbags and only diverge from the specification
+minimally, Callbags map to Wonka's sources very closely and the `fromCallbag` wrapper
+is very thin and mostly concerned with converting between the type signatures.
+
+> _Note:_ This source is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+/* This example uses the callbag-from-iter package for illustrative purposes */
+[@bs.module] external callbagFromArray:
+  array('a) => Wonka.callbagT('a) = "callbag-from-iter";
+
+let callbag = callbagFromArray([|1, 2, 3|]);
+
+Wonka.fromCallbag(callbag)
+  |> Wonka.subscribe((. x) => Js.log(x));
+/* Prints 1 2 3 to the console. */
+```
+
+```typescript
+import { pipe, fromCallbag, subscribe } from 'wonka';
+
+// This example uses the callbag-from-iter package for illustrative purposes
+import callbagFromArray from 'callbag-from-iter';
+
+const callbag = callbagFromArray([1, 2, 3]);
+
+pipe(
+  fromCallbag(callbag),
+  subscribe(e => console.log(e))
+); // Prints 1 2 3 to the console.
+```
+
+## interval
+
+`interval` creates a source that emits values after the given amount of milliseconds.
+Internally it uses `setInterval` to accomplish this.
+
+> _Note:_ This source is only available in JavaScript environments, and will be excluded
+> when compiling natively.
+
+```reason
+Wonka.interval(50)
+  |> Wonka.subscribe((. x) => Js.log(x));
+/* Prints 0 1 2... to the console. */
+/* The incrementing number is logged every 50ms */
+```
+
+```typescript
+import { pipe, interval, subscribe } from 'wonka';
+
+pipe(
+  interval(50),
+  subscribe(e => console.log(e))
+); // Prints 0 1 2... to the console.
+// The incrementing number is logged every 50ms
+```
+
 ## empty
 
 This is a source that doesn't emit any values when subscribed to and
