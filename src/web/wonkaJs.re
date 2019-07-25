@@ -1,7 +1,6 @@
 /* operators */
 include Wonka_operator_debounce;
 include Wonka_operator_delay;
-include Wonka_operator_sample;
 include Wonka_operator_throttle;
 
 /* sinks */

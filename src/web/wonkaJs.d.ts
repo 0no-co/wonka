@@ -1,7 +1,6 @@
 /* operators */
 export * from './wonka_operator_debounce';
 export * from './wonka_operator_delay';
-export * from './wonka_operator_sample';
 export * from './wonka_operator_throttle';
 
 /* sinks */

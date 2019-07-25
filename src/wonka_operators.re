@@ -7,6 +7,7 @@ include Wonka_operator_mergeMap;
 include Wonka_operator_onEnd;
 include Wonka_operator_onPush;
 include Wonka_operator_onStart;
+include Wonka_operator_sample;
 include Wonka_operator_scan;
 include Wonka_operator_share;
 include Wonka_operator_skip;

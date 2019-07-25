@@ -322,6 +322,65 @@ describe("operator factories", () => {
     });
   });
 
+  describe("sample", () => {
+    open Expect;
+    open! Expect.Operators;
+
+    afterEach(() => Jest.useRealTimers());
+
+    it("should sample the last emitted value from a source", () => {
+      Jest.useFakeTimers();
+      let a = Wonka.interval(50);
+
+      let talkback = ref((. _: Wonka_types.talkbackT) => ());
+      let signals = [||];
+
+      let source = Wonka.sample(Wonka.interval(100), a);
+
+      source((. signal) =>
+        switch (signal) {
+        | Start(x) =>
+          talkback := x;
+          x(. Pull);
+        | Push(_) =>
+          ignore(Js.Array.push(signal, signals));
+          talkback^(. Pull);
+        | End => ignore(Js.Array.push(signal, signals))
+        }
+      );
+
+      Jest.runTimersToTime(200);
+
+      expect(signals) == [|Push(1), Push(3)|];
+    });
+
+    it("should emit an End signal when the source has emitted all values", () => {
+      Jest.useFakeTimers();
+      let a = Wonka.interval(50);
+
+      let talkback = ref((. _: Wonka_types.talkbackT) => ());
+      let signals = [||];
+
+      let source = Wonka.sample(Wonka.interval(100), a) |> Wonka.take(3);
+
+      source((. signal) =>
+        switch (signal) {
+        | Start(x) =>
+          talkback := x;
+          x(. Pull);
+        | Push(_) =>
+          ignore(Js.Array.push(signal, signals));
+          talkback^(. Pull);
+        | End => ignore(Js.Array.push(signal, signals))
+        }
+      );
+
+      Jest.runTimersToTime(300);
+
+      expect(signals) == [|Push(1), Push(3), Push(5), End|];
+    });
+  });
+
   describe("scan", () => {
     open Expect;
 
@@ -2025,65 +2084,6 @@ describe("web operators", () => {
       Jest.runTimersToTime(3000);
 
       expect(signals) == [|Push(1), Push(2), Push(3), End|];
-    });
-  });
-
-  describe("sample", () => {
-    open Expect;
-    open! Expect.Operators;
-
-    afterEach(() => Jest.useRealTimers());
-
-    it("should sample the last emitted value from a source", () => {
-      Jest.useFakeTimers();
-      let a = Wonka.interval(50);
-
-      let talkback = ref((. _: Wonka_types.talkbackT) => ());
-      let signals = [||];
-
-      let source = WonkaJs.sample(Wonka.interval(100), a);
-
-      source((. signal) =>
-        switch (signal) {
-        | Start(x) =>
-          talkback := x;
-          x(. Pull);
-        | Push(_) =>
-          ignore(Js.Array.push(signal, signals));
-          talkback^(. Pull);
-        | End => ignore(Js.Array.push(signal, signals))
-        }
-      );
-
-      Jest.runTimersToTime(200);
-
-      expect(signals) == [|Push(1), Push(3)|];
-    });
-
-    it("should emit an End signal when the source has emitted all values", () => {
-      Jest.useFakeTimers();
-      let a = Wonka.interval(50);
-
-      let talkback = ref((. _: Wonka_types.talkbackT) => ());
-      let signals = [||];
-
-      let source = WonkaJs.sample(Wonka.interval(100), a) |> Wonka.take(3);
-
-      source((. signal) =>
-        switch (signal) {
-        | Start(x) =>
-          talkback := x;
-          x(. Pull);
-        | Push(_) =>
-          ignore(Js.Array.push(signal, signals));
-          talkback^(. Pull);
-        | End => ignore(Js.Array.push(signal, signals))
-        }
-      );
-
-      Jest.runTimersToTime(300);
-
-      expect(signals) == [|Push(1), Push(3), Push(5), End|];
     });
   });
 
