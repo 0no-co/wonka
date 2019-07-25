@@ -1,19 +1,21 @@
 open Wonka_types;
 open Wonka_helpers;
 
-type takeUntilStateT = {
-  mutable ended: bool,
+type bufferStateT('a) = {
+  mutable buffer: Rebel.MutableQueue.t('a),
   mutable sourceTalkback: (. talkbackT) => unit,
   mutable notifierTalkback: (. talkbackT) => unit,
+  mutable ended: bool,
 };
 
-let takeUntil = notifier =>
-  curry(source =>
-    curry(sink => {
-      let state: takeUntilStateT = {
-        ended: false,
+let buffer = (notifier: sourceT('a)) =>
+  curry((source: sourceT('b)) =>
+    curry((sink: sinkT(array('b))) => {
+      let state: bufferStateT('b) = {
+        buffer: Rebel.MutableQueue.make(),
         sourceTalkback: talkbackPlaceholder,
         notifierTalkback: talkbackPlaceholder,
+        ended: false,
       };
 
       source((. signal) =>
@@ -23,23 +25,32 @@ let takeUntil = notifier =>
 
           notifier((. signal) =>
             switch (signal) {
-            | Start(innerTb) =>
-              state.notifierTalkback = innerTb;
-              innerTb(. Pull);
-            | Push(_) =>
+            | Start(tb) =>
+              state.notifierTalkback = tb;
+              state.notifierTalkback(. Pull);
+            | Push(_) when !state.ended =>
+              sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
+              state.buffer = Rebel.MutableQueue.make();
+              state.notifierTalkback(. Pull);
+            | Push(_) => ()
+            | End when !state.ended =>
               state.ended = true;
               state.sourceTalkback(. Close);
+              sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
               sink(. End);
             | End => ()
             }
           );
+        | Push(value) when !state.ended =>
+          Rebel.MutableQueue.add(state.buffer, value);
+          state.sourceTalkback(. Pull);
+        | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
           state.notifierTalkback(. Close);
+          sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
           sink(. End);
         | End => ()
-        | Push(_) when !state.ended => sink(. signal)
-        | Push(_) => ()
         }
       );
 
