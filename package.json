@@ -59,7 +59,7 @@
     "flowgen": "^1.9.2",
     "gatsby": "^2.13.41",
     "gatsby-plugin-netlify": "^2.1.3",
-    "gatsby-theme-docs-system": "^0.2.0",
+    "gatsby-theme-docs-system": "^0.2.2",
     "globby": "^10.0.1",
     "husky": "^3.0.1",
     "lint-staged": "^9.2.1",
