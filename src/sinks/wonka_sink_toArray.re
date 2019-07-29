@@ -2,16 +2,16 @@ open Wonka_types;
 open Wonka_helpers;
 
 type toArrayStateT('a) = {
-  mutable talkback: (. talkbackT) => unit,
   values: Rebel.MutableQueue.t('a),
+  mutable talkback: (. talkbackT) => unit,
   mutable value: option('a),
   mutable ended: bool,
 };
 
 let toArray = (source: sourceT('a)): array('a) => {
   let state: toArrayStateT('a) = {
-    talkback: talkbackPlaceholder,
     values: Rebel.MutableQueue.make(),
+    talkback: talkbackPlaceholder,
     value: None,
     ended: false,
   };
@@ -27,6 +27,10 @@ let toArray = (source: sourceT('a)): array('a) => {
     | End => state.ended = true
     }
   );
+
+  if (!state.ended) {
+    state.talkback(. Close);
+  };
 
   Rebel.MutableQueue.toArray(state.values);
 };
