@@ -1,40 +1,16 @@
 open Wonka_types;
-
-type fromListState('a) = {
-  mutable value: 'a,
-  mutable ended: bool,
-  mutable looping: bool,
-  mutable pull: bool,
-};
+open Wonka_helpers;
 
 let fromList = ls =>
   curry(sink => {
-    let state = {value: ls, ended: false, looping: false, pull: false};
+    let value = ref(ls);
 
-    sink(.
-      Start(
-        (. signal) =>
-          switch (signal, state.looping) {
-          | (Pull, false) =>
-            state.pull = true;
-            state.looping = true;
-
-            while (state.pull && !state.ended) {
-              switch (state.value) {
-              | [x, ...rest] =>
-                state.value = rest;
-                state.pull = false;
-                sink(. Push(x));
-              | [] =>
-                state.ended = true;
-                sink(. End);
-              };
-            };
-
-            state.looping = false;
-          | (Pull, true) => state.pull = true
-          | (Close, _) => state.ended = true
-          },
-      ),
+    makeTrampoline(sink, (.) =>
+      switch (value^) {
+      | [x, ...rest] =>
+        value := rest;
+        Some(x);
+      | [] => None
+      }
     );
   });

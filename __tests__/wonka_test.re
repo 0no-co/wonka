@@ -1692,6 +1692,45 @@ describe("sink factories", () => {
       })
     )
   );
+
+  describe("toArray", () => {
+    open Expect;
+
+    it("converts iterable sources to arrays", () => {
+      let input = [|1, 2, 3|];
+      let output = Wonka.fromArray(input) |> Wonka.toArray;
+      expect(output) |> toEqual(input);
+    });
+
+    it("converts mapped iterable sources to arrays", () => {
+      let input = [|1, 2, 3|];
+      let output =
+        Wonka.fromArray(input) |> Wonka.map((. x) => x) |> Wonka.toArray;
+      expect(output) |> toEqual(input);
+    });
+
+    it("converts concatenated iterable sources to arrays", () => {
+      let inputA = [|1, 2, 3|];
+      let inputB = [|1, 2, 3|];
+      let input = Array.append(inputA, inputB);
+
+      let output =
+        Wonka.concat([|Wonka.fromArray(inputA), Wonka.fromArray(inputB)|])
+        |> Wonka.toArray;
+
+      expect(output) |> toEqual(input);
+    });
+
+    it("ignores and closes asynchronous push streams", () => {
+      let input = [|1, 2, 3|];
+      let source = Wonka.concat([|Wonka.fromArray(input), Wonka.never|]);
+      let (signals, wrappedSource) =
+        source |> Wonka_thelpers.testSourceOperator;
+
+      ignore(Wonka.toArray(wrappedSource));
+      expect(signals) |> toEqual([|Pull, Close|]);
+    });
+  });
 });
 
 describe("chains (integration)", () =>

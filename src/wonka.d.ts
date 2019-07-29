@@ -31,5 +31,6 @@ export * from './operators/wonka_operator_takeWhile';
 /* sinks */
 export * from './sinks/wonka_sink_publish';
 export * from './sinks/wonka_sink_subscribe';
+export * from './sinks/wonka_sink_toArray';
 
 export * from './web/wonkaJs';
