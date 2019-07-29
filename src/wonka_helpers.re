@@ -20,47 +20,36 @@ let captureTalkback =
 };
 
 type trampolineT = {
-  mutable exhausted: bool,
-  mutable inLoop: bool,
-  mutable gotSignal: bool,
+  mutable ended: bool,
+  mutable looping: bool,
+  mutable pull: bool,
 };
 
 let makeTrampoline = (sink: sinkT('a), f: (. unit) => option('a)) => {
-  let state: trampolineT = {
-    exhausted: false,
-    inLoop: false,
-    gotSignal: false,
-  };
-
-  let loop = () => {
-    let rec explode = () =>
-      switch (f(.)) {
-      | Some(x) =>
-        state.gotSignal = false;
-        sink(. Push(x));
-        if (state.gotSignal) {
-          explode();
-        };
-      | None =>
-        state.exhausted = true;
-        sink(. End);
-      };
-
-    state.inLoop = true;
-    explode();
-    state.inLoop = false;
-  };
+  let state: trampolineT = {ended: false, looping: false, pull: false};
 
   sink(.
     Start(
       (. signal) =>
-        switch (signal, state.exhausted) {
+        switch (signal, state.looping) {
         | (Pull, false) =>
-          state.gotSignal = true;
-          if (!state.inLoop) {
-            loop();
+          state.pull = true;
+          state.looping = true;
+
+          while (state.pull && !state.ended) {
+            switch (f(.)) {
+            | Some(x) =>
+              state.pull = false;
+              sink(. Push(x));
+            | None =>
+              state.ended = true;
+              sink(. End);
+            };
           };
-        | _ => ()
+
+          state.looping = false;
+        | (Pull, true) => state.pull = true
+        | (Close, _) => state.ended = true
         },
     ),
   );
