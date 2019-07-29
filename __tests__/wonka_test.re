@@ -1720,6 +1720,16 @@ describe("sink factories", () => {
 
       expect(output) |> toEqual(input);
     });
+
+    it("ignores and closes asynchronous push streams", () => {
+      let input = [|1, 2, 3|];
+      let source = Wonka.concat([|Wonka.fromArray(input), Wonka.never|]);
+      let (signals, wrappedSource) =
+        source |> Wonka_thelpers.testSourceOperator;
+
+      ignore(Wonka.toArray(wrappedSource));
+      expect(signals) |> toEqual([|Pull, Close|]);
+    });
   });
 });
 

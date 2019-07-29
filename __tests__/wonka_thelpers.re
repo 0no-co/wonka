@@ -93,6 +93,28 @@ let testSource = source => {
   );
 };
 
+let testSourceOperator = source => {
+  let res = [||];
+  let innerSource = sink => {
+    source((. signal) =>
+      switch (signal) {
+      | Start(outerTalkback) =>
+        sink(.
+          Start(
+            (. talkback) => {
+              Js.Array.push(talkback, res);
+              outerTalkback(. talkback);
+            },
+          ),
+        )
+      | _ => sink(. signal)
+      }
+    );
+  };
+
+  (res, innerSource);
+};
+
 type observableClassT;
 
 [@bs.module] external observableClass: observableClassT = "zen-observable";
