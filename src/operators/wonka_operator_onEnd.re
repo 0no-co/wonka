@@ -10,14 +10,17 @@ let onEnd = f =>
         | Start(talkback) =>
           sink(.
             Start(
-              (. signal) =>
+              (. signal) => {
                 switch (signal) {
                 | Close when ! ended^ =>
                   ended := true;
                   f(.);
-                | Close => ()
-                | Pull => talkback(. Pull)
-                },
+                | Close
+                | Pull => ()
+                };
+
+                talkback(. signal);
+              },
             ),
           )
         | End =>
