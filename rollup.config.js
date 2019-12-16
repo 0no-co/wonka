@@ -61,6 +61,90 @@ const terserMinified = terser({
   }
 });
 
+// Convert unsubscribe objects to tupels
+const legacyUnsubscribePlugin = ({ types: t }) => ({
+  visitor: {
+    ObjectExpression(path) {
+      if (
+        path.node.properties.length === 1 &&
+        t.isIdentifier(path.node.properties[0].key) &&
+        path.node.properties[0].key.name === 'unsubscribe'
+      ) {
+        const value = path.node.properties[0].value;
+        path.replaceWith(t.arrayExpression([value]));
+      }
+    },
+    MemberExpression(path, state) {
+      if (
+        t.isCallExpression(path.parent) &&
+        t.isIdentifier(path.node.property) &&
+        path.node.property.name === 'unsubscribe'
+      ) {
+        path.node.property = t.numericLiteral(0);
+      }
+    }
+  }
+});
+
+// Convert subjects and observers to tupels
+const legacyObserverPlugin = ({ types: t }) => ({
+  pre() {
+    this.props = new Set(['source', 'next', 'complete']);
+  },
+  visitor: {
+    ObjectExpression(path) {
+      if (
+        path.node.properties.length &&
+        path.node.properties.every(
+          x => t.isObjectProperty(x) && t.isIdentifier(x.key) && this.props.has(x.key.name)
+        )
+      ) {
+        path.replaceWith(t.arrayExpression(path.node.properties.map(x => x.value)));
+      }
+    }
+  }
+});
+
+// This plugin finds state that BuckleScript has compiled to an object
+// and unwraps them into inline variables
+const unwrapStatePlugin = ({ types: t }) => ({
+  pre() {
+    this.props = new Map();
+  },
+  visitor: {
+    VariableDeclarator(path) {
+      if (
+        t.isIdentifier(path.node.id) &&
+        t.isObjectExpression(path.node.init) &&
+        path.node.init.properties.every(t.isObjectProperty)
+      ) {
+        const id = path.node.id.name;
+        const properties = path.node.init.properties;
+        const propNames = new Set(properties.map(x => x.key.name));
+        const decl = properties.map(prop => {
+          const key = `${id}$${prop.key.name}`;
+          return t.variableDeclarator(t.identifier(key), prop.value);
+        });
+
+        this.props.set(id, propNames);
+        path.parentPath.replaceWithMultiple(t.variableDeclaration('let', decl));
+      }
+    },
+    MemberExpression(path) {
+      if (
+        t.isIdentifier(path.node.object) &&
+        this.props.has(path.node.object.name) &&
+        t.isIdentifier(path.node.property) &&
+        this.props.get(path.node.object.name).has(path.node.property.name)
+      ) {
+        const id = path.node.object.name;
+        const propName = path.node.property.name;
+        path.replaceWith(t.identifier(`${id}$${propName}`));
+      }
+    }
+  }
+});
+
 const makePlugins = isProduction =>
   [
     nodeResolve({
@@ -84,7 +168,12 @@ const makePlugins = isProduction =>
       babelrc: false,
       exclude: 'node_modules/**',
       presets: [],
-      plugins: [['babel-plugin-closure-elimination', {}]]
+      plugins: [
+        'babel-plugin-closure-elimination',
+        legacyUnsubscribePlugin,
+        legacyObserverPlugin,
+        unwrapStatePlugin
+      ]
     }),
     compiler({
       compilation_level: 'SIMPLE_OPTIMIZATIONS'
