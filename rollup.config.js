@@ -61,6 +61,41 @@ const terserMinified = terser({
   }
 });
 
+// This plugin finds state that BuckleScript has compiled to array expressions
+// and unwraps them and their accessors to inline variables
+const unwrapStatePlugin = ({ types: t }) => ({
+  pre() {
+    this.props = new Map();
+  },
+  visitor: {
+    VariableDeclarator(path) {
+      if (t.isIdentifier(path.node.id) && t.isArrayExpression(path.node.init)) {
+        const id = path.node.id.name;
+        const elements = path.node.init.elements;
+        const decl = elements.map((element, i) => {
+          const key = `${id}$${i}`;
+          return t.variableDeclarator(t.identifier(key), element);
+        });
+
+        this.props.set(id, elements.length);
+        path.parentPath.replaceWithMultiple(t.variableDeclaration('let', decl));
+      }
+    },
+    MemberExpression(path) {
+      if (
+        t.isIdentifier(path.node.object) &&
+        this.props.has(path.node.object.name) &&
+        t.isNumericLiteral(path.node.property) &&
+        path.node.property.value < this.props.get(path.node.object.name)
+      ) {
+        const id = path.node.object.name;
+        const elementIndex = path.node.property.value;
+        path.replaceWith(t.identifier(`${id}$${elementIndex}`));
+      }
+    }
+  }
+});
+
 const makePlugins = isProduction =>
   [
     nodeResolve({
@@ -84,7 +119,7 @@ const makePlugins = isProduction =>
       babelrc: false,
       exclude: 'node_modules/**',
       presets: [],
-      plugins: [['babel-plugin-closure-elimination', {}]]
+      plugins: ['babel-plugin-closure-elimination', unwrapStatePlugin]
     }),
     compiler({
       compilation_level: 'SIMPLE_OPTIMIZATIONS'
