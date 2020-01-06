@@ -1,6 +1,7 @@
 import * as deriving from './helpers/wonka_deriving';
 import * as sources from './wonka_sources.gen';
 import * as operators from './wonka_operators.gen';
+import * as web from './web/wonkaJs.gen';
 import * as types from './wonka_types.gen';
 
 /* This tests a noop operator for passive Pull talkback signals.
@@ -36,6 +37,7 @@ const passesPassivePull = (operator: types.operatorT<any, any>) =>
 
     // When pulling a value we expect an immediate response
     talkback(deriving.pull);
+    jest.runAllTimers();
     expect(values).toEqual([0]);
   });
 
@@ -74,6 +76,7 @@ const passesActivePush = (operator: types.operatorT<any, any>) =>
 
     // When pushing a value we expect an immediate response
     push(0);
+    jest.runAllTimers();
     expect(values).toEqual([0]);
     // Subsequently the Pull signal should have travelled upwards
     expect(pulls).toBe(1);
@@ -112,6 +115,7 @@ const passesSinkClose = (operator: types.operatorT<any, any>) =>
 
     // When pushing a value we expect an immediate close signal
     talkback(deriving.pull);
+    jest.runAllTimers();
     expect(ended).toBeTruthy();
     expect(pulls).toBe(1);
   });
@@ -149,6 +153,7 @@ const passesSourceEnd = (operator: types.operatorT<any, any>) =>
 
     // When pushing a value we expect an immediate Push then End signal
     talkback(deriving.pull);
+    jest.runAllTimers();
     expect(pulls).toBe(1);
     expect(signals).toEqual([deriving.push(0), deriving.end()]);
   });
@@ -159,6 +164,26 @@ describe('concatMap', () => {
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
+});
+
+describe('debounce', () => {
+  beforeEach(() => jest.useFakeTimers());
+
+  const noop = web.debounce(() => 0);
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  passesSinkClose(noop);
+  passesSourceEnd(noop);
+});
+
+describe('delay', () => {
+  beforeEach(() => jest.useFakeTimers());
+
+  const noop = web.delay(0);
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  // TODO: passesSinkClose(noop);
+  passesSourceEnd(noop);
 });
 
 describe('filter', () => {
@@ -207,6 +232,14 @@ describe('onStart', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+});
+
+describe('sample', () => {
+  // const noop = operators.sample(sources.fromValue(null));
+  // TODO: passesPassivePull(noop);
+  // TODO: passesActivePush(noop);
+  // TODO: passesSinkClose(noop);
+  // TODO: passesSourceEnd(noop);
 });
 
 describe('scan', () => {
@@ -280,3 +313,15 @@ describe('takeWhile', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
 });
+
+describe('throttle', () => {
+  beforeEach(() => jest.useFakeTimers());
+
+  const noop = web.throttle(() => 0);
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  passesSinkClose(noop);
+  passesSourceEnd(noop);
+});
+
+
