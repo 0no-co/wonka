@@ -1,11 +1,15 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let empty = sink => {
-  sink(. Start(talkbackPlaceholder));
-  sink(. End);
-};
+[@genType]
+let empty: sourceT('a) =
+  sink => {
+    sink(. Start(talkbackPlaceholder));
+    sink(. End);
+  };
 
-let never = sink => {
-  sink(. Start(talkbackPlaceholder));
-};
+[@genType]
+let never: sourceT('a) =
+  sink => {
+    sink(. Start(talkbackPlaceholder));
+  };

@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let make = f =>
+[@genType]
+let make = (f: (. observerT('a)) => teardownT): sourceT('a) =>
   curry(sink => {
     let teardown = ref((.) => ());
 

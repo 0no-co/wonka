@@ -5,7 +5,8 @@ type subjectState('a) = {
   mutable ended: bool,
 };
 
-let makeSubject = () => {
+[@genType]
+let makeSubject = (): subjectT('a) => {
   let state: subjectState('a) = {
     sinks: Rebel.Array.makeEmpty(),
     ended: false,

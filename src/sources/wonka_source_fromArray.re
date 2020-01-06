@@ -1,7 +1,8 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let fromArray = arr =>
+[@genType]
+let fromArray = (arr: array('a)): sourceT('a) =>
   curry(sink => {
     let size = Rebel.Array.size(arr);
     let index = ref(0);

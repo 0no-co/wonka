@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let fromValue = x =>
+[@genType]
+let fromValue = (x: 'a): sourceT('a) =>
   curry(sink => {
     let ended = ref(false);
 
