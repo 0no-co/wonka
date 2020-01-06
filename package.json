@@ -66,6 +66,7 @@
     "gatsby": "^2.18.17",
     "gatsby-plugin-netlify": "^2.1.30",
     "gatsby-theme-docs-system": "^0.2.2",
+    "gentype": "^3.9.1",
     "globby": "^10.0.1",
     "husky": "^3.1.0",
     "lint-staged": "^9.5.0",
