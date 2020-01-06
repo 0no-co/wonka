@@ -79,15 +79,19 @@ const importAllPlugin = ({ types: t }) => ({
 const unwrapStatePlugin = ({ types: t }) => ({
   pre() {
     this.props = new Map();
-    this.name = /state$/i;
+    this.test = node =>
+      /state$/i.test(node.id.name) ||
+      (node.init.properties.length === 1 && node.init.properties[0].key.name === 'contents');
   },
   visitor: {
     VariableDeclarator(path) {
       if (
         t.isIdentifier(path.node.id) &&
-        this.name.test(path.node.id.name) &&
         t.isObjectExpression(path.node.init) &&
-        path.node.init.properties.every(t.isObjectProperty)
+        path.node.init.properties.every(
+          prop => t.isObjectProperty(prop) && t.isIdentifier(prop.key)
+        ) &&
+        this.test(path.node)
       ) {
         const id = path.node.id.name;
         const properties = path.node.init.properties;
