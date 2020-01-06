@@ -9,7 +9,7 @@
     "lib": ["dom", "esnext"],
     "jsx": "react",
     "declaration": false,
-    "module": "es2015",
+    "module": "commonjs",
     "moduleResolution": "node",
     "target": "esnext",
     "strict": false,
