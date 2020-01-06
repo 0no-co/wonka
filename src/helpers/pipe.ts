@@ -1,4 +1,4 @@
-import { Source } from './wonka_types';
+import { sourceT as Source } from '../wonka_types.gen';
 
 interface UnaryFn<T, R> {
   (source: T): R;
@@ -6,22 +6,22 @@ interface UnaryFn<T, R> {
 
 /* pipe definitions for source + operators composition */
 
-export function pipe<T, A>(source: Source<T>, op1: UnaryFn<Source<T>, Source<A>>): Source<A>;
+function pipe<T, A>(source: Source<T>, op1: UnaryFn<Source<T>, Source<A>>): Source<A>;
 
-export function pipe<T, A, B>(
+function pipe<T, A, B>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>
 ): Source<B>;
 
-export function pipe<T, A, B, C>(
+function pipe<T, A, B, C>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
   op3: UnaryFn<Source<B>, Source<C>>
 ): Source<C>;
 
-export function pipe<T, A, B, C, D>(
+function pipe<T, A, B, C, D>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -29,7 +29,7 @@ export function pipe<T, A, B, C, D>(
   op4: UnaryFn<Source<C>, Source<D>>
 ): Source<D>;
 
-export function pipe<T, A, B, C, D, E>(
+function pipe<T, A, B, C, D, E>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -38,7 +38,7 @@ export function pipe<T, A, B, C, D, E>(
   op5: UnaryFn<Source<D>, Source<E>>
 ): Source<E>;
 
-export function pipe<T, A, B, C, D, E, F>(
+function pipe<T, A, B, C, D, E, F>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -48,7 +48,7 @@ export function pipe<T, A, B, C, D, E, F>(
   op6: UnaryFn<Source<E>, Source<F>>
 ): Source<F>;
 
-export function pipe<T, A, B, C, D, E, F, G>(
+function pipe<T, A, B, C, D, E, F, G>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -59,7 +59,7 @@ export function pipe<T, A, B, C, D, E, F, G>(
   op7: UnaryFn<Source<F>, Source<G>>
 ): Source<G>;
 
-export function pipe<T, A, B, C, D, E, F, G, H>(
+function pipe<T, A, B, C, D, E, F, G, H>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -73,22 +73,22 @@ export function pipe<T, A, B, C, D, E, F, G, H>(
 
 /* pipe definitions for source + operators + consumer composition */
 
-export function pipe<T, R>(source: Source<T>, consumer: UnaryFn<Source<T>, R>): R;
+function pipe<T, R>(source: Source<T>, consumer: UnaryFn<Source<T>, R>): R;
 
-export function pipe<T, A, R>(
+function pipe<T, A, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   consumer: UnaryFn<Source<A>, R>
 ): R;
 
-export function pipe<T, A, B, R>(
+function pipe<T, A, B, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
   consumer: UnaryFn<Source<B>, R>
 ): R;
 
-export function pipe<T, A, B, C, R>(
+function pipe<T, A, B, C, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -96,7 +96,7 @@ export function pipe<T, A, B, C, R>(
   consumer: UnaryFn<Source<C>, R>
 ): R;
 
-export function pipe<T, A, B, C, D, R>(
+function pipe<T, A, B, C, D, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -105,7 +105,7 @@ export function pipe<T, A, B, C, D, R>(
   consumer: UnaryFn<Source<D>, R>
 ): R;
 
-export function pipe<T, A, B, C, D, E, R>(
+function pipe<T, A, B, C, D, E, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -115,7 +115,7 @@ export function pipe<T, A, B, C, D, E, R>(
   consumer: UnaryFn<Source<E>, R>
 ): R;
 
-export function pipe<T, A, B, C, D, E, F, R>(
+function pipe<T, A, B, C, D, E, F, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -126,7 +126,7 @@ export function pipe<T, A, B, C, D, E, F, R>(
   consumer: UnaryFn<Source<F>, R>
 ): R;
 
-export function pipe<T, A, B, C, D, E, F, G, R>(
+function pipe<T, A, B, C, D, E, F, G, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -138,7 +138,7 @@ export function pipe<T, A, B, C, D, E, F, G, R>(
   consumer: UnaryFn<Source<G>, R>
 ): R;
 
-export function pipe<T, A, B, C, D, E, F, G, H, R>(
+function pipe<T, A, B, C, D, E, F, G, H, R>(
   source: Source<T>,
   op1: UnaryFn<Source<T>, Source<A>>,
   op2: UnaryFn<Source<A>, Source<B>>,
@@ -150,3 +150,12 @@ export function pipe<T, A, B, C, D, E, F, G, H, R>(
   op8: UnaryFn<Source<G>, Source<H>>,
   consumer: UnaryFn<Source<H>, R>
 ): R;
+
+function pipe() {
+  let x = arguments[0];
+  for (let i = 1, l = arguments.length; i < l; i++)
+    x = arguments[i](x);
+  return x;
+}
+
+export { pipe };
