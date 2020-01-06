@@ -73,6 +73,7 @@ let subscribe = (f: (. 'a) => unit): subscribeConsumerT('a) =>
 [@genType]
 type forEachConsumerT('a) = sourceT('a) => unit;
 
+[@genType]
 let forEach = (f: (. 'a) => unit): forEachConsumerT('a) =>
   curry(source => ignore(subscribe(f, source)));
 
