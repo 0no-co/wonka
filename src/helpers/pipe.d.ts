@@ -1,13 +1,12 @@
 import { Source } from './wonka_types';
 
-interface UnaryFn<T, R> { (source: T): R; }
+interface UnaryFn<T, R> {
+  (source: T): R;
+}
 
 /* pipe definitions for source + operators composition */
 
-export function pipe<T, A>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>
-): Source<A>;
+export function pipe<T, A>(source: Source<T>, op1: UnaryFn<Source<T>, Source<A>>): Source<A>;
 
 export function pipe<T, A, B>(
   source: Source<T>,
@@ -74,10 +73,7 @@ export function pipe<T, A, B, C, D, E, F, G, H>(
 
 /* pipe definitions for source + operators + consumer composition */
 
-export function pipe<T, R>(
-  source: Source<T>,
-  consumer: UnaryFn<Source<T>, R>
-): R;
+export function pipe<T, R>(source: Source<T>, consumer: UnaryFn<Source<T>, R>): R;
 
 export function pipe<T, A, R>(
   source: Source<T>,

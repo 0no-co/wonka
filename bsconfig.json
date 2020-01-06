@@ -18,6 +18,9 @@
       "dir": "src",
       "subdirs": [
         {
+          "dir": "helpers"
+        },
+        {
           "dir": "operators"
         },
         {

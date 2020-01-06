@@ -32,8 +32,8 @@ dist/
 node_modules/
 lib/
 src/**/*.bs.js
-src/**/*.tsx
-src/**/*.ts
+src/**/*.gen.tsx
+src/**/*.gen.ts
 src/**/*.js.flow
 include/**/*.js
 __tests__/**/*.js
