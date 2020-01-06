@@ -76,6 +76,46 @@ const importAllPlugin = ({ types: t }) => ({
   }
 });
 
+const unwrapStatePlugin = ({ types: t }) => ({
+  pre() {
+    this.props = new Map();
+    this.name = /state$/i;
+  },
+  visitor: {
+    VariableDeclarator(path) {
+      if (
+        t.isIdentifier(path.node.id) &&
+        this.name.test(path.node.id.name) &&
+        t.isObjectExpression(path.node.init) &&
+        path.node.init.properties.every(t.isObjectProperty)
+      ) {
+        const id = path.node.id.name;
+        const properties = path.node.init.properties;
+        const propNames = new Set(properties.map(x => x.key.name));
+        const decl = properties.map(prop => {
+          const key = `${id}$${prop.key.name}`;
+          return t.variableDeclarator(t.identifier(key), prop.value);
+        });
+
+        this.props.set(id, propNames);
+        path.parentPath.replaceWithMultiple(t.variableDeclaration('let', decl));
+      }
+    },
+    MemberExpression(path) {
+      if (
+        t.isIdentifier(path.node.object) &&
+        this.props.has(path.node.object.name) &&
+        t.isIdentifier(path.node.property) &&
+        this.props.get(path.node.object.name).has(path.node.property.name)
+      ) {
+        const id = path.node.object.name;
+        const propName = path.node.property.name;
+        path.replaceWith(t.identifier(`${id}$${propName}`));
+      }
+    }
+  }
+});
+
 const makePlugins = isProduction =>
   [
     babel({
@@ -126,7 +166,7 @@ const makePlugins = isProduction =>
       extensions: ['ts', 'tsx', 'js'],
       exclude: 'node_modules/**',
       presets: [],
-      plugins: ['babel-plugin-closure-elimination']
+      plugins: ['babel-plugin-closure-elimination', unwrapStatePlugin]
     }),
     compiler({
       compilation_level: 'SIMPLE_OPTIMIZATIONS'
@@ -136,7 +176,7 @@ const makePlugins = isProduction =>
 
 const config = {
   input: './src/wonka.ts',
-  // onwarn: () => {},
+  onwarn: () => {},
   external: () => false,
   treeshake: {
     propertyReadSideEffects: false
