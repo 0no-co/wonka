@@ -31,13 +31,12 @@ yarn-error.log
 dist/
 node_modules/
 lib/
-src/**/*.js
+src/**/*.bs.js
+src/**/*.tsx
+src/**/*.ts
 src/**/*.js.flow
 include/**/*.js
 __tests__/**/*.js
 coverage/
 _esy/
 public/
-
-!src/index.js
-!src/pipe.js
