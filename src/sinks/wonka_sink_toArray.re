@@ -8,6 +8,7 @@ type toArrayStateT('a) = {
   mutable ended: bool,
 };
 
+[@genType]
 let toArray = (source: sourceT('a)): array('a) => {
   let state: toArrayStateT('a) = {
     values: Rebel.MutableQueue.make(),

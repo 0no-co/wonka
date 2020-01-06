@@ -6,7 +6,8 @@ type publishStateT = {
   mutable ended: bool,
 };
 
-let publish = source => {
+[@genType]
+let publish = (source: sourceT('a)): subscriptionT => {
   let state: publishStateT = {talkback: talkbackPlaceholder, ended: false};
 
   source((. signal) =>

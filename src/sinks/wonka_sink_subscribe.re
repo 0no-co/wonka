@@ -6,7 +6,11 @@ type subscribeStateT = {
   mutable ended: bool,
 };
 
-let subscribe = f =>
+[@genType]
+type subscribeConsumerT('a) = sourceT('a) => subscriptionT;
+
+[@genType]
+let subscribe = (f: (. 'a) => unit): subscribeConsumerT('a) =>
   curry(source => {
     let state: subscribeStateT = {
       talkback: talkbackPlaceholder,
@@ -35,4 +39,8 @@ let subscribe = f =>
     };
   });
 
-let forEach = f => curry(source => ignore(subscribe(f, source)));
+[@genType]
+type forEachConsumerT('a) = sourceT('a) => unit;
+
+let forEach = (f: (. 'a) => unit): forEachConsumerT('a) =>
+  curry(source => ignore(subscribe(f, source)));
