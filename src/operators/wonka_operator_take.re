@@ -6,7 +6,8 @@ type takeStateT = {
   mutable talkback: (. talkbackT) => unit,
 };
 
-let take = max =>
+[@genType]
+let take = (max: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let state: takeStateT = {taken: 0, talkback: talkbackPlaceholder};

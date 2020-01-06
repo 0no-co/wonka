@@ -1,7 +1,8 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let takeLast = max =>
+[@genType]
+let takeLast = (max: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       open Rebel;

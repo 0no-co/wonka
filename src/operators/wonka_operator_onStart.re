@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let onStart = f =>
+[@genType]
+let onStart = (f: (. unit) => unit): operatorT('a, 'a) =>
   curry(source =>
     curry(sink =>
       source((. signal) =>

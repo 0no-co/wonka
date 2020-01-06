@@ -1,7 +1,8 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let filter = f =>
+[@genType]
+let filter = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
     curry(sink =>
       captureTalkback(source, (. signal, talkback) =>

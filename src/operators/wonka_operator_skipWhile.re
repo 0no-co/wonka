@@ -1,7 +1,8 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let skipWhile = f =>
+[@genType]
+let skipWhile = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let skip = ref(true);

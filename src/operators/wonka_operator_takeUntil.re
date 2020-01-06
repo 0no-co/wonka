@@ -7,7 +7,8 @@ type takeUntilStateT = {
   mutable notifierTalkback: (. talkbackT) => unit,
 };
 
-let takeUntil = notifier =>
+[@genType]
+let takeUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
   curry(source =>
     curry(sink => {
       let state: takeUntilStateT = {

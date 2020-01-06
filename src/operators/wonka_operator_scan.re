@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let scan = (f, seed) =>
+[@genType]
+let scan = (f: (. 'acc, 'a) => 'acc, seed: 'acc): operatorT('a, 'acc) =>
   curry(source =>
     curry(sink => {
       let acc = ref(seed);

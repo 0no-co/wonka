@@ -10,7 +10,8 @@ type concatMapStateT('a) = {
   mutable ended: bool,
 };
 
-let concatMap = f =>
+[@genType]
+let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
   curry(source =>
     curry(sink => {
       let state: concatMapStateT('a) = {
@@ -91,8 +92,10 @@ let concatMap = f =>
     })
   );
 
-let concatAll = source => concatMap((. x) => x, source);
+[@genType]
+let concatAll: operatorT(sourceT('a), 'a) =
+  source => concatMap((. x) => x, source);
 
-let concat = sources => {
+[@genType]
+let concat = (sources: array(sourceT('a))): sourceT('a) =>
   Wonka_source_fromArray.(concatMap((. x) => x, fromArray(sources)));
-};

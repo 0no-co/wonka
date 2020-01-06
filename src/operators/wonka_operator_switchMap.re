@@ -9,7 +9,8 @@ type switchMapStateT('a) = {
   mutable ended: bool,
 };
 
-let switchMap = f =>
+[@genType]
+let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
   curry(source =>
     curry(sink => {
       let state: switchMapStateT('a) = {
@@ -81,4 +82,6 @@ let switchMap = f =>
     })
   );
 
-let switchAll = source => switchMap((. x) => x, source);
+[@genType]
+let switchAll: operatorT(sourceT('a), 'a) =
+  source => switchMap((. x) => x, source);

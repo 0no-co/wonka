@@ -1,7 +1,8 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let takeWhile = f =>
+[@genType]
+let takeWhile = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let ended = ref(false);

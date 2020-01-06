@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let map = f =>
+[@genType]
+let map = (f: (. 'a) => 'b): operatorT('a, 'b) =>
   curry(source =>
     curry(sink =>
       source((. signal) =>

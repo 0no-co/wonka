@@ -8,10 +8,11 @@ type bufferStateT('a) = {
   mutable ended: bool,
 };
 
-let buffer = (notifier: sourceT('a)) =>
-  curry((source: sourceT('b)) =>
-    curry((sink: sinkT(array('b))) => {
-      let state: bufferStateT('b) = {
+[@genType]
+let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
+  curry(source =>
+    curry(sink => {
+      let state = {
         buffer: Rebel.MutableQueue.make(),
         sourceTalkback: talkbackPlaceholder,
         notifierTalkback: talkbackPlaceholder,

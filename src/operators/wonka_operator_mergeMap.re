@@ -7,7 +7,8 @@ type mergeMapStateT = {
   mutable ended: bool,
 };
 
-let mergeMap = f =>
+[@genType]
+let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
   curry(source =>
     curry(sink => {
       let state: mergeMapStateT = {
@@ -85,9 +86,13 @@ let mergeMap = f =>
     })
   );
 
-let merge = sources => {
+[@genType]
+let merge = (sources: array(sourceT('a))): sourceT('a) =>
   Wonka_source_fromArray.(mergeMap((. x) => x, fromArray(sources)));
-};
 
-let mergeAll = source => mergeMap((. x) => x, source);
+[@genType]
+let mergeAll: operatorT(sourceT('a), 'a) =
+  source => mergeMap((. x) => x, source);
+
+[@genType]
 let flatten = mergeAll;

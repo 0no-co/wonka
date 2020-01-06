@@ -1,7 +1,8 @@
 open Wonka_types;
 open Wonka_helpers;
 
-let skip = wait =>
+[@genType]
+let skip = (wait: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let rest = ref(wait);

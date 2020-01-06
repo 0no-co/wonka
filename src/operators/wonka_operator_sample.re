@@ -7,7 +7,8 @@ type sampleStateT('a) = {
   mutable notifierTalkback: (. talkbackT) => unit,
 };
 
-let sample = notifier =>
+[@genType]
+let sample = (notifier: sourceT('a)): operatorT('b, 'b) =>
   curry(source =>
     curry(sink => {
       let state = {

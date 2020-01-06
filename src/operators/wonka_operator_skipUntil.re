@@ -9,7 +9,8 @@ type skipUntilStateT = {
   mutable notifierTalkback: (. talkbackT) => unit,
 };
 
-let skipUntil = notifier =>
+[@genType]
+let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
   curry(source =>
     curry(sink => {
       let state: skipUntilStateT = {

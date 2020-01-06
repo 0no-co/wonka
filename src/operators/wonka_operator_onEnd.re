@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let onEnd = f =>
+[@genType]
+let onEnd = (f: (. unit) => unit): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let ended = ref(false);

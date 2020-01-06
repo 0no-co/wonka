@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let onPush = f =>
+[@genType]
+let onPush = (f: (. 'a) => unit): operatorT('a, 'a) =>
   curry(source =>
     curry(sink =>
       source((. signal) => {
@@ -14,4 +15,5 @@ let onPush = f =>
     )
   );
 
+[@genType]
 let tap = onPush;
