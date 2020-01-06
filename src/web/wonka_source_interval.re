@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let interval = p =>
+[@genType]
+let interval = (p: int): sourceT(int) =>
   curry(sink => {
     let i = ref(0);
     let id =

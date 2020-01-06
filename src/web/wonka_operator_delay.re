@@ -6,7 +6,8 @@ type delayStateT = {
   mutable gotEndSignal: bool,
 };
 
-let delay = wait =>
+[@genType]
+let delay = (wait: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let state: delayStateT = {

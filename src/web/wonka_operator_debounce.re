@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let debounce = f =>
+[@genType]
+let debounce = (f: (. 'a) => int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let gotEndSignal = ref(false);

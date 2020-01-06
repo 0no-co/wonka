@@ -1,7 +1,8 @@
 open Wonka_types;
 open Wonka_source_fromListener;
 
-let fromDomEvent = (element, event) =>
+[@genType]
+let fromDomEvent = (element: Dom.element, event: string): sourceT(Dom.event) =>
   curry(sink => {
     let addEventListener: (Dom.element, string, Dom.event => unit) => unit = [%raw
       {|

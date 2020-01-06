@@ -1,6 +1,12 @@
 open Wonka_types;
 
-let fromListener = (addListener, removeListener) =>
+[@genType]
+let fromListener =
+    (
+      addListener: ('event => unit) => unit,
+      removeListener: ('event => unit) => unit,
+    )
+    : sourceT('event) =>
   curry(sink => {
     let handler = event => sink(. Push(event));
 

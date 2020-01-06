@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let fromPromise = promise =>
+[@genType]
+let fromPromise = (promise: Js.Promise.t('a)): sourceT('a) =>
   curry(sink => {
     let ended = ref(false);
 

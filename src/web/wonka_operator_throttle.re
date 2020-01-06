@@ -1,6 +1,7 @@
 open Wonka_types;
 
-let throttle = f =>
+[@genType]
+let throttle = (f: (. 'a) => int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       let skip = ref(false);

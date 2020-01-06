@@ -1,12 +1,18 @@
 open Wonka_types;
 
+[@genType]
 type callbagSignal =
-  | CALLBAG_START /* 0 */
-  | CALLBAG_DATA /* 1 */
-  | CALLBAG_END /* 2 */;
+  | [@genType.as 0] CALLBAG_START /* 0 */
+  | [@genType.as 1] CALLBAG_DATA /* 1 */
+  | [@genType.as 2] CALLBAG_END /* 2 */;
 
-type callbagData('a);
+[@genType]
+type callbagData('a) = 'a;
+
+[@genType]
 type callbagTalkback = (. callbagSignal) => unit;
+
+[@genType]
 type callbagT('a) = (. callbagSignal, callbagData('a)) => unit;
 
 external unsafe_getCallbag: callbagData('a) => callbagT('a) = "%identity";
