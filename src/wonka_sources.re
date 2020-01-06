@@ -34,26 +34,6 @@ let fromList = (ls: list('a)): sourceT('a) =>
   });
 
 [@genType]
-let fromListener =
-    (addListener: ('a => unit) => unit, removeListener: ('a => unit) => unit)
-    : sourceT('a) =>
-  curry(sink => {
-    let handler = event => sink(. Push(event));
-
-    sink(.
-      Start(
-        (. signal) =>
-          switch (signal) {
-          | Close => removeListener(handler)
-          | _ => ()
-          },
-      ),
-    );
-
-    addListener(handler);
-  });
-
-[@genType]
 let fromValue = (x: 'a): sourceT('a) =>
   curry(sink => {
     let ended = ref(false);

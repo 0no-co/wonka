@@ -230,11 +230,19 @@ let fromDomEvent = (element: Dom.element, event: string): sourceT(Dom.event) =>
   |}
     ];
 
-    Wonka_sources.fromListener(
-      handler => addEventListener(element, event, handler),
-      handler => removeEventListener(element, event, handler),
-      sink,
+    let handler = event => sink(. Push(event));
+
+    sink(.
+      Start(
+        (. signal) =>
+          switch (signal) {
+          | Close => removeEventListener(element, event, handler)
+          | _ => ()
+          },
+      ),
     );
+
+    addEventListener(element, event, handler);
   });
 
 [@genType]
