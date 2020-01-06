@@ -1,7 +1,8 @@
 import { basename } from 'path';
-import commonjs from 'rollup-plugin-commonjs';
-import nodeResolve from 'rollup-plugin-node-resolve';
-import buble from 'rollup-plugin-buble';
+import commonjs from '@rollup/plugin-commonjs';
+import nodeResolve from '@rollup/plugin-node-resolve';
+import typescript from 'rollup-plugin-typescript2';
+import buble from '@rollup/plugin-buble';
 import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import compiler from '@ampproject/rollup-plugin-closure-compiler';
@@ -61,50 +62,32 @@ const terserMinified = terser({
   }
 });
 
-// This plugin finds state that BuckleScript has compiled to array expressions
-// and unwraps them and their accessors to inline variables
-const unwrapStatePlugin = ({ types: t }) => ({
-  pre() {
-    this.props = new Map();
-  },
-  visitor: {
-    VariableDeclarator(path) {
-      if (t.isIdentifier(path.node.id) && t.isArrayExpression(path.node.init)) {
-        const id = path.node.id.name;
-        const elements = path.node.init.elements;
-        const decl = elements.map((element, i) => {
-          const key = `${id}$${i}`;
-          return t.variableDeclarator(t.identifier(key), element);
-        });
-
-        this.props.set(id, elements.length);
-        path.parentPath.replaceWithMultiple(t.variableDeclaration('let', decl));
-      }
-    },
-    MemberExpression(path) {
-      if (
-        t.isIdentifier(path.node.object) &&
-        this.props.has(path.node.object.name) &&
-        t.isNumericLiteral(path.node.property) &&
-        path.node.property.value < this.props.get(path.node.object.name)
-      ) {
-        const id = path.node.object.name;
-        const elementIndex = path.node.property.value;
-        path.replaceWith(t.identifier(`${id}$${elementIndex}`));
-      }
-    }
-  }
-});
+const extensions = ['.ts', '.tsx', '.js'];
 
 const makePlugins = isProduction =>
   [
     nodeResolve({
       mainFields: ['module', 'jsnext', 'main'],
-      browser: true
+      browser: true,
+      extensions
     }),
     commonjs({
       ignoreGlobal: true,
-      include: /\/node_modules\//
+      include: /\/node_modules\//,
+      extensions
+    }),
+    typescript({
+      typescript: require('typescript'),
+      cacheRoot: './node_modules/.cache/.rts2_cache',
+      objectHashIgnoreUnknownHack: true,
+      useTsconfigDeclarationDir: true,
+      tsconfigOverride: {
+        compilerOptions: {
+          declaration: !isProduction,
+          declarationDir: './dist/types/',
+          target: 'es6'
+        }
+      }
     }),
     buble({
       transforms: {
@@ -117,9 +100,10 @@ const makePlugins = isProduction =>
     }),
     babel({
       babelrc: false,
+      extensions: ['ts', 'tsx', 'js'],
       exclude: 'node_modules/**',
       presets: [],
-      plugins: ['babel-plugin-closure-elimination', unwrapStatePlugin]
+      plugins: ['babel-plugin-closure-elimination']
     }),
     compiler({
       compilation_level: 'SIMPLE_OPTIMIZATIONS'
@@ -128,7 +112,7 @@ const makePlugins = isProduction =>
   ].filter(Boolean);
 
 const config = {
-  input: './src/index.js',
+  input: './src/wonka.ts',
   onwarn: () => {},
   external: externalTest,
   treeshake: {

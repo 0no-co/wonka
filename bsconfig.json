@@ -21,15 +21,6 @@
           "dir": "helpers"
         },
         {
-          "dir": "operators"
-        },
-        {
-          "dir": "sources"
-        },
-        {
-          "dir": "sinks"
-        },
-        {
           "dir": "web",
           "backend": ["js"]
         }
