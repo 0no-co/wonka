@@ -6,7 +6,11 @@
   "refmt": 3,
   "gentypeconfig": {
     "language": "typescript",
-    "shims": {}
+    "importPath": "relative",
+    "shims": {
+      "Dom": "Dom",
+      "ReasonPervasives": "ReasonPervasives"
+    }
   },
   "suffix": ".bs.js",
   "package-specs": {
@@ -17,6 +21,9 @@
     {
       "dir": "src",
       "subdirs": [
+        {
+          "dir": "shims"
+        },
         {
           "dir": "helpers"
         },
