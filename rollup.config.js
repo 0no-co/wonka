@@ -1,4 +1,4 @@
-import { basename } from 'path';
+import { resolve, basename } from 'path';
 import commonjs from '@rollup/plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
@@ -7,16 +7,9 @@ import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import compiler from '@ampproject/rollup-plugin-closure-compiler';
 
+const cwd = process.cwd();
 const pkgInfo = require('./package.json');
-const { main, peerDependencies, dependencies } = pkgInfo;
-const name = basename(main, '.js');
-
-let external = ['dns', 'fs', 'path', 'url'];
-if (pkgInfo.peerDependencies) external.push(...Object.keys(peerDependencies));
-if (pkgInfo.dependencies) external.push(...Object.keys(dependencies));
-
-const externalPredicate = new RegExp(`^(${external.join('|')})($|/)`);
-const externalTest = id => externalPredicate.test(id);
+const name = basename(pkgInfo.main, '.js');
 
 const terserPretty = terser({
   sourcemap: true,
@@ -62,19 +55,35 @@ const terserMinified = terser({
   }
 });
 
-const extensions = ['.ts', '.tsx', '.js'];
+const importAllPlugin = ({ types: t }) => ({
+  visitor: {
+    VariableDeclarator(path) {
+      if (
+        t.isIdentifier(path.node.id) &&
+        t.isCallExpression(path.node.init) &&
+        t.isIdentifier(path.node.init.callee) &&
+        path.node.init.callee.name === 'require' &&
+        path.node.init.arguments.length === 1
+      ) {
+        path.parentPath.replaceWith(
+          t.importDeclaration(
+            [t.importNamespaceSpecifier(path.node.id)],
+            path.node.init.arguments[0]
+          )
+        );
+      }
+    }
+  }
+});
 
 const makePlugins = isProduction =>
   [
-    nodeResolve({
-      mainFields: ['module', 'jsnext', 'main'],
-      browser: true,
-      extensions
-    }),
-    commonjs({
-      ignoreGlobal: true,
-      include: /\/node_modules\//,
-      extensions
+    babel({
+      babelrc: false,
+      extensions: ['ts', 'tsx', 'js'],
+      exclude: 'node_modules/**',
+      presets: [],
+      plugins: ['@babel/plugin-syntax-typescript', importAllPlugin]
     }),
     typescript({
       typescript: require('typescript'),
@@ -83,11 +92,25 @@ const makePlugins = isProduction =>
       useTsconfigDeclarationDir: true,
       tsconfigOverride: {
         compilerOptions: {
+          strict: false,
+          noUnusedParameters: false,
           declaration: !isProduction,
-          declarationDir: './dist/types/',
-          target: 'es6'
+          declarationDir: resolve(cwd, './dist/types/'),
+          target: 'esnext',
+          module: 'es2015',
+          rootDir: cwd
         }
       }
+    }),
+    commonjs({
+      ignoreGlobal: true,
+      include: ['*', '**'],
+      extensions: ['.js', '.ts', '.tsx']
+    }),
+    nodeResolve({
+      mainFields: ['module', 'jsnext', 'main'],
+      extensions: ['.js', '.ts', '.tsx'],
+      browser: true
     }),
     buble({
       transforms: {
@@ -113,8 +136,8 @@ const makePlugins = isProduction =>
 
 const config = {
   input: './src/wonka.ts',
-  onwarn: () => {},
-  external: externalTest,
+  // onwarn: () => {},
+  external: () => false,
   treeshake: {
     propertyReadSideEffects: false
   }
@@ -126,7 +149,6 @@ export default [
     plugins: makePlugins(false),
     output: [
       {
-        sourcemap: true,
         legacy: true,
         freeze: false,
         esModule: false,

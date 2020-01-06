@@ -12,11 +12,10 @@
     "module": "es2015",
     "moduleResolution": "node",
     "target": "esnext",
-    "strict": true,
+    "strict": false,
     "noImplicitAny": false,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "sourceMap": true,
     "pretty": true
-  },
-  "include": ["src/**/*.d.ts"]
+  }
 }
