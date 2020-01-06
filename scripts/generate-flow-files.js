@@ -28,7 +28,7 @@ const genEntry = async () => {
 
   let entry = await readFile(path.resolve(cwd, 'index.js.flow'), { encoding: 'utf8' });
 
-  entry = entry.replace(/.\/src/g, '../src');
+  entry = entry.replace(/.\/dist\//g, './');
 
   const outputCJS = path.resolve(cwd, 'dist/wonka.js.flow');
   const outputES = path.resolve(cwd, 'dist/wonka.es.js.flow');
@@ -40,14 +40,7 @@ const genEntry = async () => {
 };
 
 const gen = async () => {
-  const input = await globby(['src/*.d.ts', 'src/**/*.d.ts'], {
-    gitignore: true
-  });
-
-  if (input.length === 0) {
-    throw new Error('No input files passed as arguments.');
-  }
-
+  const input = await globby('dist/types/**/*.d.ts');
   console.log(`Compiling ${input.length} TS definitions to Flow...`);
 
   const defs = input.map(filename => {
@@ -60,13 +53,7 @@ const gen = async () => {
     const basename = path.basename(fullpath, '.d.ts');
     const filepath = path.dirname(fullpath);
     const newpath = path.join(filepath, basename + '.js.flow');
-
-    // Fix incorrect imports
-    const fixedFlowdef = flowdef.replace(/^import \{/g, 'import type {');
-
-    return writeFile(newpath, preamble + fixedFlowdef, {
-      encoding: 'utf8'
-    });
+    return writeFile(newpath, preamble + flowdef);
   });
 
   return Promise.all([...write, genEntry()]);
