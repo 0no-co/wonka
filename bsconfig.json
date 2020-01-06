@@ -30,18 +30,18 @@
         {
           "dir": "web",
           "backend": ["js"]
-        }
-      ]
-    },
-    {
-      "dir": "include",
-      "subdirs": [
-        {
-          "dir": "rebel_native"
         },
         {
-          "dir": "rebel_js",
-          "backend": ["js"]
+          "dir": "include",
+          "subdirs": [
+            {
+              "dir": "rebel_native"
+            },
+            {
+              "dir": "rebel_js",
+              "backend": ["js"]
+            }
+          ]
         }
       ]
     }
