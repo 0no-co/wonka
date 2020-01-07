@@ -3,7 +3,12 @@ import * as sources from './wonka_sources.gen';
 import * as types from './wonka_types.gen';
 import * as web from './web/wonkaJs.gen';
 
-const collectSignals = (source: types.sourceT<any>) => {
+import Observable from 'zen-observable';
+
+const collectSignals = (
+  source: types.sourceT<any>,
+  onStart?: (talkbackCb: (tb: types.talkbackT) => void) => void
+) => {
   let talkback = null;
   const signals = [];
 
@@ -11,6 +16,7 @@ const collectSignals = (source: types.sourceT<any>) => {
     signals.push(signal);
     if (deriving.isStart(signal)) {
       talkback = deriving.unboxStart(signal);
+      if (onStart) onStart(talkback);
       talkback(deriving.pull);
     } else if (deriving.isPush(signal)) {
       talkback(deriving.pull);
@@ -193,6 +199,39 @@ describe('fromPromise', () => {
       deriving.start(expect.any(Function)),
       deriving.push(1),
       deriving.end(),
+    ]);
+  });
+});
+
+describe('fromObservable', () => {
+  beforeEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('converts an Observable to a Wonka source', async () => {
+    const source = web.fromObservable(Observable.from([1, 2]));
+    const signals = collectSignals(source);
+
+    await new Promise(resolve => setTimeout(resolve));
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+      deriving.end(),
+    ]);
+  });
+
+  it('supports cancellation on converted Observables', async () => {
+    const source = web.fromObservable(Observable.from([1, 2]));
+    const signals = collectSignals(source, talkback => {
+      talkback(deriving.close);
+    });
+
+    await new Promise(resolve => setTimeout(resolve));
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
     ]);
   });
 });
