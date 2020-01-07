@@ -186,6 +186,43 @@ const passesSingleStart = (operator: types.operatorT<any, any>) =>
     expect(start).toBe(1);
   });
 
+/* This tests a noop operator for silence after End signals from the source.
+  When the operator receives the End signal it shouldn't forward any other
+  signals to the sink anymore.
+  This isn't a strict requirement, but some operators should ensure that
+  all sources are well behaved. This is particularly true for operators
+  that either Close sources themselves or may operate on multiple sources. */
+const passesStrictEnd = (operator: types.operatorT<any, any>) =>
+  it('stops all signals after End has been received (spec: strict end)', () => {
+    let pulls = 0;
+    const signals = [];
+
+    const source: types.sourceT<any> = sink => {
+      sink(deriving.start(tb => {
+        if (tb === deriving.pull) {
+          pulls++;
+          sink(deriving.end());
+          sink(deriving.push(0));
+        }
+      }));
+    };
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isStart(signal)) {
+        deriving.unboxStart(signal)(deriving.pull);
+      } else {
+        signals.push(signal);
+      }
+    };
+
+    operator(source)(sink);
+
+    // The Push signal should've been dropped
+    jest.runAllTimers();
+    expect(signals).toEqual([deriving.end()]);
+    expect(pulls).toBe(1);
+  });
+
 /* This tests an immediately closing operator for End signals to
   the sink and Close signals to the source.
   When an operator closes immediately we expect to see a Close
@@ -242,6 +279,7 @@ describe('buffer', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+  // TODO: passesStrictEnd(noop);
 
   it('emits batches of input values when a notifier emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -266,6 +304,7 @@ describe('concatMap', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesStrictEnd(noop);
 
   // TODO: Add asynchronous test
   // This synchronous test for concatMap will behave the same as mergeMap & switchMap
@@ -298,6 +337,7 @@ describe('debounce', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  // TODO: passesStrictEnd(noop);
 
   it('waits for a specified amount of silence before emitting the last value', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -369,6 +409,7 @@ describe('map', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  // TODO: passesStrictEnd(noop);
 
   it('maps over values given a transform function', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -388,6 +429,7 @@ describe('mergeMap', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesStrictEnd(noop);
 
   // TODO: Add asynchronous test
   // This synchronous test for mergeMap will behave the same as concatMap & switchMap
@@ -490,6 +532,7 @@ describe('sample', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+  // TODO: passesStrictEnd(noop);
 
   it('emits the latest value when a notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -536,6 +579,7 @@ describe('share', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesStrictEnd(noop);
 
   it('shares output values between sinks', () => {
     let push = () => {};
@@ -633,6 +677,7 @@ describe('switchMap', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesStrictEnd(noop);
 
   // TODO: Add asynchronous test
   // This synchronous test for switchMap will behave the same as concatMap & mergeMap
@@ -665,6 +710,7 @@ describe('take', () => {
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesStrictEnd(noop);
 
   // TODO: take(0) seems to be broken
   const ending = operators.take(1);
@@ -693,6 +739,7 @@ describe('takeUntil', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesStrictEnd(noop);
 
   const ending = operators.takeUntil(sources.fromValue(null));
   passesCloseAndEnd(ending);
@@ -724,6 +771,7 @@ describe('takeWhile', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   // TODO: passesSingleStart(noop);
+  passesStrictEnd(noop);
 
   const ending = operators.takeWhile(() => false);
   passesCloseAndEnd(ending);
