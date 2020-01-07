@@ -5,6 +5,7 @@ type bufferStateT('a) = {
   mutable buffer: Rebel.MutableQueue.t('a),
   mutable sourceTalkback: (. talkbackT) => unit,
   mutable notifierTalkback: (. talkbackT) => unit,
+  mutable pulled: bool,
   mutable ended: bool,
 };
 
@@ -16,6 +17,7 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
         buffer: Rebel.MutableQueue.make(),
         sourceTalkback: talkbackPlaceholder,
         notifierTalkback: talkbackPlaceholder,
+        pulled: false,
         ended: false,
       };
 
@@ -29,8 +31,9 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
             | Start(tb) => state.notifierTalkback = tb
             | Push(_) when !state.ended =>
               if (Rebel.MutableQueue.size(state.buffer) > 0) {
-                sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
+                let buffer = state.buffer;
                 state.buffer = Rebel.MutableQueue.make();
+                sink(. Push(Rebel.MutableQueue.toArray(buffer)));
               }
             | Push(_) => ()
             | End when !state.ended =>
@@ -45,6 +48,7 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
           );
         | Push(value) when !state.ended =>
           Rebel.MutableQueue.add(state.buffer, value);
+          state.pulled = false;
           state.notifierTalkback(. Pull);
         | Push(_) => ()
         | End when !state.ended =>
@@ -68,8 +72,11 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
                 state.sourceTalkback(. Close);
                 state.notifierTalkback(. Close);
               | Pull =>
-                state.sourceTalkback(. Pull);
-                state.notifierTalkback(. Pull);
+                if (!state.pulled) {
+                  state.pulled = true;
+                  state.sourceTalkback(. Pull);
+                  state.notifierTalkback(. Pull);
+                }
               | Pull => ()
               };
             },

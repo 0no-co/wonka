@@ -340,15 +340,15 @@ describe('buffer', () => {
   const valueThenNever: types.sourceT<any> = sink =>
     sink(deriving.start(tb => {
       if (tb === deriving.pull)
-        sink(deriving.push(0));
+        sink(deriving.push(null));
     }));
 
   const noop = operators.buffer(valueThenNever);
 
   passesPassivePull(noop, [0]);
-  // TODO: passesActivePush(noop);
+  passesActivePush(noop, [0]);
   passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  passesSourceEnd(noop, [0]);
   passesSingleStart(noop);
   passesStrictEnd(noop);
 
