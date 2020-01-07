@@ -430,7 +430,7 @@ describe('debounce', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
-  // TODO: passesStrictEnd(noop);
+  passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
   it('waits for a specified amount of silence before emitting the last value', () => {
