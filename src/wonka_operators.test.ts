@@ -162,26 +162,46 @@ const passesSourceEnd = (operator: types.operatorT<any, any>) =>
     expect(signals).toEqual([deriving.push(0), deriving.end()]);
   });
 
-// TODO: Add passesSingleStart testing whether only one Start signal is sent
+/* This tests a noop operator for Start signals from the source.
+  When the operator's sink is started by the source it'll receive
+  a Start event. As a response it should never send more than one
+  Start signals to the sink. */
+const passesSingleStart = (operator: types.operatorT<any, any>) =>
+  it('sends a single Start event to the incoming sink (spec)', () => {
+    let start = 0;
+
+    const source: types.sourceT<any> = sink => {
+      sink(deriving.start(() => {}));
+    };
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isStart(signal)) start++;
+    };
+
+    // When starting the operator we expect a single start event on the sink
+    operator(source)(sink);
+    expect(start).toBe(1);
+  });
+
+// TODO: Write a test for ending operators to send Close upwards
 
 beforeEach(() => {
   jest.useFakeTimers();
 });
 
 describe('buffer', () => {
-  /*
   const noop = operators.buffer(
     operators.merge([
       sources.fromValue(null),
       sources.never
     ])
   );
-  */
 
   // TODO: passesPassivePull(noop, [0]);
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('emits batches of input values when a notifier emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -200,11 +220,12 @@ describe('buffer', () => {
 });
 
 describe('concatMap', () => {
-  // const noop = operators.concatMap(x => sources.fromValue(x));
+  const noop = operators.concatMap(x => sources.fromValue(x));
   // TODO: passesPassivePull(noop);
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
+  passesSingleStart(noop);
 });
 
 describe('debounce', () => {
@@ -213,6 +234,7 @@ describe('debounce', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('waits for a specified amount of silence before emitting the last value', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -239,6 +261,7 @@ describe('delay', () => {
   passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('delays outputs by a specified delay timeout value', () => {
     const { source, next } = sources.makeSubject();
@@ -260,6 +283,7 @@ describe('filter', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('prevents emissions for which a predicate fails', () => {
     const { source, next } = sources.makeSubject();
@@ -281,6 +305,7 @@ describe('map', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('maps over values given a transform function', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -294,11 +319,12 @@ describe('map', () => {
 });
 
 describe('mergeMap', () => {
-  // const noop = operators.mergeMap(x => sources.fromValue(x));
+  const noop = operators.mergeMap(x => sources.fromValue(x));
   // TODO: passesPassivePull(noop);
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
+  passesSingleStart(noop);
 });
 
 describe('onEnd', () => {
@@ -307,6 +333,7 @@ describe('onEnd', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('calls a callback when the source ends', () => {
     const { source, next, complete } = sources.makeSubject<number>();
@@ -328,6 +355,7 @@ describe('onPush', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('calls a callback when the source emits', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -352,6 +380,7 @@ describe('onStart', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('is called when the source starts', () => {
     let sink: types.sinkT<any>;
@@ -369,11 +398,12 @@ describe('onStart', () => {
 });
 
 describe('sample', () => {
-  // const noop = operators.sample(sources.fromValue(null));
+  const noop = operators.sample(sources.fromValue(null));
   // TODO: passesPassivePull(noop);
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('emits the latest value when a notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -397,6 +427,7 @@ describe('scan', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('folds values continuously with a reducer and initial value', () => {
     const { source: input$, next } = sources.makeSubject<number>();
@@ -418,6 +449,7 @@ describe('share', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('shares output values between sinks', () => {
     let push = () => {};
@@ -449,6 +481,7 @@ describe('skip', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('skips a number of values before emitting normally', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -469,6 +502,7 @@ describe('skipUntil', () => {
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('skips values until one passes a predicate', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -491,6 +525,7 @@ describe('skipWhile', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('skips values until one fails a predicate', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -506,11 +541,12 @@ describe('skipWhile', () => {
 });
 
 describe('switchMap', () => {
-  // const noop = operators.switchMap(x => sources.fromValue(x));
+  const noop = operators.switchMap(x => sources.fromValue(x));
   // TODO: passesPassivePull(noop);
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
+  passesSingleStart(noop);
 });
 
 describe('take', () => {
@@ -519,6 +555,7 @@ describe('take', () => {
   passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('emits values until a maximum is reached', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -542,6 +579,7 @@ describe('takeUntil', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('emits values until a maximum is reached', () => {
     const { source: notifier$, next: notify } = sources.makeSubject<number>();
@@ -564,11 +602,12 @@ describe('takeUntil', () => {
 });
 
 describe('takeWhile', () => {
-  const noop = operators.takeUntil(() => true);
+  const noop = operators.takeWhile(() => true);
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  // TODO: passesSingleStart(noop);
 
   it('emits values while a predicate passes for all values', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -594,6 +633,7 @@ describe('throttle', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesSingleStart(noop);
 
   it('should ignore emissions for a period of time after a value', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -612,7 +652,4 @@ describe('throttle', () => {
     next(3);
     expect(fn).toHaveBeenCalledWith(3);
   });
-
 });
-
-
