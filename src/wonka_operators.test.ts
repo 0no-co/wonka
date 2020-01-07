@@ -183,7 +183,39 @@ const passesSingleStart = (operator: types.operatorT<any, any>) =>
     expect(start).toBe(1);
   });
 
-// TODO: Write a test for ending operators to send Close upwards
+/* This tests an immediately closing operator for End signals to
+  the sink and Close signals to the source.
+  When an operator closes immediately we expect to see a Close
+  signal at the source and an End signal to the sink, since the
+  closing operator is expected to end the entire chain. */
+const passesCloseAndEnd = (closingOperator: types.operatorT<any, any>) =>
+  it('closes the source and ends the sink correctly (spec: ending operator)', () => {
+    let closing = 0;
+    let ending = 0;
+
+    const source: types.sourceT<any> = sink => {
+      sink(deriving.start(tb => {
+        // For some operator tests we do need to send a single value
+        if (tb === deriving.pull)
+          sink(deriving.push(null));
+        if (tb === deriving.close)
+          closing++;
+      }));
+    };
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isStart(signal)) {
+        deriving.unboxStart(signal)(deriving.pull);
+      } if (deriving.isEnd(signal)) {
+        ending++;
+      }
+    };
+
+    // We expect the operator to immediately end and close
+    closingOperator(source)(sink);
+    expect(closing).toBe(1);
+    expect(ending).toBe(1);
+  });
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -557,6 +589,10 @@ describe('take', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
 
+  // TODO: take(0) seems to be broken
+  const ending = operators.take(1);
+  passesCloseAndEnd(ending);
+
   it('emits values until a maximum is reached', () => {
     const { source, next } = sources.makeSubject<number>();
     const fn = jest.fn();
@@ -580,6 +616,9 @@ describe('takeUntil', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+
+  const ending = operators.takeUntil(sources.fromValue(null));
+  passesCloseAndEnd(ending);
 
   it('emits values until a maximum is reached', () => {
     const { source: notifier$, next: notify } = sources.makeSubject<number>();
@@ -608,6 +647,9 @@ describe('takeWhile', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   // TODO: passesSingleStart(noop);
+
+  const ending = operators.takeWhile(() => false);
+  passesCloseAndEnd(ending);
 
   it('emits values while a predicate passes for all values', () => {
     const { source, next } = sources.makeSubject<number>();
