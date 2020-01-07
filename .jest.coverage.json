@@ -1,8 +1,0 @@
-{
-  "moduleFileExtensions": [
-    "js"
-  ],
-  "testMatch": [
-    "**/lib/js/__tests__/*_test.js"
-  ]
-}
