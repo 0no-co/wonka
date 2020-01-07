@@ -3,6 +3,7 @@ import * as sources from './wonka_sources.gen';
 import * as types from './wonka_types.gen';
 import * as web from './web/wonkaJs.gen';
 
+import callbagFromArray from 'callbag-from-iter';
 import Observable from 'zen-observable';
 
 const collectSignals = (
@@ -229,6 +230,31 @@ describe('fromObservable', () => {
     });
 
     await new Promise(resolve => setTimeout(resolve));
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+    ]);
+  });
+});
+
+describe('fromCallbag', () => {
+  it('converts a Callbag to a Wonka source', () => {
+    const source = web.fromCallbag(callbagFromArray([1, 2]));
+    const signals = collectSignals(source);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+      deriving.end(),
+    ]);
+  });
+
+  it('supports cancellation on converted Observables', () => {
+    const source = web.fromCallbag(callbagFromArray([1, 2]));
+    const signals = collectSignals(source, talkback => {
+      talkback(deriving.close);
+    });
 
     expect(signals).toEqual([
       deriving.start(expect.any(Function)),
