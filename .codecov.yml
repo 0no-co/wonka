@@ -4,6 +4,3 @@ coverage:
     project: yes
     patch: no
     changes: no
-
-fixes:
-  - "/home/travis/build/::"

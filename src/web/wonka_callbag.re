@@ -12,7 +12,7 @@ type callbagData('a);
 [@genType]
 type callbagTalkback = (. callbagSignal) => unit;
 
-[@genType]
+[@genType.import "../shims/Js.shim"]
 type callbagT('a) = (callbagSignal, callbagData('a)) => unit;
 
 external unsafe_getCallbag: callbagData('a) => callbagT('a) = "%identity";

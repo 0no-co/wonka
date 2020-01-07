@@ -26,12 +26,12 @@
  * purposes, or call the actual sink as it sees fit.
  */
 
-[@genType.opaque]
+[@genType.import "./shims/Js.shim"]
 type talkbackT =
   | Pull
   | Close;
 
-[@genType.opaque]
+[@genType.import "./shims/Js.shim"]
 type signalT('a) =
   | Start((. talkbackT) => unit)
   | Push('a)
