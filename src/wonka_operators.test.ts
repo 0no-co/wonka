@@ -374,7 +374,6 @@ describe('concatMap', () => {
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
-  // TODO: Add asynchronous test
   // This synchronous test for concatMap will behave the same as mergeMap & switchMap
   it('emits values from each flattened synchronous source', () => {
     const { source, next, complete } = sources.makeSubject<number>();
@@ -935,7 +934,7 @@ describe('takeWhile', () => {
     expect(fn).toHaveBeenCalledTimes(4);
     expect(fn.mock.calls).toEqual([
       [deriving.start(expect.any(Function))],
-      [deriving.start(expect.any(Function))], // TODO: Shouldn't start twice!
+      [deriving.start(expect.any(Function))],
       [deriving.push(1)],
       [deriving.end()],
     ]);
