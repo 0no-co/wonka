@@ -31,8 +31,7 @@
     "bundle": "rollup -c rollup.config.js",
     "clean": "run-s bs:clean bundle:clean",
     "build": "run-s bs:build bundle flowgen",
-    "prepublishOnly": "run-s clean build bundle flowgen check test",
-    "codecov": "codecov"
+    "prepublishOnly": "run-s clean build bundle flowgen check test"
   },
   "keywords": [
     "wonka",
