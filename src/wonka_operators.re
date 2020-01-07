@@ -773,6 +773,7 @@ let switchAll = (source: sourceT(sourceT('a))): sourceT('a) =>
   switchMap((. x) => x, source);
 
 type takeStateT = {
+  mutable ended: bool,
   mutable taken: int,
   mutable talkback: (. talkbackT) => unit,
 };
@@ -781,25 +782,30 @@ type takeStateT = {
 let take = (max: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let state: takeStateT = {taken: 0, talkback: talkbackPlaceholder};
+      let state: takeStateT = {
+        ended: false,
+        taken: 0,
+        talkback: talkbackPlaceholder,
+      };
 
       source((. signal) =>
         switch (signal) {
         | Start(tb) when max <= 0 =>
+          state.ended = true;
           sink(. End);
           tb(. Close);
         | Start(tb) => state.talkback = tb
         | Push(_) when state.taken < max =>
           state.taken = state.taken + 1;
           sink(. signal);
-
-          if (state.taken === max) {
+          if (!state.ended && state.taken >= max) {
+            state.ended = true;
             sink(. End);
             state.talkback(. Close);
           };
         | Push(_) => ()
-        | End when state.taken < max =>
-          state.taken = max;
+        | End when !state.ended =>
+          state.ended = true;
           sink(. End);
         | End => ()
         }
@@ -808,11 +814,12 @@ let take = (max: int): operatorT('a, 'a) =>
       sink(.
         Start(
           (. signal) =>
-            if (state.taken < max) {
+            if (!state.ended) {
               switch (signal) {
-              | Pull => state.talkback(. Pull)
+              | Pull when state.taken < max => state.talkback(. Pull)
+              | Pull => ()
               | Close =>
-                state.taken = max;
+                state.ended = true;
                 state.talkback(. Close);
               };
             },
