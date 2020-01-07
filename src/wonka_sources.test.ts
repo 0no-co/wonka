@@ -20,12 +20,41 @@ const collectSignals = (source: types.sourceT<any>) => {
   return signals;
 };
 
-// TODO: Test that nothing is sent by cold sources when no pull signal comes in
-// TODO: Test asynchronous pull signals as well
 // TODO: Test close talkback signal
 
+/* All synchronous, cold sources won't send anything unless a Pull signal
+  has been received. */
+const passesColdPull = (source: types.sourceT<any>) =>
+  it('sends nothing when no Pull talkback signal has been sent (spec)', () => {
+    let pushes = 0;
+    let talkback = null;
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isPush(signal)) {
+        pushes++;
+      } else if (deriving.isStart(signal)) {
+        talkback = deriving.unboxStart(signal);
+      }
+    };
+
+    source(sink);
+    expect(talkback).not.toBe(null);
+    expect(pushes).toBe(0);
+
+    setTimeout(() => {
+      expect(pushes).toBe(0);
+      talkback(deriving.pull);
+    }, 10);
+
+    jest.runAllTimers();
+    expect(pushes).toBe(1);
+  });
+
+/* All synchronous, cold sources need to use trampoline scheduling to avoid
+  recursively sending more and more Push signals which would eventually lead
+  to a call stack overflow when too many values are emitted. */
 const passesTrampoline = (source: types.sourceT<any>) =>
-  it('uses trampoline scheduling instead of recursive push signals', () => {
+  it('uses trampoline scheduling instead of recursive push signals (spec)', () => {
     let talkback = null;
     let pushes = 0;
 
@@ -55,15 +84,23 @@ const passesTrampoline = (source: types.sourceT<any>) =>
     ]);
   });
 
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
 describe('fromArray', () => {
   passesTrampoline(sources.fromArray([1, 2]));
+  passesColdPull(sources.fromArray([0]));
 });
 
 describe('fromList', () => {
   passesTrampoline(sources.fromList([1, [2]] as any));
+  passesColdPull(sources.fromList([0] as any));
 });
 
 describe('fromValue', () => {
+  passesColdPull(sources.fromValue(0));
+
   it('sends a single value and ends', () => {
     expect(collectSignals(sources.fromValue(1))).toEqual([
       deriving.start(expect.any(Function)),
@@ -74,10 +111,6 @@ describe('fromValue', () => {
 });
 
 describe('make', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
-
   it('may be used to create async sources', () => {
     const teardown = jest.fn();
     const source = sources.make(observer => {
