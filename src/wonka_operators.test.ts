@@ -309,10 +309,6 @@ beforeEach(() => {
   jest.useFakeTimers();
 });
 
-// TODO: test `mergeAll` / `flatten`
-// TODO: test `switchAll`
-// TODO: test `concatAll`
-
 describe('combine', () => {
   const noop = (source: types.sourceT<any>) => operators.combine(sources.fromValue(0), source);
 
@@ -398,6 +394,32 @@ describe('concatMap', () => {
       [deriving.push(3)],
       [deriving.push(4)],
       [deriving.end()],
+    ]);
+  });
+
+  // This asynchronous test for concatMap will behave differently than mergeMap & switchMap
+  it('emits values from each flattened asynchronous source, one at a time', () => {
+    const source = web.delay<number>(4)(sources.fromArray([1, 10]));
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(
+      operators.concatMap((x: number) => {
+        return web.delay(5)(sources.fromArray([x, x * 2]));
+      })(source)
+    );
+
+    jest.advanceTimersByTime(14);
+    expect(fn.mock.calls).toEqual([
+      [1],
+      [2],
+    ]);
+
+    jest.runAllTimers();
+    expect(fn.mock.calls).toEqual([
+      [1],
+      [2],
+      [10],
+      [20],
     ]);
   });
 });
@@ -508,7 +530,6 @@ describe('mergeMap', () => {
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
-  // TODO: Add asynchronous test
   // This synchronous test for mergeMap will behave the same as concatMap & switchMap
   it('emits values from each flattened synchronous source', () => {
     const { source, next, complete } = sources.makeSubject<number>();
@@ -528,6 +549,26 @@ describe('mergeMap', () => {
       [deriving.push(3)],
       [deriving.push(4)],
       [deriving.end()],
+    ]);
+  });
+
+  // This asynchronous test for mergeMap will behave differently than concatMap & switchMap
+  it('emits values from each flattened asynchronous source simultaneously', () => {
+    const source = web.delay<number>(4)(sources.fromArray([1, 10]));
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(
+      operators.mergeMap((x: number) => {
+        return web.delay(5)(sources.fromArray([x, x * 2]));
+      })(source)
+    );
+
+    jest.advanceTimersByTime(14);
+    expect(fn.mock.calls).toEqual([
+      [1],
+      [10],
+      [2],
+      [20],
     ]);
   });
 });
@@ -765,7 +806,6 @@ describe('switchMap', () => {
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
-  // TODO: Add asynchronous test
   // This synchronous test for switchMap will behave the same as concatMap & mergeMap
   it('emits values from each flattened synchronous source', () => {
     const { source, next, complete } = sources.makeSubject<number>();
@@ -785,6 +825,25 @@ describe('switchMap', () => {
       [deriving.push(3)],
       [deriving.push(4)],
       [deriving.end()],
+    ]);
+  });
+
+  // This asynchronous test for switchMap will behave differently than concatMap & mergeMap
+  it('emits values from each flattened asynchronous source, one at a time', () => {
+    const source = web.delay<number>(4)(sources.fromArray([1, 10]));
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(
+      operators.switchMap((x: number) => {
+        return web.delay(5)(sources.fromArray([x, x * 2]));
+      })(source)
+    );
+
+    jest.runAllTimers();
+    expect(fn.mock.calls).toEqual([
+      [1],
+      [10],
+      [20],
     ]);
   });
 });
