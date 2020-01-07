@@ -9,18 +9,21 @@ let observableSymbol: string = [%raw
 |}
 ];
 
-type subscriptionT = {. [@bs.meth] "unsubscribe": unit => unit};
+[@genType.import "../shims/Js.shim"]
+type observableSubscriptionT = {. [@bs.meth] "unsubscribe": unit => unit};
 
-type observerT('a) = {
+[@genType.import "../shims/Js.shim"]
+type observableObserverT('a) = {
   .
   [@bs.meth] "next": 'a => unit,
   [@bs.meth] "error": Js.Exn.t => unit,
   [@bs.meth] "complete": unit => unit,
 };
 
+[@genType.import "../shims/Js.shim"]
 type observableT('a) = {
   .
-  [@bs.meth] "subscribe": observerT('a) => subscriptionT,
+  [@bs.meth] "subscribe": observableObserverT('a) => observableSubscriptionT,
 };
 
 type observableFactoryT('a) = (. unit) => observableT('a);
@@ -38,6 +41,7 @@ external observable_set:
   (observableT('a), string, unit => observableT('a)) => unit =
   "";
 
+[@genType]
 let fromObservable = (input: observableT('a)): sourceT('a) => {
   let observable =
     switch (input->observable_get(observableSymbol)) {
@@ -46,7 +50,7 @@ let fromObservable = (input: observableT('a)): sourceT('a) => {
     };
 
   curry(sink => {
-    let observer: observerT('a) =
+    let observer: observableObserverT('a) =
       [@bs]
       {
         as _;
@@ -74,12 +78,14 @@ type observableStateT = {
   mutable ended: bool,
 };
 
+[@genType]
 let toObservable = (source: sourceT('a)): observableT('a) => {
   let observable: observableT('a) =
     [@bs]
     {
       as _;
-      pub subscribe = (observer: observerT('a)): subscriptionT => {
+      pub subscribe =
+          (observer: observableObserverT('a)): observableSubscriptionT => {
         let state: observableStateT = {
           talkback: talkbackPlaceholder,
           ended: false,

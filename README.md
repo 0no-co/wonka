@@ -2,6 +2,9 @@
 
 A fast push & pull stream library for Reason, loosely following the [callbag spec](https://github.com/callbag/callbag)
 
+> **NOTE:** The `master` branch currently points to the v4 Release Candidate version!
+> If you're looking for v3, [please check the `v3.2.2`](https://github.com/kitten/wonka/tree/v3.2.2)
+
 <br>
 <a href="https://npmjs.com/package/wonka">
   <img alt="NPM Version" src="https://img.shields.io/npm/v/wonka.svg" />

@@ -26,27 +26,39 @@
  * purposes, or call the actual sink as it sees fit.
  */
 
+[@genType.import "./shims/Js.shim"]
 type talkbackT =
   | Pull
   | Close;
 
+[@genType.import "./shims/Js.shim"]
 type signalT('a) =
   | Start((. talkbackT) => unit)
   | Push('a)
   | End;
 
+[@genType]
 type sinkT('a) = (. signalT('a)) => unit;
+
+[@genType]
 type sourceT('a) = sinkT('a) => unit;
 
+[@genType]
+type operatorT('a, 'b) = sourceT('a) => sourceT('b);
+
+[@genType]
 type teardownT = (. unit) => unit;
 
+[@genType]
 type subscriptionT = {unsubscribe: unit => unit};
 
+[@genType]
 type observerT('a) = {
   next: 'a => unit,
   complete: unit => unit,
 };
 
+[@genType]
 type subjectT('a) = {
   source: sourceT('a),
   next: 'a => unit,
