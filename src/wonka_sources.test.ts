@@ -27,7 +27,23 @@ const collectSignals = (
   return signals;
 };
 
-// TODO: Test close talkback signal
+/* When a Close talkback signal is sent the source should immediately end */
+const passesActiveClose = (source: types.sourceT<any>) =>
+  it('stops emitting when a Close talkback signal is received (spec)', () => {
+    let talkback = null;
+
+    const sink: types.sinkT<any> = signal => {
+      expect(deriving.isPush(signal)).toBeFalsy();
+      expect(deriving.isEnd(signal)).toBeFalsy();
+      if (deriving.isStart(signal)) {
+        talkback = deriving.unboxStart(signal);
+        talkback(deriving.close);
+      }
+    };
+
+    source(sink);
+    expect(talkback).not.toBe(null);
+  });
 
 /* All synchronous, cold sources won't send anything unless a Pull signal
   has been received. */
@@ -98,15 +114,18 @@ beforeEach(() => {
 describe('fromArray', () => {
   passesTrampoline(sources.fromArray([1, 2]));
   passesColdPull(sources.fromArray([0]));
+  passesActiveClose(sources.fromArray([0]));
 });
 
 describe('fromList', () => {
   passesTrampoline(sources.fromList([1, [2]] as any));
   passesColdPull(sources.fromList([0] as any));
+  passesActiveClose(sources.fromList([0] as any));
 });
 
 describe('fromValue', () => {
   passesColdPull(sources.fromValue(0));
+  passesActiveClose(sources.fromValue(0));
 
   it('sends a single value and ends', () => {
     expect(collectSignals(sources.fromValue(1))).toEqual([
@@ -135,9 +154,23 @@ describe('make', () => {
       deriving.push(1),
       deriving.end(),
     ]);
+  });
 
-    // `teardown` is currently only called for Close signals but not on completion
-    // TODO: expect(teardown).toHaveBeenCalled();
+  it('supports active cancellation', () => {
+    const teardown = jest.fn();
+    const source = sources.make(() => teardown);
+
+    const sink: types.sinkT<any> = signal => {
+      expect(deriving.isPush(signal)).toBeFalsy();
+      expect(deriving.isEnd(signal)).toBeFalsy();
+      if (deriving.isStart(signal))
+        setTimeout(() => deriving.unboxStart(signal)(deriving.close));
+    };
+
+    source(sink);
+    expect(teardown).not.toHaveBeenCalled();
+    jest.runAllTimers();
+    expect(teardown).toHaveBeenCalled();
   });
 });
 
@@ -186,6 +219,8 @@ describe('empty', () => {
 });
 
 describe('fromPromise', () => {
+  passesActiveClose(web.fromPromise(Promise.resolve(null)));
+
   it('emits a value when the promise resolves', async () => {
     const promise = Promise.resolve(1);
     const signals = collectSignals(web.fromPromise(promise));
