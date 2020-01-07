@@ -1,5 +1,6 @@
 import * as deriving from './helpers/wonka_deriving';
 import * as sources from './wonka_sources.gen';
+import * as sinks from './wonka_sinks.gen';
 import * as operators from './wonka_operators.gen';
 import * as web from './web/wonkaJs.gen';
 import * as types from './wonka_types.gen';
@@ -8,7 +9,10 @@ import * as types from './wonka_types.gen';
   A Pull will be sent from the sink upwards and should pass through
   the operator until the source receives it, which then pushes a
   value down. */
-const passesPassivePull = (operator: types.operatorT<any, any>) =>
+const passesPassivePull = (
+  operator: types.operatorT<any, any>,
+  output: any = 0
+) =>
   it('responds to Pull talkback signals (spec)', () => {
     let talkback = null;
     const values = [];
@@ -38,7 +42,7 @@ const passesPassivePull = (operator: types.operatorT<any, any>) =>
     // When pulling a value we expect an immediate response
     talkback(deriving.pull);
     jest.runAllTimers();
-    expect(values).toEqual([0]);
+    expect(values).toEqual([output]);
   });
 
 /* This tests a noop operator for regular, active Push signals.
@@ -158,6 +162,43 @@ const passesSourceEnd = (operator: types.operatorT<any, any>) =>
     expect(signals).toEqual([deriving.push(0), deriving.end()]);
   });
 
+// TODO: Add passesSingleStart testing whether only one Start signal is sent
+
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
+describe('buffer', () => {
+  /*
+  const noop = operators.buffer(
+    operators.merge([
+      sources.fromValue(null),
+      sources.never
+    ])
+  );
+  */
+
+  // TODO: passesPassivePull(noop, [0]);
+  // TODO: passesActivePush(noop);
+  // TODO: passesSinkClose(noop);
+  // TODO: passesSourceEnd(noop);
+
+  it('emits batches of input values when a notifier emits', () => {
+    const { source: notifier$, next: notify } = sources.makeSubject();
+    const { source: input$, next } = sources.makeSubject();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.buffer(notifier$)(input$));
+
+    next(1);
+    next(2);
+    expect(fn).not.toHaveBeenCalled();
+
+    notify(null);
+    expect(fn).toHaveBeenCalledWith([1, 2]);
+  });
+});
+
 describe('concatMap', () => {
   // const noop = operators.concatMap(x => sources.fromValue(x));
   // TODO: passesPassivePull(noop);
@@ -167,23 +208,50 @@ describe('concatMap', () => {
 });
 
 describe('debounce', () => {
-  beforeEach(() => jest.useFakeTimers());
-
   const noop = web.debounce(() => 0);
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('waits for a specified amount of silence before emitting the last value', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(web.debounce(() => 100)(source));
+
+    next(1);
+    jest.advanceTimersByTime(50);
+    expect(fn).not.toHaveBeenCalled();
+
+    next(2);
+    jest.advanceTimersByTime(99);
+    expect(fn).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
 });
 
 describe('delay', () => {
-  beforeEach(() => jest.useFakeTimers());
-
   const noop = web.delay(0);
   passesPassivePull(noop);
   passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('delays outputs by a specified delay timeout value', () => {
+    const { source, next } = sources.makeSubject();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(web.delay(100)(source));
+
+    next(1);
+    expect(fn).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(100);
+    expect(fn).toHaveBeenCalledWith(1);
+  });
 });
 
 describe('filter', () => {
@@ -192,6 +260,19 @@ describe('filter', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('prevents emissions for which a predicate fails', () => {
+    const { source, next } = sources.makeSubject();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.filter(x => !!x)(source));
+
+    next(false);
+    expect(fn).not.toHaveBeenCalled();
+
+    next(true);
+    expect(fn).toHaveBeenCalledWith(true);
+  });
 });
 
 describe('map', () => {
@@ -200,6 +281,16 @@ describe('map', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('maps over values given a transform function', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.map((x: number) => x + 1)(source));
+
+    next(1);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
 });
 
 describe('mergeMap', () => {
@@ -216,6 +307,19 @@ describe('onEnd', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('calls a callback when the source ends', () => {
+    const { source, next, complete } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(() => {})(operators.onEnd(fn)(source));
+
+    next(null);
+    expect(fn).not.toHaveBeenCalled();
+
+    complete();
+    expect(fn).toHaveBeenCalled();
+  });
 });
 
 describe('onPush', () => {
@@ -224,6 +328,22 @@ describe('onPush', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('calls a callback when the source emits', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(() => {})(operators.onPush(fn)(source));
+
+    next(1);
+    expect(fn).toHaveBeenCalledWith(1);
+    next(2);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
+
+  it('is the same as `tap`', () => {
+    expect(operators.onPush).toBe(operators.tap);
+  });
 });
 
 describe('onStart', () => {
@@ -232,6 +352,20 @@ describe('onStart', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('is called when the source starts', () => {
+    let sink: types.sinkT<any>;
+
+    const fn = jest.fn();
+    const source: types.sourceT<any> = _sink => { sink = _sink; };
+
+    sinks.forEach(() => {})(operators.onStart(fn)(source));
+
+    expect(fn).not.toHaveBeenCalled();
+
+    sink(deriving.start(() => {}));
+    expect(fn).toHaveBeenCalled();
+  });
 });
 
 describe('sample', () => {
@@ -240,6 +374,21 @@ describe('sample', () => {
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
+
+  it('emits the latest value when a notifier source emits', () => {
+    const { source: notifier$, next: notify } = sources.makeSubject();
+    const { source: input$, next } = sources.makeSubject();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.sample(notifier$)(input$));
+
+    next(1);
+    next(2);
+    expect(fn).not.toHaveBeenCalled();
+
+    notify(null);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
 });
 
 describe('scan', () => {
@@ -248,6 +397,19 @@ describe('scan', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('folds values continuously with a reducer and initial value', () => {
+    const { source: input$, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    const reducer = (acc: number, x: number) => acc + x;
+    sinks.forEach(fn)(operators.scan(reducer, 0)(input$));
+
+    next(1);
+    expect(fn).toHaveBeenCalledWith(1);
+    next(2);
+    expect(fn).toHaveBeenCalledWith(3);
+  });
 });
 
 describe('share', () => {
@@ -256,6 +418,29 @@ describe('share', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('shares output values between sinks', () => {
+    let push = () => {};
+
+    const source: types.sourceT<any> = operators.share(sink => {
+      sink(deriving.start(() => {}));
+      push = () => {
+        sink(deriving.push([0]));
+        sink(deriving.end());
+      };
+    });
+
+    const fnA = jest.fn();
+    const fnB = jest.fn();
+
+    sinks.forEach(fnA)(source);
+    sinks.forEach(fnB)(source);
+    push();
+
+    expect(fnA).toHaveBeenCalledWith([0]);
+    expect(fnB).toHaveBeenCalledWith([0]);
+    expect(fnA.mock.calls[0][0]).toBe(fnB.mock.calls[0][0]);
+  });
 });
 
 describe('skip', () => {
@@ -264,6 +449,18 @@ describe('skip', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('skips a number of values before emitting normally', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.skip(1)(source));
+
+    next(1);
+    expect(fn).not.toHaveBeenCalled();
+    next(2);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
 });
 
 describe('skipUntil', () => {
@@ -272,6 +469,20 @@ describe('skipUntil', () => {
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('skips values until one passes a predicate', () => {
+    const { source: notifier$, next: notify } = sources.makeSubject();
+    const { source: input$, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.skipUntil(notifier$)(input$));
+
+    next(1);
+    expect(fn).not.toHaveBeenCalled();
+    notify(null);
+    next(2);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
 });
 
 describe('skipWhile', () => {
@@ -280,6 +491,18 @@ describe('skipWhile', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('skips values until one fails a predicate', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.skipWhile(x => x <= 1)(source));
+
+    next(1);
+    expect(fn).not.toHaveBeenCalled();
+    next(2);
+    expect(fn).toHaveBeenCalledWith(2);
+  });
 });
 
 describe('switchMap', () => {
@@ -296,6 +519,21 @@ describe('take', () => {
   passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('emits values until a maximum is reached', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    operators.take(1)(source)(fn);
+    next(1);
+
+    expect(fn).toHaveBeenCalledTimes(3);
+    expect(fn.mock.calls).toEqual([
+      [deriving.start(expect.any(Function))],
+      [deriving.push(1)],
+      [deriving.end()],
+    ]);
+  });
 });
 
 describe('takeUntil', () => {
@@ -304,6 +542,25 @@ describe('takeUntil', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('emits values until a maximum is reached', () => {
+    const { source: notifier$, next: notify } = sources.makeSubject<number>();
+    const { source: input$, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    operators.takeUntil(notifier$)(input$)(fn);
+    next(1);
+
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn.mock.calls).toEqual([
+      [deriving.start(expect.any(Function))],
+      [deriving.push(1)],
+    ]);
+
+    notify(null);
+    expect(fn).toHaveBeenCalledTimes(3);
+    expect(fn.mock.calls[2][0]).toEqual(deriving.end());
+  });
 });
 
 describe('takeWhile', () => {
@@ -312,16 +569,50 @@ describe('takeWhile', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('emits values while a predicate passes for all values', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    operators.takeWhile(x => x < 2)(source)(fn);
+    next(1);
+    next(2);
+
+    expect(fn).toHaveBeenCalledTimes(4);
+    expect(fn.mock.calls).toEqual([
+      [deriving.start(expect.any(Function))],
+      [deriving.start(expect.any(Function))], // TODO: Shouldn't start twice!
+      [deriving.push(1)],
+      [deriving.end()],
+    ]);
+  });
 });
 
 describe('throttle', () => {
-  beforeEach(() => jest.useFakeTimers());
-
   const noop = web.throttle(() => 0);
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+
+  it('should ignore emissions for a period of time after a value', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(web.throttle(() => 100)(source));
+
+    next(1);
+    expect(fn).toHaveBeenCalledWith(1);
+    jest.advanceTimersByTime(50);
+
+    next(2);
+    expect(fn).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(50);
+
+    next(3);
+    expect(fn).toHaveBeenCalledWith(3);
+  });
+
 });
 
 
