@@ -92,16 +92,16 @@ const passesActivePush = (operator: types.operatorT<any, any>) =>
 const passesSinkClose = (operator: types.operatorT<any, any>) =>
   it('responds to Close signals from sink (spec)', () => {
     let talkback = null;
-    let ended = false;
+    let closing = 0;
     let pulls = 0;
 
     const source: types.sourceT<any> = sink => {
       sink(deriving.start(tb => {
         if (tb === deriving.pull) {
           pulls++;
-          if (!ended) sink(deriving.push(0));
+          if (!closing) sink(deriving.push(0));
         } if (tb === deriving.close) {
-          ended = true;
+          closing++;
         }
       }));
     };
@@ -120,7 +120,7 @@ const passesSinkClose = (operator: types.operatorT<any, any>) =>
     // When pushing a value we expect an immediate close signal
     talkback(deriving.pull);
     jest.runAllTimers();
-    expect(ended).toBeTruthy();
+    expect(closing).toBe(1);
     expect(pulls).toBe(1);
   });
 
@@ -133,6 +133,7 @@ const passesSourceEnd = (operator: types.operatorT<any, any>) =>
     const signals = [];
     let talkback = null;
     let pulls = 0;
+    let ending = 0;
 
     const source: types.sourceT<any> = sink => {
       sink(deriving.start(tb => {
@@ -150,6 +151,7 @@ const passesSourceEnd = (operator: types.operatorT<any, any>) =>
         talkback = deriving.unboxStart(signal);
       } else {
         signals.push(signal);
+        if (deriving.isEnd(signal)) ending++;
       }
     };
 
@@ -159,6 +161,7 @@ const passesSourceEnd = (operator: types.operatorT<any, any>) =>
     talkback(deriving.pull);
     jest.runAllTimers();
     expect(pulls).toBe(1);
+    expect(ending).toBe(1);
     expect(signals).toEqual([deriving.push(0), deriving.end()]);
   });
 
