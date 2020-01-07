@@ -311,3 +311,59 @@ describe('fromCallbag', () => {
     ]);
   });
 });
+
+describe('interval', () => {
+  it('emits Push signals until Cancel is sent', () => {
+    let pushes = 0;
+    let talkback = null;
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isPush(signal)) {
+        pushes++;
+      } else if (deriving.isStart(signal)) {
+        talkback = deriving.unboxStart(signal);
+      }
+    };
+
+    web.interval(100)(sink);
+    expect(talkback).not.toBe(null);
+    expect(pushes).toBe(0);
+
+    jest.advanceTimersByTime(100);
+    expect(pushes).toBe(1);
+    jest.advanceTimersByTime(100);
+    expect(pushes).toBe(2);
+
+    talkback(deriving.close);
+    jest.advanceTimersByTime(100);
+    expect(pushes).toBe(2);
+  });
+});
+
+describe('fromDomEvent', () => {
+  it('emits Push signals for events on a DOM element', () => {
+    let talkback = null;
+
+    const element = {
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    };
+
+    const sink: types.sinkT<any> = signal => {
+      expect(deriving.isEnd(signal)).toBeFalsy();
+      if (deriving.isStart(signal))
+        talkback = deriving.unboxStart(signal);
+    };
+
+    web.fromDomEvent(element as any, 'click')(sink);
+
+    expect(element.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
+    expect(element.removeEventListener).not.toHaveBeenCalled();
+    const listener = element.addEventListener.mock.calls[0][1];
+
+    listener(1);
+    listener(2);
+    talkback(deriving.close);
+    expect(element.removeEventListener).toHaveBeenCalledWith('click', listener);
+  });
+});
