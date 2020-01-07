@@ -916,7 +916,7 @@ describe('takeWhile', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
-  // TODO: passesSingleStart(noop);
+  passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
@@ -931,9 +931,7 @@ describe('takeWhile', () => {
     next(1);
     next(2);
 
-    expect(fn).toHaveBeenCalledTimes(4);
     expect(fn.mock.calls).toEqual([
-      [deriving.start(expect.any(Function))],
       [deriving.start(expect.any(Function))],
       [deriving.push(1)],
       [deriving.end()],

@@ -929,19 +929,5 @@ let takeWhile = (f: (. 'a) => bool): operatorT('a, 'a) =>
         | Push(_) => ()
         }
       );
-
-      sink(.
-        Start(
-          (. signal) =>
-            if (! ended^) {
-              switch (signal) {
-              | Pull => talkback^(. Pull)
-              | Close =>
-                ended := true;
-                talkback^(. Close);
-              };
-            },
-        ),
-      );
     })
   );
