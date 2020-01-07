@@ -785,6 +785,9 @@ let take = (max: int): operatorT('a, 'a) =>
 
       source((. signal) =>
         switch (signal) {
+        | Start(tb) when max <= 0 =>
+          sink(. End);
+          tb(. Close);
         | Start(tb) => state.talkback = tb
         | Push(_) when state.taken < max =>
           state.taken = state.taken + 1;

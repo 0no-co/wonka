@@ -857,9 +857,7 @@ describe('take', () => {
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
-  // TODO: take(0) seems to be broken
-  const ending = operators.take(1);
-  passesCloseAndEnd(ending);
+  passesCloseAndEnd(operators.take(0));
 
   it('emits values until a maximum is reached', () => {
     const { source, next } = sources.makeSubject<number>();
