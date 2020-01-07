@@ -257,6 +257,48 @@ const passesCloseAndEnd = (closingOperator: types.operatorT<any, any>) =>
     expect(ending).toBe(1);
   });
 
+const passesAsyncSequence = (
+  operator: types.operatorT<any, any>,
+  result: any = 0
+) =>
+  it('passes an async push with an async end (spec)', () => {
+    let hasPushed = false;
+    const signals = [];
+
+    const source: types.sourceT<any> = sink => {
+      sink(deriving.start(tb => {
+        if (tb === deriving.pull && !hasPushed) {
+          hasPushed = true;
+          setTimeout(() => sink(deriving.push(0)), 10);
+          setTimeout(() => sink(deriving.end()), 20);
+        }
+      }));
+    };
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isStart(signal)) {
+        setTimeout(() => {
+          deriving.unboxStart(signal)(deriving.pull);
+        }, 5);
+      } else {
+        signals.push(signal);
+      }
+    };
+
+    // We initially expect to see the push signal
+    // Afterwards after all timers all other signals come in
+    operator(source)(sink);
+    expect(signals.length).toBe(0);
+    jest.advanceTimersByTime(5);
+    expect(hasPushed).toBeTruthy();
+    jest.runAllTimers();
+
+    expect(signals).toEqual([
+      deriving.push(result),
+      deriving.end()
+    ]);
+  });
+
 beforeEach(() => {
   jest.useFakeTimers();
 });
@@ -305,6 +347,7 @@ describe('concatMap', () => {
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   // TODO: Add asynchronous test
   // This synchronous test for concatMap will behave the same as mergeMap & switchMap
@@ -338,6 +381,7 @@ describe('debounce', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
   // TODO: passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   it('waits for a specified amount of silence before emitting the last value', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -365,6 +409,7 @@ describe('delay', () => {
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('delays outputs by a specified delay timeout value', () => {
     const { source, next } = sources.makeSubject();
@@ -387,6 +432,7 @@ describe('filter', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('prevents emissions for which a predicate fails', () => {
     const { source, next } = sources.makeSubject();
@@ -410,6 +456,7 @@ describe('map', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
   // TODO: passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   it('maps over values given a transform function', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -430,6 +477,7 @@ describe('mergeMap', () => {
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   // TODO: Add asynchronous test
   // This synchronous test for mergeMap will behave the same as concatMap & switchMap
@@ -462,6 +510,7 @@ describe('onEnd', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('calls a callback when the source ends', () => {
     const { source, next, complete } = sources.makeSubject<number>();
@@ -484,6 +533,7 @@ describe('onPush', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('calls a callback when the source emits', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -509,6 +559,7 @@ describe('onStart', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('is called when the source starts', () => {
     let sink: types.sinkT<any>;
@@ -557,6 +608,7 @@ describe('scan', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('folds values continuously with a reducer and initial value', () => {
     const { source: input$, next } = sources.makeSubject<number>();
@@ -580,6 +632,7 @@ describe('share', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   it('shares output values between sinks', () => {
     let push = () => {};
@@ -612,6 +665,7 @@ describe('skip', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('skips a number of values before emitting normally', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -633,6 +687,7 @@ describe('skipUntil', () => {
   // TODO: passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('skips values until the notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -656,6 +711,7 @@ describe('skipWhile', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('skips values until one fails a predicate', () => {
     const { source, next } = sources.makeSubject<number>();
@@ -678,6 +734,7 @@ describe('switchMap', () => {
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   // TODO: Add asynchronous test
   // This synchronous test for switchMap will behave the same as concatMap & mergeMap
@@ -711,6 +768,7 @@ describe('take', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   // TODO: take(0) seems to be broken
   const ending = operators.take(1);
@@ -740,11 +798,12 @@ describe('takeUntil', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   const ending = operators.takeUntil(sources.fromValue(null));
   passesCloseAndEnd(ending);
 
-  it('emits values until a maximum is reached', () => {
+  it('emits values until a notifier emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject<number>();
     const { source: input$, next } = sources.makeSubject<number>();
     const fn = jest.fn();
@@ -772,6 +831,7 @@ describe('takeWhile', () => {
   passesSourceEnd(noop);
   // TODO: passesSingleStart(noop);
   passesStrictEnd(noop);
+  passesAsyncSequence(noop);
 
   const ending = operators.takeWhile(() => false);
   passesCloseAndEnd(ending);
@@ -801,6 +861,7 @@ describe('throttle', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
+  passesAsyncSequence(noop);
 
   it('should ignore emissions for a period of time after a value', () => {
     const { source, next } = sources.makeSubject<number>();
