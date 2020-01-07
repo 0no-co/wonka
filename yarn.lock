@@ -3326,17 +3326,22 @@ callbag-from-iter@^1.2.0:
   resolved "https://registry.yarnpkg.com/callbag-from-iter/-/callbag-from-iter-1.2.0.tgz#c1886b08a447cd2efd9a140ec11743d705f26ca9"
   integrity sha512-9rWvHOnRGp01YMRHHwgVZOO1vu4IRR8GcoH3FpSB16AMzum5juFWJPCMX/XnkJ9j6cic/G+kvb1Grvi6IuSmIQ==
 
-callbag-from-obs@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/callbag-from-obs/-/callbag-from-obs-1.2.0.tgz#f092f302f302b53abaf1a4d7a5393f9a65fac517"
-  integrity sha512-InhdPC6P4Gdpg7nuXSkocDFlb+//sbwCrVCYhxOHhSVm1gDcw/zSA+IF1gHdYtk4RQKKaCymUFCkVVUVSRThVQ==
-  dependencies:
-    symbol-observable "^1.2.0"
-
 callbag-iterate@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/callbag-iterate/-/callbag-iterate-1.0.0.tgz#97116f09296ef2d5073b35125891dca93349aeeb"
   integrity sha512-bynCbDuqGZkj1mXAhGr8jMf8Vhifps+G+pF3xlcz3jcaZLNXHghVjValnJtBTg2N74cyl347UzagJ8niJpyF6Q==
+
+callbag-take@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/callbag-take/-/callbag-take-1.4.0.tgz#cf14718cb2f0b83825969a6055fce2907b83fcc1"
+  integrity sha512-SMN236uYqjZ+8ypAY12qkV2QwutjOe96GyYPzUF9RKKJR5nRyu0fON4r4XBZ3ZonOWnDW05CWmKmS0mVQg5TIg==
+  dependencies:
+    callbag "^1.1.0"
+
+callbag@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/callbag/-/callbag-1.2.0.tgz#45e73962a466056c6e5f86f5627b35cf0c4df101"
+  integrity sha512-RMcVOk2oyA8CyCt/HsLEvnvvttKlaGVaG0uOo5IY7RpdiPLhStjxv5oYre33VJfT8kJE+cuKLSNHooz7yCUdhQ==
 
 caller-callsite@^2.0.0:
   version "2.0.0"
