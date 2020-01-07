@@ -198,6 +198,21 @@ describe('makeSubject', () => {
       deriving.end(),
     ]);
   });
+
+  it('ignores signals after complete has been called', () => {
+    const { source, next, complete } = sources.makeSubject();
+    const signals = collectSignals(source);
+    complete();
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.end(),
+    ]);
+
+    next(1);
+    complete();
+    expect(signals.length).toBe(2);
+  });
 });
 
 describe('never', () => {
