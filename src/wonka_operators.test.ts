@@ -49,7 +49,10 @@ const passesPassivePull = (
   A Push will be sent downwards from the source, through the
   operator to the sink. Pull events should be let through from
   the sink after every Push event. */
-const passesActivePush = (operator: types.operatorT<any, any>) =>
+const passesActivePush = (
+  operator: types.operatorT<any, any>,
+  result: any = 0
+) =>
   it('responds to eager Push signals (spec)', () => {
     const values = [];
     let talkback = null;
@@ -81,7 +84,7 @@ const passesActivePush = (operator: types.operatorT<any, any>) =>
     // When pushing a value we expect an immediate response
     push(0);
     jest.runAllTimers();
-    expect(values).toEqual([0]);
+    expect(values).toEqual([result]);
     // Subsequently the Pull signal should have travelled upwards
     expect(pulls).toBe(1);
   });
@@ -128,7 +131,10 @@ const passesSinkClose = (operator: types.operatorT<any, any>) =>
   A Push and End signal will be sent after the first Pull talkback
   signal from the sink, which shouldn't lead to any extra Close or Pull
   talkback signals. */
-const passesSourceEnd = (operator: types.operatorT<any, any>) =>
+const passesSourceEnd = (
+  operator: types.operatorT<any, any>,
+  result: any = 0
+) =>
   it('passes on End signals from source (spec)', () => {
     const signals = [];
     let talkback = null;
@@ -162,7 +168,7 @@ const passesSourceEnd = (operator: types.operatorT<any, any>) =>
     jest.runAllTimers();
     expect(pulls).toBe(1);
     expect(ending).toBe(1);
-    expect(signals).toEqual([deriving.push(0), deriving.end()]);
+    expect(signals).toEqual([deriving.push(result), deriving.end()]);
   });
 
 /* This tests a noop operator for Start signals from the source.
@@ -303,10 +309,33 @@ beforeEach(() => {
   jest.useFakeTimers();
 });
 
-// TODO: test `combine`
 // TODO: test `mergeAll` / `flatten`
 // TODO: test `switchAll`
 // TODO: test `concatAll`
+
+describe('combine', () => {
+  const noop = (source: types.sourceT<any>) => operators.combine(sources.fromValue(0), source);
+
+  passesPassivePull(noop, [0, 0]);
+  // TODO: passesActivePush(noop, [0, 0]);
+  passesSinkClose(noop);
+  passesSourceEnd(noop, [0, 0]);
+  passesSingleStart(noop);
+  passesStrictEnd(noop);
+
+  it('emits the zipped values of two sources', () => {
+    const { source: sourceA, next: nextA } = sources.makeSubject();
+    const { source: sourceB, next: nextB } = sources.makeSubject();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(operators.combine(sourceA, sourceB));
+
+    nextA(1);
+    expect(fn).not.toHaveBeenCalled();
+    nextB(2);
+    expect(fn).toHaveBeenCalledWith([1, 2]);
+  });
+});
 
 describe('buffer', () => {
   const noop = operators.buffer(
