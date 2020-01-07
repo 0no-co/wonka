@@ -450,6 +450,18 @@ describe('debounce', () => {
     jest.advanceTimersByTime(1);
     expect(fn).toHaveBeenCalledWith(2);
   });
+
+  it('emits debounced value with delayed End signal', () => {
+    const { source, next, complete } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(web.debounce(() => 100)(source));
+
+    next(1);
+    complete();
+    jest.advanceTimersByTime(100);
+    expect(fn).toHaveBeenCalled();
+  });
 });
 
 describe('delay', () => {
