@@ -795,7 +795,7 @@ let take = (max: int): operatorT('a, 'a) =>
           sink(. End);
           tb(. Close);
         | Start(tb) => state.talkback = tb
-        | Push(_) when state.taken < max =>
+        | Push(_) when state.taken < max && !state.ended =>
           state.taken = state.taken + 1;
           sink(. signal);
           if (!state.ended && state.taken >= max) {
