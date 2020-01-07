@@ -41,6 +41,7 @@ external observable_set:
   (observableT('a), string, unit => observableT('a)) => unit =
   "";
 
+[@genType]
 let fromObservable = (input: observableT('a)): sourceT('a) => {
   let observable =
     switch (input->observable_get(observableSymbol)) {
@@ -77,6 +78,7 @@ type observableStateT = {
   mutable ended: bool,
 };
 
+[@genType]
 let toObservable = (source: sourceT('a)): observableT('a) => {
   let observable: observableT('a) =
     [@bs]

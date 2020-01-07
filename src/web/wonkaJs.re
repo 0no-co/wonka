@@ -2,10 +2,12 @@ open Wonka_types;
 
 [@genType]
 let fromObservable = Wonka_observable.fromObservable;
+[@genType]
 let toObservable = Wonka_observable.toObservable;
 
 [@genType]
 let fromCallbag = Wonka_callbag.fromCallbag;
+[@genType]
 let toCallbag = Wonka_callbag.toCallbag;
 
 /* operators */
