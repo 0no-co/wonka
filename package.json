@@ -124,6 +124,7 @@
       "/node_modules/(?!bs-platform)"
     ],
     "collectCoverageFrom": [
+      "!<rootDir>/src/wonka.{ts,bs.js}",
       "!<rootDir>/src/include/**",
       "!<rootDir>/src/helpers/**",
       "!<rootDir>/src/**/*.{shim,gen}.{ts,tsx}",
