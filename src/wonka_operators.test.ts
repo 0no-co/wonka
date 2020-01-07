@@ -15,12 +15,15 @@ const passesPassivePull = (
 ) =>
   it('responds to Pull talkback signals (spec)', () => {
     let talkback = null;
+    let push = 0;
     const values = [];
 
     const source: types.sourceT<any> = sink => {
       sink(deriving.start(tb => {
-        if (tb === deriving.pull)
+        if (!push && tb === deriving.pull) {
+          push++;
           sink(deriving.push(0));
+        }
       }));
     };
 
@@ -333,15 +336,16 @@ describe('combine', () => {
   });
 });
 
-describe('buffer', () => {
-  const noop = operators.buffer(
-    operators.merge([
-      sources.fromValue(null),
-      sources.never
-    ])
-  );
+describe.only('buffer', () => {
+  const valueThenNever: types.sourceT<any> = sink =>
+    sink(deriving.start(tb => {
+      if (tb === deriving.pull)
+        sink(deriving.push(0));
+    }));
 
-  // TODO: passesPassivePull(noop, [0]);
+  const noop = operators.buffer(valueThenNever);
+
+  passesPassivePull(noop, [0]);
   // TODO: passesActivePush(noop);
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
