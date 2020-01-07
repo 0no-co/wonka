@@ -221,6 +221,11 @@ beforeEach(() => {
   jest.useFakeTimers();
 });
 
+// TODO: test `combine`
+// TODO: test `mergeAll` / `flatten`
+// TODO: test `switchAll`
+// TODO: test `concatAll`
+
 describe('buffer', () => {
   const noop = operators.buffer(
     operators.merge([
@@ -258,6 +263,29 @@ describe('concatMap', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+
+  // TODO: Add asynchronous test
+  // This synchronous test for concatMap will behave the same as mergeMap & switchMap
+  it('emits values from each flattened synchronous source', () => {
+    const { source, next, complete } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    operators.concatMap((x: number) => sources.fromArray([x, x + 1]))(source)(fn);
+
+    next(1);
+    next(3);
+    complete();
+
+    expect(fn).toHaveBeenCalledTimes(6);
+    expect(fn.mock.calls).toEqual([
+      [deriving.start(expect.any(Function))],
+      [deriving.push(1)],
+      [deriving.push(2)],
+      [deriving.push(3)],
+      [deriving.push(4)],
+      [deriving.end()],
+    ]);
+  });
 });
 
 describe('debounce', () => {
@@ -357,6 +385,29 @@ describe('mergeMap', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+
+  // TODO: Add asynchronous test
+  // This synchronous test for mergeMap will behave the same as concatMap & switchMap
+  it('emits values from each flattened synchronous source', () => {
+    const { source, next, complete } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    operators.mergeMap((x: number) => sources.fromArray([x, x + 1]))(source)(fn);
+
+    next(1);
+    next(3);
+    complete();
+
+    expect(fn).toHaveBeenCalledTimes(6);
+    expect(fn.mock.calls).toEqual([
+      [deriving.start(expect.any(Function))],
+      [deriving.push(1)],
+      [deriving.push(2)],
+      [deriving.push(3)],
+      [deriving.push(4)],
+      [deriving.end()],
+    ]);
+  });
 });
 
 describe('onEnd', () => {
@@ -536,7 +587,7 @@ describe('skipUntil', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
 
-  it('skips values until one passes a predicate', () => {
+  it('skips values until the notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
     const { source: input$, next } = sources.makeSubject<number>();
     const fn = jest.fn();
@@ -579,6 +630,29 @@ describe('switchMap', () => {
   // TODO: passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
+
+  // TODO: Add asynchronous test
+  // This synchronous test for switchMap will behave the same as concatMap & mergeMap
+  it('emits values from each flattened synchronous source', () => {
+    const { source, next, complete } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    operators.switchMap((x: number) => sources.fromArray([x, x + 1]))(source)(fn);
+
+    next(1);
+    next(3);
+    complete();
+
+    expect(fn).toHaveBeenCalledTimes(6);
+    expect(fn.mock.calls).toEqual([
+      [deriving.start(expect.any(Function))],
+      [deriving.push(1)],
+      [deriving.push(2)],
+      [deriving.push(3)],
+      [deriving.push(4)],
+      [deriving.end()],
+    ]);
+  });
 });
 
 describe('take', () => {
