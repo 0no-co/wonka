@@ -1,6 +1,7 @@
 import * as deriving from './helpers/wonka_deriving';
 import * as sources from './wonka_sources.gen';
 import * as types from './wonka_types.gen';
+import * as web from './web/wonkaJs.gen';
 
 const collectSignals = (source: types.sourceT<any>) => {
   let talkback = null;
@@ -68,6 +69,97 @@ describe('fromValue', () => {
       deriving.start(expect.any(Function)),
       deriving.push(1),
       deriving.end()
+    ]);
+  });
+});
+
+describe('make', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  it('may be used to create async sources', () => {
+    const teardown = jest.fn();
+    const source = sources.make(observer => {
+      setTimeout(() => observer.next(1), 10);
+      setTimeout(() => observer.complete(), 20);
+      return teardown;
+    });
+
+    const signals = collectSignals(source);
+    expect(signals).toEqual([deriving.start(expect.any(Function))]);
+    jest.runAllTimers();
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.end(),
+    ]);
+
+    // `teardown` is currently only called for Close signals but not on completion
+    // TODO: expect(teardown).toHaveBeenCalled();
+  });
+});
+
+describe('makeSubject', () => {
+  it('may be used to emit signals programmatically', () => {
+    const { source, next, complete } = sources.makeSubject();
+    const signals = collectSignals(source);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+    ]);
+
+    next(1);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+    ]);
+
+    complete();
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.end(),
+    ]);
+  });
+});
+
+describe('never', () => {
+  it('emits nothing and ends immediately', () => {
+    const signals = collectSignals(sources.never);
+    expect(signals).toEqual([deriving.start(expect.any(Function)) ]);
+  });
+});
+
+describe('empty', () => {
+  it('emits nothing and ends immediately', () => {
+    const signals = collectSignals(sources.empty);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.end(),
+    ]);
+  });
+});
+
+describe('fromPromise', () => {
+  it('emits a value when the promise resolves', async () => {
+    const promise = Promise.resolve(1);
+    const signals = collectSignals(web.fromPromise(promise));
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+    ]);
+
+    await promise;
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.end(),
     ]);
   });
 });
