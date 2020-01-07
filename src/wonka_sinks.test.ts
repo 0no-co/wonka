@@ -106,6 +106,28 @@ describe('subscribe', () => {
   });
 });
 
+describe('publish', () => {
+  it('sends Pull talkback signals every Push signal', () => {
+    let pulls = 0;
+    const source: types.sourceT<any> = sink => {
+      sink(deriving.start(tb => {
+        if (tb === deriving.pull) {
+          if (pulls < 3) {
+            pulls++;
+            sink(deriving.push(0));
+          } else {
+            sink(deriving.end());
+            expect(pulls).toBe(3);
+          }
+        }
+      }));
+    };
+
+    sinks.publish(source);
+    expect(pulls).toBe(3);
+  });
+});
+
 describe('toArray', () => {
   it('sends Pull talkback signals every Push signal', () => {
     let pulls = 0;
