@@ -336,7 +336,7 @@ describe('combine', () => {
   });
 });
 
-describe.only('buffer', () => {
+describe('buffer', () => {
   const valueThenNever: types.sourceT<any> = sink =>
     sink(deriving.start(tb => {
       if (tb === deriving.pull)
@@ -347,10 +347,10 @@ describe.only('buffer', () => {
 
   passesPassivePull(noop, [0]);
   // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
+  passesSinkClose(noop);
   // TODO: passesSourceEnd(noop);
   passesSingleStart(noop);
-  // TODO: passesStrictEnd(noop);
+  passesStrictEnd(noop);
 
   it('emits batches of input values when a notifier emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -365,6 +365,10 @@ describe.only('buffer', () => {
 
     notify(null);
     expect(fn).toHaveBeenCalledWith([1, 2]);
+
+    next(3);
+    notify(null);
+    expect(fn).toHaveBeenCalledWith([3]);
   });
 });
 

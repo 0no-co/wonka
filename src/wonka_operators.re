@@ -5,7 +5,6 @@ type bufferStateT('a) = {
   mutable buffer: Rebel.MutableQueue.t('a),
   mutable sourceTalkback: (. talkbackT) => unit,
   mutable notifierTalkback: (. talkbackT) => unit,
-  mutable pulled: bool,
   mutable ended: bool,
 };
 
@@ -17,7 +16,6 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
         buffer: Rebel.MutableQueue.make(),
         sourceTalkback: talkbackPlaceholder,
         notifierTalkback: talkbackPlaceholder,
-        pulled: false,
         ended: false,
       };
 
@@ -30,26 +28,31 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
             switch (signal) {
             | Start(tb) => state.notifierTalkback = tb
             | Push(_) when !state.ended =>
-              state.pulled = false;
-              sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
-              state.buffer = Rebel.MutableQueue.make();
+              if (Rebel.MutableQueue.size(state.buffer) > 0) {
+                sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
+                state.buffer = Rebel.MutableQueue.make();
+              }
             | Push(_) => ()
             | End when !state.ended =>
               state.ended = true;
               state.sourceTalkback(. Close);
-              sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
+              if (Rebel.MutableQueue.size(state.buffer) > 0) {
+                sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
+              };
               sink(. End);
             | End => ()
             }
           );
         | Push(value) when !state.ended =>
           Rebel.MutableQueue.add(state.buffer, value);
-          state.sourceTalkback(. Pull);
+          state.notifierTalkback(. Pull);
         | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
           state.notifierTalkback(. Close);
-          sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
+          if (Rebel.MutableQueue.size(state.buffer) > 0) {
+            sink(. Push(Rebel.MutableQueue.toArray(state.buffer)));
+          };
           sink(. End);
         | End => ()
         }
@@ -66,10 +69,8 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
                 state.notifierTalkback(. Close);
               | Pull =>
                 state.sourceTalkback(. Pull);
-                if (!state.pulled) {
-                  state.pulled = true;
-                  state.notifierTalkback(. Pull);
-                };
+                state.notifierTalkback(. Pull);
+              | Pull => ()
               };
             },
         ),
