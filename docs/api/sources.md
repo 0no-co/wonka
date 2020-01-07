@@ -113,7 +113,7 @@ the source itself.
 
 ```reason
 let subject = Wonka.makeSubject();
-let (source, next, complete) = subject;
+let { source, next, complete } = subject;
 
 /* This will push the values synchronously to any subscribers of source */
 next(1);

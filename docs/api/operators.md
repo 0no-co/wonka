@@ -48,7 +48,8 @@ pipe(
 let sourceOne = Wonka.fromArray([|1, 2, 3|]);
 let sourceTwo = Wonka.fromArray([|4, 5, 6|]);
 
-Wonka.combine(sourceOne, sourceTwo)
+Wonka.combine(sourceOne)
+  |> sourceTwo
   |> Wonka.subscribe((. (a, b)) => print_int(a + b));
 
 /* Prints 56789 (1+4, 2+4, 3+4, 3+5, 3+6) to the console. */
