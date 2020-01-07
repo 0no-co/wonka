@@ -10,17 +10,21 @@ let observableSymbol: string = [%raw
 ];
 
 [@genType]
-type subscriptionT = {unsubscribe: unit => unit};
+type subscriptionT = {. [@bs.meth] "unsubscribe": unit => unit};
 
 [@genType]
 type observerT('a) = {
-  next: (. 'a) => unit,
-  error: (. Js.Exn.t) => unit,
-  complete: (. unit) => unit,
+  .
+  [@bs.meth] "next": 'a => unit,
+  [@bs.meth] "error": Js.Exn.t => unit,
+  [@bs.meth] "complete": unit => unit,
 };
 
 [@genType]
-type observableT('a) = {subscribe: (. observerT('a)) => subscriptionT};
+type observableT('a) = {
+  .
+  [@bs.meth] "subscribe": observerT('a) => subscriptionT,
+};
 
 type observableFactoryT('a) = (. unit) => observableT('a);
 
@@ -37,7 +41,6 @@ external observable_set:
   (observableT('a), string, unit => observableT('a)) => unit =
   "";
 
-[@genType]
 let fromObservable = (input: observableT('a)): sourceT('a) => {
   let observable =
     switch (input->observable_get(observableSymbol)) {
@@ -46,19 +49,22 @@ let fromObservable = (input: observableT('a)): sourceT('a) => {
     };
 
   curry(sink => {
-    let observer: observerT('a) = {
-      next: (. value) => sink(. Push(value)),
-      complete: (.) => sink(. End),
-      error: (. _) => (),
-    };
+    let observer: observerT('a) =
+      [@bs]
+      {
+        as _;
+        pub next = value => sink(. Push(value));
+        pub complete = () => sink(. End);
+        pub error = _ => ()
+      };
 
-    let subscription = observable.subscribe(. observer);
+    let subscription = observable##subscribe(observer);
 
     sink(.
       Start(
         (. signal) =>
           switch (signal) {
-          | Close => subscription.unsubscribe()
+          | Close => subscription##unsubscribe()
           | _ => ()
           },
       ),
@@ -71,42 +77,43 @@ type observableStateT = {
   mutable ended: bool,
 };
 
-[@genType]
 let toObservable = (source: sourceT('a)): observableT('a) => {
-  let observable: observableT('a) = {
-    subscribe:
-      (. observer: observerT('a)) => (
+  let observable: observableT('a) =
+    [@bs]
+    {
+      as _;
+      pub subscribe = (observer: observerT('a)): subscriptionT => {
+        let state: observableStateT = {
+          talkback: talkbackPlaceholder,
+          ended: false,
+        };
+
+        source((. signal) =>
+          switch (signal) {
+          | Start(x) =>
+            state.talkback = x;
+            x(. Pull);
+          | Push(x) when !state.ended =>
+            observer##next(x);
+            state.talkback(. Pull);
+          | Push(_) => ()
+          | End =>
+            state.ended = true;
+            observer##complete();
+          }
+        );
+
+        [@bs]
         {
-          let state: observableStateT = {
-            talkback: talkbackPlaceholder,
-            ended: false,
-          };
-
-          source((. signal) =>
-            switch (signal) {
-            | Start(x) =>
-              state.talkback = x;
-              x(. Pull);
-            | Push(x) when !state.ended =>
-              observer.next(. x);
-              state.talkback(. Pull);
-            | Push(_) => ()
-            | End =>
+          as _;
+          pub unsubscribe = () =>
+            if (!state.ended) {
               state.ended = true;
-              observer.complete(.);
+              state.talkback(. Close);
             }
-          );
-
-          {
-            unsubscribe: () =>
-              if (!state.ended) {
-                state.ended = true;
-                state.talkback(. Close);
-              },
-          };
-        }: subscriptionT
-      ),
-  };
+        };
+      }
+    };
 
   observable->observable_set(observableSymbol, () => observable);
   observable;
