@@ -448,10 +448,11 @@ let onStart = (f: (. unit) => unit): operatorT('a, 'a) =>
   );
 
 type sampleStateT('a) = {
-  mutable ended: bool,
-  mutable value: option('a),
   mutable sourceTalkback: (. talkbackT) => unit,
   mutable notifierTalkback: (. talkbackT) => unit,
+  mutable value: option('a),
+  mutable pulled: bool,
+  mutable ended: bool,
 };
 
 [@genType]
@@ -459,30 +460,35 @@ let sample = (notifier: sourceT('a)): operatorT('b, 'b) =>
   curry(source =>
     curry(sink => {
       let state = {
-        ended: false,
+        sourceTalkback: talkbackPlaceholder,
+        notifierTalkback: talkbackPlaceholder,
         value: None,
-        sourceTalkback: (. _: talkbackT) => (),
-        notifierTalkback: (. _: talkbackT) => (),
+        pulled: false,
+        ended: false,
       };
 
       source((. signal) =>
         switch (signal) {
         | Start(tb) => state.sourceTalkback = tb
-        | End =>
+        | Push(x) =>
+          state.value = Some(x);
+          state.notifierTalkback(. Pull);
+        | End when !state.ended =>
           state.ended = true;
           state.notifierTalkback(. Close);
           sink(. End);
-        | Push(x) => state.value = Some(x)
+        | End => ()
         }
       );
 
       notifier((. signal) =>
         switch (signal, state.value) {
         | (Start(tb), _) => state.notifierTalkback = tb
-        | (End, _) =>
+        | (End, _) when !state.ended =>
           state.ended = true;
           state.sourceTalkback(. Close);
           sink(. End);
+        | (End, _) => ()
         | (Push(_), Some(x)) when !state.ended =>
           state.value = None;
           sink(. Push(x));
@@ -493,14 +499,18 @@ let sample = (notifier: sourceT('a)): operatorT('b, 'b) =>
       sink(.
         Start(
           (. signal) =>
-            switch (signal) {
-            | Pull =>
-              state.sourceTalkback(. Pull);
-              state.notifierTalkback(. Pull);
-            | Close =>
-              state.ended = true;
-              state.sourceTalkback(. Close);
-              state.notifierTalkback(. Close);
+            if (!state.ended) {
+              switch (signal) {
+              | Pull when !state.pulled =>
+                state.pulled = true;
+                state.sourceTalkback(. Pull);
+                state.notifierTalkback(. Pull);
+              | Pull => ()
+              | Close =>
+                state.ended = true;
+                state.sourceTalkback(. Close);
+                state.notifierTalkback(. Close);
+              };
             },
         ),
       );
