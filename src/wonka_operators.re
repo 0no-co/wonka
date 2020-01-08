@@ -902,46 +902,39 @@ let takeUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
     })
   );
 
+type takeWhileStateT = {
+  mutable talkback: (. talkbackT) => unit,
+  mutable ended: bool,
+};
+
 [@genType]
 let takeWhile = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let ended = ref(false);
-      let talkback = ref(talkbackPlaceholder);
+      let state: takeWhileStateT = {
+        talkback: talkbackPlaceholder,
+        ended: false,
+      };
 
       source((. signal) =>
         switch (signal) {
         | Start(tb) =>
-          talkback := tb;
+          state.talkback = tb;
           sink(. signal);
-        | End when ! ended^ =>
-          ended := true;
+        | End when !state.ended =>
+          state.ended = true;
           sink(. End);
         | End => ()
-        | Push(x) when ! ended^ =>
+        | Push(x) when !state.ended =>
           if (!f(. x)) {
-            ended := true;
+            state.ended = true;
             sink(. End);
-            talkback^(. Close);
+            state.talkback(. Close);
           } else {
             sink(. signal);
           }
         | Push(_) => ()
         }
-      );
-
-      sink(.
-        Start(
-          (. signal) =>
-            if (! ended^) {
-              switch (signal) {
-              | Pull => talkback^(. Pull)
-              | Close =>
-                ended := true;
-                talkback^(. Close);
-              };
-            },
-        ),
       );
     })
   );
