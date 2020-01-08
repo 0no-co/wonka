@@ -1,5 +1,6 @@
 import * as deriving from './helpers/wonka_deriving';
 import * as sources from './wonka_sources.gen';
+import * as operators from './wonka_operators.gen';
 import * as types from './wonka_types.gen';
 import * as web from './web/wonkaJs.gen';
 
@@ -132,6 +133,29 @@ describe('fromValue', () => {
       deriving.start(expect.any(Function)),
       deriving.push(1),
       deriving.end()
+    ]);
+  });
+});
+
+describe('merge', () => {
+  const source = operators.merge<any>([
+    sources.fromValue(0),
+    sources.empty
+  ]);
+
+  passesColdPull(source);
+  passesActiveClose(source);
+
+  it('correctly merges two sources', () => {
+    const source = operators.merge<any>([
+      sources.fromValue(0),
+      sources.empty
+    ]);
+
+    expect(collectSignals(source)).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(0),
+      deriving.end(),
     ]);
   });
 });
