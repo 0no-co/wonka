@@ -161,7 +161,6 @@ type concatMapStateT('a) = {
   mutable innerTalkback: (. talkbackT) => unit,
   mutable innerActive: bool,
   mutable innerPulled: bool,
-  mutable closed: bool,
   mutable ended: bool,
 };
 
@@ -176,7 +175,6 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         innerTalkback: talkbackPlaceholder,
         innerActive: false,
         innerPulled: false,
-        closed: false,
         ended: false,
       };
 
@@ -249,11 +247,10 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
               };
             | Close when !state.ended =>
               state.ended = true;
-              state.closed = true;
               state.innerActive = false;
               state.innerTalkback(. Close);
               state.outerTalkback(. Close);
-            | Pull => ()
+            | Close => ()
             },
         ),
       );
