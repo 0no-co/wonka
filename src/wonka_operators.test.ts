@@ -201,7 +201,7 @@ const passesSingleStart = (operator: types.operatorT<any, any>) =>
   This isn't a strict requirement, but some operators should ensure that
   all sources are well behaved. This is particularly true for operators
   that either Close sources themselves or may operate on multiple sources. */
-const passesStrictEnd = (operator: types.operatorT<any, any>) =>
+const passesStrictEnd = (operator: types.operatorT<any, any>) => {
   it('stops all signals after End has been received (spec: strict end)', () => {
     let pulls = 0;
     const signals = [];
@@ -231,6 +231,33 @@ const passesStrictEnd = (operator: types.operatorT<any, any>) =>
     expect(signals).toEqual([deriving.end()]);
     expect(pulls).toBe(1);
   });
+
+  it('stops all signals after Close has been received (spec: strict close)', () => {
+    const signals = [];
+
+    const source: types.sourceT<any> = sink => {
+      sink(deriving.start(tb => {
+        if (tb === deriving.close) {
+          sink(deriving.push(123));
+        }
+      }));
+    };
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isStart(signal)) {
+        deriving.unboxStart(signal)(deriving.close);
+      } else {
+        signals.push(signal);
+      }
+    };
+
+    operator(source)(sink);
+
+    // The Push signal should've been dropped
+    jest.runAllTimers();
+    expect(signals).toEqual([]);
+  });
+};
 
 /* This tests an immediately closing operator for End signals to
   the sink and Close signals to the source.
@@ -968,7 +995,6 @@ describe('takeWhile', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
-  passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
   const ending = operators.takeWhile(() => false);
