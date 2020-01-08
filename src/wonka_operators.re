@@ -340,12 +340,6 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
 
         innerSource((. signal) =>
           switch (signal) {
-          | End =>
-            state.innerTalkbacks =
-              Rebel.Array.filter(state.innerTalkbacks, x => x !== talkback^);
-            if (state.ended && Rebel.Array.size(state.innerTalkbacks) === 0) {
-              sink(. End);
-            };
           | Start(tb) =>
             talkback := tb;
             state.innerTalkbacks =
@@ -355,6 +349,13 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             sink(. Push(x));
             talkback^(. Pull);
           | Push(_) => ()
+          | End when Rebel.Array.size(state.innerTalkbacks) !== 0 =>
+            state.innerTalkbacks =
+              Rebel.Array.filter(state.innerTalkbacks, x => x !== talkback^);
+            if (state.ended && Rebel.Array.size(state.innerTalkbacks) === 0) {
+              sink(. End);
+            };
+          | End => ()
           }
         );
       };
@@ -378,21 +379,22 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
       sink(.
         Start(
           (. signal) =>
-            switch (signal) {
-            | Close when !state.ended =>
-              let tbs = state.innerTalkbacks;
-              state.innerTalkbacks = Rebel.Array.makeEmpty();
-              state.outerTalkback(. signal);
-              Rebel.Array.forEach(tbs, tb => tb(. signal));
-            | Close => ()
-            | Pull when !state.ended =>
-              if (!state.outerPulled) {
-                state.outerPulled = true;
-                state.outerTalkback(. Pull);
-              };
+            if (!state.ended) {
+              switch (signal) {
+              | Close =>
+                let tbs = state.innerTalkbacks;
+                state.ended = true;
+                state.innerTalkbacks = Rebel.Array.makeEmpty();
+                state.outerTalkback(. signal);
+                Rebel.Array.forEach(tbs, tb => tb(. signal));
+              | Pull =>
+                if (!state.outerPulled) {
+                  state.outerPulled = true;
+                  state.outerTalkback(. Pull);
+                };
 
-              Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));
-            | Pull => ()
+                Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));
+              };
             },
         ),
       );
