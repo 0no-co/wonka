@@ -619,7 +619,7 @@ type skipStateT = {
 let skip = (wait: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let state = {talkback: talkbackPlaceholder, rest: wait};
+      let state: skipStateT = {talkback: talkbackPlaceholder, rest: wait};
 
       source((. signal) =>
         switch (signal) {
@@ -712,19 +712,30 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
     })
   );
 
+type skipWhileStateT = {
+  mutable talkback: (. talkbackT) => unit,
+  mutable skip: bool,
+};
+
 [@genType]
 let skipWhile = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let skip = ref(true);
+      let state: skipWhileStateT = {
+        talkback: talkbackPlaceholder,
+        skip: true,
+      };
 
-      captureTalkback(source, (. signal, talkback) =>
+      source((. signal) =>
         switch (signal) {
-        | Push(x) when skip^ =>
+        | Start(tb) =>
+          state.talkback = tb;
+          sink(. signal);
+        | Push(x) when state.skip =>
           if (f(. x)) {
-            talkback(. Pull);
+            state.talkback(. Pull);
           } else {
-            skip := false;
+            state.skip = false;
             sink(. signal);
           }
         | _ => sink(. signal)
