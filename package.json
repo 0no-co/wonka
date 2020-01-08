@@ -1,7 +1,7 @@
 {
   "name": "wonka",
   "description": "A fast push & pull stream library for Reason/OCaml, Flow, and TypeScript",
-  "version": "4.0.0-rc.1",
+  "version": "4.0.0-rc.2",
   "author": "Phil Pluckthun <phil@kitten.sh>",
   "source": "./src/wonka.ts",
   "main": "./dist/wonka.js",
