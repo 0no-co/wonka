@@ -374,10 +374,10 @@ describe('buffer', () => {
 
 describe('concatMap', () => {
   const noop = operators.concatMap(x => sources.fromValue(x));
-  // TODO: passesPassivePull(noop);
-  // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  passesSinkClose(noop);
+  passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
@@ -428,6 +428,19 @@ describe('concatMap', () => {
       [10],
       [20],
     ]);
+  });
+
+  it('emits synchronous values in order', () => {
+    const values = [];
+
+    sinks.forEach(x => values.push(x))(
+      operators.concat([
+        sources.fromArray([1, 2]),
+        sources.fromArray([3, 4])
+      ])
+    );
+
+    expect(values).toEqual([ 1, 2, 3, 4 ]);
   });
 });
 
@@ -541,10 +554,10 @@ describe('map', () => {
 
 describe('mergeMap', () => {
   const noop = operators.mergeMap(x => sources.fromValue(x));
-  // TODO: passesPassivePull(noop);
-  // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  passesSinkClose(noop);
+  passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
@@ -582,13 +595,26 @@ describe('mergeMap', () => {
       })(source)
     );
 
-    jest.advanceTimersByTime(14);
+    jest.runAllTimers();
     expect(fn.mock.calls).toEqual([
       [1],
-      [10],
       [2],
+      [10],
       [20],
     ]);
+  });
+
+  it('emits synchronous values in order', () => {
+    const values = [];
+
+    sinks.forEach(x => values.push(x))(
+      operators.merge([
+        sources.fromArray([1, 2]),
+        sources.fromArray([3, 4])
+      ])
+    );
+
+    expect(values).toEqual([ 1, 2, 3, 4 ]);
   });
 });
 
@@ -817,10 +843,10 @@ describe('skipWhile', () => {
 
 describe('switchMap', () => {
   const noop = operators.switchMap(x => sources.fromValue(x));
-  // TODO: passesPassivePull(noop);
-  // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  passesSinkClose(noop);
+  passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
@@ -853,9 +879,9 @@ describe('switchMap', () => {
     const fn = jest.fn();
 
     sinks.forEach(fn)(
-      operators.switchMap((x: number) => {
-        return web.delay(5)(sources.fromArray([x, x * 2]));
-      })(source)
+      operators.switchMap((x: number) => (
+        operators.take(2)(operators.map((y: number) => x * (y + 1))(web.interval(5)))
+      ))(source)
     );
 
     jest.runAllTimers();
