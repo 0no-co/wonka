@@ -287,14 +287,19 @@ let concat = (sources: array(sourceT('a))): sourceT('a) =>
 [@genType]
 let filter = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
-    curry(sink =>
-      captureTalkback(source, (. signal, talkback) =>
+    curry(sink => {
+      let talkback = ref(talkbackPlaceholder);
+
+      source((. signal) =>
         switch (signal) {
-        | Push(x) when !f(. x) => talkback(. Pull)
+        | Start(tb) =>
+          talkback := tb;
+          sink(. signal);
+        | Push(x) when !f(. x) => talkback^(. Pull)
         | _ => sink(. signal)
         }
-      )
-    )
+      );
+    })
   );
 
 [@genType]
@@ -304,9 +309,8 @@ let map = (f: (. 'a) => 'b): operatorT('a, 'b) =>
       source((. signal) =>
         sink(.
           switch (signal) {
-          | Start(x) => Start(x)
           | Push(x) => Push(f(. x))
-          | End => End
+          | _ => signal
           },
         )
       )
