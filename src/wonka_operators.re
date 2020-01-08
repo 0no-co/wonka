@@ -908,11 +908,17 @@ let takeLast = (max: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       open Rebel;
+      let talkback = ref(talkbackPlaceholder);
       let queue = MutableQueue.make();
 
-      captureTalkback(source, (. signal, talkback) =>
+      source((. signal) =>
         switch (signal) {
-        | Start(_) => talkback(. Pull)
+        | Start(tb) when max <= 0 =>
+          tb(. Close);
+          Wonka_sources.empty(sink);
+        | Start(tb) =>
+          talkback := tb;
+          tb(. Pull);
         | Push(x) =>
           let size = MutableQueue.size(queue);
           if (size >= max && max > 0) {
@@ -920,7 +926,7 @@ let takeLast = (max: int): operatorT('a, 'a) =>
           };
 
           MutableQueue.add(queue, x);
-          talkback(. Pull);
+          talkback^(. Pull);
         | End => makeTrampoline(sink, (.) => MutableQueue.pop(queue))
         }
       );

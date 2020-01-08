@@ -990,6 +990,36 @@ describe('takeWhile', () => {
   });
 });
 
+describe('takeLast', () => {
+  passesCloseAndEnd(operators.takeLast(0));
+
+  it('emits the last max values of an ended source', () => {
+    const { source, next, complete } = sources.makeSubject<number>();
+    const values = [];
+
+    let talkback;
+    operators.takeLast(1)(source)(signal => {
+      values.push(signal);
+      if (deriving.isStart(signal))
+        talkback = deriving.unboxStart(signal);
+      if (!deriving.isEnd(signal))
+        talkback(deriving.pull);
+    });
+
+    next(1);
+    next(2);
+
+    expect(values.length).toBe(0);
+    complete();
+
+    expect(values).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(2),
+      deriving.end(),
+    ]);
+  });
+});
+
 describe('throttle', () => {
   const noop = web.throttle(() => 0);
   passesPassivePull(noop);
