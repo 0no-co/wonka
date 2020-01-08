@@ -382,22 +382,22 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
       sink(.
         Start(
           (. signal) =>
-            if (!state.ended) {
-              switch (signal) {
-              | Close =>
-                let tbs = state.innerTalkbacks;
+            switch (signal) {
+            | Close =>
+              if (!state.ended) {
                 state.ended = true;
-                state.innerTalkbacks = Rebel.Array.makeEmpty();
                 state.outerTalkback(. signal);
-                Rebel.Array.forEach(tbs, tb => tb(. signal));
-              | Pull =>
-                if (!state.outerPulled) {
-                  state.outerPulled = true;
-                  state.outerTalkback(. Pull);
-                };
-
-                Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));
               };
+
+              Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. signal));
+              state.innerTalkbacks = Rebel.Array.makeEmpty();
+            | Pull =>
+              if (!state.outerPulled && !state.ended) {
+                state.outerPulled = true;
+                state.outerTalkback(. Pull);
+              };
+
+              Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));
             },
         ),
       );
