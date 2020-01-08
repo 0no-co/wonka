@@ -625,6 +625,9 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
             | Push(_) =>
               state.skip = false;
               state.notifierTalkback(. Close);
+            | End when state.skip =>
+              state.ended = true;
+              state.sourceTalkback(. Close);
             | End => ()
             }
           );

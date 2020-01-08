@@ -757,6 +757,7 @@ describe('skipUntil', () => {
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesAsyncSequence(noop);
+  passesStrictEnd(noop);
 
   it('skips values until the notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
