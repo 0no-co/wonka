@@ -71,12 +71,10 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
                 state.ended = true;
                 state.sourceTalkback(. Close);
                 state.notifierTalkback(. Close);
-              | Pull =>
-                if (!state.pulled) {
-                  state.pulled = true;
-                  state.sourceTalkback(. Pull);
-                  state.notifierTalkback(. Pull);
-                }
+              | Pull when !state.pulled =>
+                state.pulled = true;
+                state.sourceTalkback(. Pull);
+                state.notifierTalkback(. Pull);
               | Pull => ()
               };
             },

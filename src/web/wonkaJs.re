@@ -124,6 +124,7 @@ let delay = (wait: int): operatorT('a, 'a) =>
             | Close when !state.ended =>
               state.ended = true;
               state.talkback(. Close);
+            | Close => ()
             | Pull when !state.ended => state.talkback(. Pull)
             | Pull => ()
             },
