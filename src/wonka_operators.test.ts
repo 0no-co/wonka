@@ -521,10 +521,10 @@ describe('map', () => {
 
 describe('mergeMap', () => {
   const noop = operators.mergeMap(x => sources.fromValue(x));
-  // TODO: passesPassivePull(noop);
-  // TODO: passesActivePush(noop);
+  passesPassivePull(noop);
+  passesActivePush(noop);
   // TODO: passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
@@ -562,13 +562,26 @@ describe('mergeMap', () => {
       })(source)
     );
 
-    jest.advanceTimersByTime(14);
+    jest.runAllTimers();
     expect(fn.mock.calls).toEqual([
       [1],
-      [10],
       [2],
+      [10],
       [20],
     ]);
+  });
+
+  it('emits synchronous values in order', () => {
+    const values = [];
+
+    sinks.forEach(x => values.push(x))(
+      operators.merge([
+        sources.fromArray([1, 2]),
+        sources.fromArray([3, 4])
+      ])
+    );
+
+    expect(values).toEqual([ 1, 2, 3, 4 ]);
   });
 });
 

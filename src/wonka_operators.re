@@ -284,6 +284,7 @@ let map = (f: (. 'a) => 'b): operatorT('a, 'b) =>
 
 type mergeMapStateT = {
   mutable outerTalkback: (. talkbackT) => unit,
+  mutable outerPulled: bool,
   mutable innerTalkbacks: Rebel.Array.t((. talkbackT) => unit),
   mutable ended: bool,
 };
@@ -294,6 +295,7 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
     curry(sink => {
       let state: mergeMapStateT = {
         outerTalkback: talkbackPlaceholder,
+        outerPulled: false,
         innerTalkbacks: Rebel.Array.makeEmpty(),
         ended: false,
       };
@@ -324,19 +326,17 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
 
       source((. signal) =>
         switch (signal) {
+        | Start(tb) => state.outerTalkback = tb
+        | Push(x) when !state.ended =>
+          state.outerPulled = false;
+          applyInnerSource(f(. x));
+        | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
           if (Rebel.Array.size(state.innerTalkbacks) === 0) {
             sink(. End);
           };
         | End => ()
-        | Start(tb) =>
-          state.outerTalkback = tb;
-          tb(. Pull);
-        | Push(x) when !state.ended =>
-          applyInnerSource(f(. x));
-          state.outerTalkback(. Pull);
-        | Push(_) => ()
         }
       );
 
@@ -344,22 +344,21 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         Start(
           (. signal) =>
             switch (signal) {
-            | Close =>
+            | Close when !state.ended =>
+              state.ended = true;
+              state.outerTalkback(. Close);
               Rebel.Array.forEach(state.innerTalkbacks, talkback =>
                 talkback(. Close)
               );
-              if (!state.ended) {
-                state.ended = true;
-                state.outerTalkback(. Close);
-                Rebel.Array.forEach(state.innerTalkbacks, talkback =>
-                  talkback(. Close)
-                );
-                state.innerTalkbacks = Rebel.Array.makeEmpty();
-              };
+              state.innerTalkbacks = Rebel.Array.makeEmpty();
+            | Close => ()
             | Pull when !state.ended =>
-              Rebel.Array.forEach(state.innerTalkbacks, talkback =>
-                talkback(. Pull)
-              )
+              if (!state.outerPulled) {
+                state.outerPulled = true;
+                state.outerTalkback(. Pull);
+              };
+
+              Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));
             | Pull => ()
             },
         ),
