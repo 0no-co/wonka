@@ -753,7 +753,7 @@ describe('skipUntil', () => {
   const noop = operators.skipUntil(sources.fromValue(null));
   passesPassivePull(noop);
   // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
+  passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesAsyncSequence(noop);
