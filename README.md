@@ -12,8 +12,8 @@ A fast push & pull stream library for Reason, loosely following the [callbag spe
 <a href="https://npmjs.com/package/wonka">
   <img alt="License" src="https://img.shields.io/npm/l/wonka.svg" />
 </a>
-<a href="https://codecov.io/gh/kitten/wonka">
-  <img alt="Test Coverage" src="https://codecov.io/gh/kitten/wonka/branch/master/graph/badge.svg" />
+<a href="https://coveralls.io/github/kitten/wonka?branch=master">
+  <img src="https://coveralls.io/repos/github/kitten/wonka/badge.svg?branch=master" alt="Test Coverage" />
 </a>
 <a href="https://bundlephobia.com/result?p=wonka">
   <img alt="Minified gzip size" src="https://img.shields.io/bundlephobia/minzip/wonka.svg?label=gzip%20size" />

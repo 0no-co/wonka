@@ -23,4 +23,4 @@ script:
   - yarn run build
   - yarn run check
   - yarn run test --coverage
-  - yarn run codecov --branch $TRAVIS_PULL_REQUEST_BRANCH
+  - cat ./coverage/lcov.info | ./node_modules/.bin/coveralls

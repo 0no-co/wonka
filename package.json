@@ -67,7 +67,7 @@
     "callbag-from-iter": "^1.2.0",
     "callbag-iterate": "^1.0.0",
     "callbag-take": "^1.4.0",
-    "codecov": "^3.6.1",
+    "coveralls": "^3.0.9",
     "flowgen": "^1.10.0",
     "gatsby": "^2.18.17",
     "gatsby-plugin-netlify": "^2.1.30",
