@@ -138,14 +138,12 @@ let empty = (sink: sinkT('a)): unit => {
       (. signal) => {
         switch (signal) {
         | Close => ended := true
+        | Pull when ! ended^ => sink(. End)
         | _ => ()
         }
       },
     ),
   );
-  if (! ended^) {
-    sink(. End);
-  };
 };
 
 [@genType]

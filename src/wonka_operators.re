@@ -218,6 +218,9 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             switch (Rebel.MutableQueue.pop(state.inputQueue)) {
             | Some(input) => applyInnerSource(f(. input))
             | None when state.ended => sink(. End)
+            | None when !state.outerPulled =>
+              state.outerPulled = true;
+              state.outerTalkback(. Pull);
             | None => ()
             };
           | End => ()
@@ -228,13 +231,7 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         switch (signal) {
         | Start(tb) => state.outerTalkback = tb
         | Push(x) when !state.ended =>
-          if (!state.outerPulled) {
-            state.outerPulled = true;
-            state.outerTalkback(. Pull);
-          } else {
-            state.outerPulled = false;
-          };
-
+          state.outerPulled = false;
           if (state.innerActive) {
             Rebel.MutableQueue.add(state.inputQueue, x);
           } else {
@@ -358,8 +355,12 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
           | End when Rebel.Array.size(state.innerTalkbacks) !== 0 =>
             state.innerTalkbacks =
               Rebel.Array.filter(state.innerTalkbacks, x => x !== talkback^);
-            if (state.ended && Rebel.Array.size(state.innerTalkbacks) === 0) {
+            let exhausted = Rebel.Array.size(state.innerTalkbacks) === 0;
+            if (state.ended && exhausted) {
               sink(. End);
+            } else if (!state.outerPulled && exhausted) {
+              state.outerPulled = true;
+              state.outerTalkback(. Pull);
             };
           | End => ()
           }
@@ -372,9 +373,6 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         | Push(x) when !state.ended =>
           state.outerPulled = false;
           applyInnerSource(f(. x));
-          if (!state.outerPulled) {
-            state.outerTalkback(. Pull);
-          };
         | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
@@ -797,6 +795,9 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             state.innerActive = false;
             if (state.ended) {
               sink(. signal);
+            } else if (!state.outerPulled) {
+              state.outerPulled = true;
+              state.outerTalkback(. Pull);
             };
           | End => ()
           }

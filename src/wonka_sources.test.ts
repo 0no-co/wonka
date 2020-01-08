@@ -146,8 +146,31 @@ describe('merge', () => {
   passesColdPull(source);
   passesActiveClose(source);
 
-  it('correctly merges two sources', () => {
+  it('correctly merges two sources where the second is empty', () => {
     const source = operators.merge<any>([
+      sources.fromValue(0),
+      sources.empty
+    ]);
+
+    expect(collectSignals(source)).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(0),
+      deriving.end(),
+    ]);
+  });
+});
+
+describe('concat', () => {
+  const source = operators.concat<any>([
+    sources.fromValue(0),
+    sources.empty
+  ]);
+
+  passesColdPull(source);
+  passesActiveClose(source);
+
+  it('correctly concats two sources where the second is empty', () => {
+    const source = operators.concat<any>([
       sources.fromValue(0),
       sources.empty
     ]);

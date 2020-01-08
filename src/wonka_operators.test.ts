@@ -138,7 +138,7 @@ const passesSourceEnd = (
   operator: types.operatorT<any, any>,
   result: any = 0
 ) =>
-  it('passes on End signals from source (spec)', () => {
+  it('passes on immediate Push then End signals from source (spec)', () => {
     const signals = [];
     let talkback = null;
     let pulls = 0;
@@ -147,10 +147,12 @@ const passesSourceEnd = (
     const source: types.sourceT<any> = sink => {
       sink(deriving.start(tb => {
         expect(tb).not.toBe(deriving.close);
-        if (tb === deriving.pull) pulls++;
-        if (pulls === 1) {
-          sink(deriving.push(0));
-          sink(deriving.end());
+        if (tb === deriving.pull) {
+          pulls++;
+          if (pulls === 1) {
+            sink(deriving.push(0));
+            sink(deriving.end());
+          }
         }
       }));
     };
@@ -169,9 +171,55 @@ const passesSourceEnd = (
     // When pushing a value we expect an immediate Push then End signal
     talkback(deriving.pull);
     jest.runAllTimers();
-    expect(pulls).toBe(1);
     expect(ending).toBe(1);
     expect(signals).toEqual([deriving.push(result), deriving.end()]);
+    // Also no additional pull event should be created by the operator
+    expect(pulls).toBe(1);
+  });
+
+/* This tests a noop operator for End signals from the source
+  after the first pull in response to another.
+  This is similar to passesSourceEnd but more well behaved since
+  mergeMap/switchMap/concatMap are eager operators. */
+const passesSourcePushThenEnd = (
+  operator: types.operatorT<any, any>,
+  result: any = 0
+) =>
+  it('passes on End signals from source (spec)', () => {
+    const signals = [];
+    let talkback = null;
+    let pulls = 0;
+    let ending = 0;
+
+    const source: types.sourceT<any> = sink => {
+      sink(deriving.start(tb => {
+        expect(tb).not.toBe(deriving.close);
+        if (tb === deriving.pull) {
+          pulls++;
+          if (pulls === 1) { sink(deriving.push(0)); }
+          else { sink(deriving.end()); }
+        }
+      }));
+    };
+
+    const sink: types.sinkT<any> = signal => {
+      if (deriving.isStart(signal)) {
+        talkback = deriving.unboxStart(signal);
+      } else {
+        signals.push(signal);
+        if (deriving.isPush(signal)) talkback(deriving.pull);
+        if (deriving.isEnd(signal)) ending++;
+      }
+    };
+
+    operator(source)(sink);
+
+    // When pushing a value we expect an immediate Push then End signal
+    talkback(deriving.pull);
+    jest.runAllTimers();
+    expect(ending).toBe(1);
+    expect(signals).toEqual([deriving.push(result), deriving.end()]);
+    expect(pulls).toBe(2);
   });
 
 /* This tests a noop operator for Start signals from the source.
@@ -404,7 +452,7 @@ describe('concatMap', () => {
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
-  passesSourceEnd(noop);
+  passesSourcePushThenEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
@@ -621,7 +669,7 @@ describe('mergeMap', () => {
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
-  passesSourceEnd(noop);
+  passesSourcePushThenEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
@@ -939,7 +987,7 @@ describe('switchMap', () => {
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
-  passesSourceEnd(noop);
+  passesSourcePushThenEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
