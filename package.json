@@ -129,7 +129,7 @@
       "!<rootDir>/src/include/**",
       "!<rootDir>/src/helpers/**",
       "!<rootDir>/src/**/*.{shim,gen}.{ts,tsx}",
-      "<rootDir>/src/**/*.{js,ts,tsx}"
+      "<rootDir>/src/**/*.{bs.js,js,ts,tsx}"
     ]
   }
 }

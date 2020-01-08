@@ -1,4 +1,5 @@
 comment: off
+max_report_age: off
 coverage:
   status:
     project: yes
