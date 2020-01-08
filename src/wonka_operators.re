@@ -287,14 +287,19 @@ let concat = (sources: array(sourceT('a))): sourceT('a) =>
 [@genType]
 let filter = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
-    curry(sink =>
-      captureTalkback(source, (. signal, talkback) =>
+    curry(sink => {
+      let talkback = ref(talkbackPlaceholder);
+
+      source((. signal) =>
         switch (signal) {
-        | Push(x) when !f(. x) => talkback(. Pull)
+        | Start(tb) =>
+          talkback := tb;
+          sink(. signal);
+        | Push(x) when !f(. x) => talkback^(. Pull)
         | _ => sink(. signal)
         }
-      )
-    )
+      );
+    })
   );
 
 [@genType]
@@ -304,9 +309,8 @@ let map = (f: (. 'a) => 'b): operatorT('a, 'b) =>
       source((. signal) =>
         sink(.
           switch (signal) {
-          | Start(x) => Start(x)
           | Push(x) => Push(f(. x))
-          | End => End
+          | _ => signal
           },
         )
       )
@@ -606,17 +610,25 @@ let share = (source: sourceT('a)): sourceT('a) => {
   };
 };
 
+type skipStateT = {
+  mutable talkback: (. talkbackT) => unit,
+  mutable rest: int,
+};
+
 [@genType]
 let skip = (wait: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let rest = ref(wait);
+      let state: skipStateT = {talkback: talkbackPlaceholder, rest: wait};
 
-      captureTalkback(source, (. signal, talkback) =>
+      source((. signal) =>
         switch (signal) {
-        | Push(_) when rest^ > 0 =>
-          rest := rest^ - 1;
-          talkback(. Pull);
+        | Start(tb) =>
+          state.talkback = tb;
+          sink(. signal);
+        | Push(_) when state.rest > 0 =>
+          state.rest = state.rest - 1;
+          state.talkback(. Pull);
         | _ => sink(. signal)
         }
       );
@@ -700,19 +712,30 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
     })
   );
 
+type skipWhileStateT = {
+  mutable talkback: (. talkbackT) => unit,
+  mutable skip: bool,
+};
+
 [@genType]
 let skipWhile = (f: (. 'a) => bool): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let skip = ref(true);
+      let state: skipWhileStateT = {
+        talkback: talkbackPlaceholder,
+        skip: true,
+      };
 
-      captureTalkback(source, (. signal, talkback) =>
+      source((. signal) =>
         switch (signal) {
-        | Push(x) when skip^ =>
+        | Start(tb) =>
+          state.talkback = tb;
+          sink(. signal);
+        | Push(x) when state.skip =>
           if (f(. x)) {
-            talkback(. Pull);
+            state.talkback(. Pull);
           } else {
-            skip := false;
+            state.skip = false;
             sink(. signal);
           }
         | _ => sink(. signal)
@@ -885,11 +908,17 @@ let takeLast = (max: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
       open Rebel;
+      let talkback = ref(talkbackPlaceholder);
       let queue = MutableQueue.make();
 
-      captureTalkback(source, (. signal, talkback) =>
+      source((. signal) =>
         switch (signal) {
-        | Start(_) => talkback(. Pull)
+        | Start(tb) when max <= 0 =>
+          tb(. Close);
+          Wonka_sources.empty(sink);
+        | Start(tb) =>
+          talkback := tb;
+          tb(. Pull);
         | Push(x) =>
           let size = MutableQueue.size(queue);
           if (size >= max && max > 0) {
@@ -897,7 +926,7 @@ let takeLast = (max: int): operatorT('a, 'a) =>
           };
 
           MutableQueue.add(queue, x);
-          talkback(. Pull);
+          talkback^(. Pull);
         | End => makeTrampoline(sink, (.) => MutableQueue.pop(queue))
         }
       );
