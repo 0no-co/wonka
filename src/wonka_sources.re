@@ -46,31 +46,46 @@ let fromValue = (x: 'a): sourceT('a) =>
             ended := true;
             sink(. Push(x));
             sink(. End);
-          | _ => ()
+          | Pull => ()
+          | Close => ended := true
           },
       ),
     );
   });
 
+type makeStateT = {
+  mutable teardown: (. unit) => unit,
+  mutable ended: bool,
+};
+
 [@genType]
 let make = (f: (. observerT('a)) => teardownT): sourceT('a) =>
   curry(sink => {
-    let teardown = ref((.) => ());
+    let state: makeStateT = {teardown: (.) => (), ended: false};
 
     sink(.
       Start(
         (. signal) =>
           switch (signal) {
-          | Close => teardown^(.)
-          | Pull => ()
+          | Close when !state.ended =>
+            state.ended = true;
+            state.teardown(.);
+          | _ => ()
           },
       ),
     );
 
-    teardown :=
+    state.teardown =
       f(. {
-        next: value => sink(. Push(value)),
-        complete: () => sink(. End),
+        next: value =>
+          if (!state.ended) {
+            sink(. Push(value));
+          },
+        complete: () =>
+          if (!state.ended) {
+            state.ended = true;
+            sink(. End);
+          },
       });
   });
 
@@ -91,8 +106,10 @@ let makeSubject = (): subjectT('a) => {
     sink(.
       Start(
         (. signal) =>
-          if (signal === Close) {
-            state.sinks = Rebel.Array.filter(state.sinks, x => x !== sink);
+          switch (signal) {
+          | Close =>
+            state.sinks = Rebel.Array.filter(state.sinks, x => x !== sink)
+          | _ => ()
           },
       ),
     );
@@ -114,8 +131,20 @@ let makeSubject = (): subjectT('a) => {
 
 [@genType]
 let empty = (sink: sinkT('a)): unit => {
-  sink(. Start(talkbackPlaceholder));
-  sink(. End);
+  let ended = ref(false);
+  sink(.
+    Start(
+      (. signal) => {
+        switch (signal) {
+        | Close => ended := true
+        | _ => ()
+        }
+      },
+    ),
+  );
+  if (! ended^) {
+    sink(. End);
+  };
 };
 
 [@genType]

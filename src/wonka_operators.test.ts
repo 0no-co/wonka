@@ -538,7 +538,6 @@ describe('map', () => {
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
-  // TODO: passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
   it('maps over values given a transform function', () => {
