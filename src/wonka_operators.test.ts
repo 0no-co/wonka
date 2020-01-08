@@ -196,7 +196,7 @@ const passesSourcePushThenEnd = (
         expect(tb).not.toBe(deriving.close);
         if (tb === deriving.pull) {
           pulls++;
-          if (pulls === 1) { sink(deriving.push(0)); }
+          if (pulls <= 2) { sink(deriving.push(0)); }
           else { sink(deriving.end()); }
         }
       }));
@@ -218,8 +218,12 @@ const passesSourcePushThenEnd = (
     talkback(deriving.pull);
     jest.runAllTimers();
     expect(ending).toBe(1);
-    expect(signals).toEqual([deriving.push(result), deriving.end()]);
-    expect(pulls).toBe(2);
+    expect(pulls).toBe(3);
+    expect(signals).toEqual([
+      deriving.push(result),
+      deriving.push(result),
+      deriving.end()
+    ]);
   });
 
 /* This tests a noop operator for Start signals from the source.
@@ -423,7 +427,7 @@ describe('buffer', () => {
   passesPassivePull(noop, [0]);
   passesActivePush(noop, [0]);
   passesSinkClose(noop);
-  passesSourceEnd(noop, [0]);
+  passesSourcePushThenEnd(noop, [0]);
   passesSingleStart(noop);
   passesStrictEnd(noop);
 

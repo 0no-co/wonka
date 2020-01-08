@@ -48,8 +48,13 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
           );
         | Push(value) when !state.ended =>
           Rebel.MutableQueue.add(state.buffer, value);
-          state.pulled = false;
-          state.notifierTalkback(. Pull);
+          if (!state.pulled) {
+            state.pulled = true;
+            state.sourceTalkback(. Pull);
+            state.notifierTalkback(. Pull);
+          } else {
+            state.pulled = false;
+          };
         | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
