@@ -313,7 +313,7 @@ describe('combine', () => {
   const noop = (source: types.sourceT<any>) => operators.combine(sources.fromValue(0), source);
 
   passesPassivePull(noop, [0, 0]);
-  // TODO: passesActivePush(noop, [0, 0]);
+  passesActivePush(noop, [0, 0]);
   passesSinkClose(noop);
   passesSourceEnd(noop, [0, 0]);
   passesSingleStart(noop);

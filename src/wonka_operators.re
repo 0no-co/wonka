@@ -101,7 +101,11 @@ let combine =
       | (Start(tb), _) => state.talkbackA = tb
       | (Push(a), None) =>
         state.lastValA = Some(a);
-        state.gotSignal = false;
+        if (!state.gotSignal) {
+          state.talkbackB(. Pull);
+        } else {
+          state.gotSignal = false;
+        };
       | (Push(a), Some(b)) when !state.ended =>
         state.lastValA = Some(a);
         state.gotSignal = false;
@@ -120,7 +124,11 @@ let combine =
       | (Start(tb), _) => state.talkbackB = tb
       | (Push(b), None) =>
         state.lastValB = Some(b);
-        state.gotSignal = false;
+        if (!state.gotSignal) {
+          state.talkbackA(. Pull);
+        } else {
+          state.gotSignal = false;
+        };
       | (Push(b), Some(a)) when !state.ended =>
         state.lastValB = Some(b);
         state.gotSignal = false;
