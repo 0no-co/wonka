@@ -697,7 +697,11 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
         | Push(_) when !state.skip && !state.ended =>
           state.pulled = false;
           sink(. signal);
-        | Push(_) => ()
+        | Push(_) when !state.pulled =>
+          state.pulled = true;
+          state.sourceTalkback(. Pull);
+          state.notifierTalkback(. Pull);
+        | Push(_) => state.pulled = false
         | End =>
           if (state.skip) {
             state.notifierTalkback(. Close);

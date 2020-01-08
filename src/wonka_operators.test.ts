@@ -1093,7 +1093,7 @@ describe('takeUntil', () => {
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
-  passesSourceEnd(noop);
+  passesSourcePushThenEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
