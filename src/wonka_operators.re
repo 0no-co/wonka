@@ -610,17 +610,25 @@ let share = (source: sourceT('a)): sourceT('a) => {
   };
 };
 
+type skipStateT = {
+  mutable talkback: (. talkbackT) => unit,
+  mutable rest: int,
+};
+
 [@genType]
 let skip = (wait: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let rest = ref(wait);
+      let state = {talkback: talkbackPlaceholder, rest: wait};
 
-      captureTalkback(source, (. signal, talkback) =>
+      source((. signal) =>
         switch (signal) {
-        | Push(_) when rest^ > 0 =>
-          rest := rest^ - 1;
-          talkback(. Pull);
+        | Start(tb) =>
+          state.talkback = tb;
+          sink(. signal);
+        | Push(_) when state.rest > 0 =>
+          state.rest = state.rest - 1;
+          state.talkback(. Pull);
         | _ => sink(. signal)
         }
       );
