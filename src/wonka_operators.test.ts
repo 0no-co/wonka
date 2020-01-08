@@ -208,7 +208,7 @@ const passesStrictEnd = (operator: types.operatorT<any, any>) =>
         if (tb === deriving.pull) {
           pulls++;
           sink(deriving.end());
-          sink(deriving.push(0));
+          sink(deriving.push(123));
         }
       }));
     };
@@ -851,15 +851,13 @@ describe('take', () => {
   const noop = operators.take(10);
   passesPassivePull(noop);
   passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
+  passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
 
-  // TODO: take(0) seems to be broken
-  const ending = operators.take(1);
-  passesCloseAndEnd(ending);
+  passesCloseAndEnd(operators.take(0));
 
   it('emits values until a maximum is reached', () => {
     const { source, next } = sources.makeSubject<number>();
