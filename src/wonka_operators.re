@@ -376,8 +376,9 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         switch (signal) {
         | Start(tb) => state.outerTalkback = tb
         | Push(x) when !state.ended =>
-          state.outerPulled = false;
           applyInnerSource(f(. x));
+          state.outerPulled = true;
+          state.outerTalkback(. Pull);
         | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;

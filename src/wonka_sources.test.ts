@@ -158,6 +158,24 @@ describe('merge', () => {
       deriving.end(),
     ]);
   });
+
+  it('correctly merges hot sources', () => {
+    const onStart = jest.fn();
+    const source = operators.merge<any>([
+      operators.onStart(onStart)(sources.never),
+      operators.onStart(onStart)(sources.never),
+      operators.onStart(onStart)(sources.fromArray([1, 2])),
+    ]);
+
+    const signals = collectSignals(source);
+    expect(onStart).toHaveBeenCalledTimes(3);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+    ]);
+  });
 });
 
 describe('concat', () => {
