@@ -804,12 +804,13 @@ describe('skip', () => {
 
 describe('skipUntil', () => {
   const noop = operators.skipUntil(sources.fromValue(null));
-  // TODO: passesPassivePull(noop);
-  // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesAsyncSequence(noop);
+  passesStrictEnd(noop);
 
   it('skips values until the notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();

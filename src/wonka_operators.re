@@ -635,11 +635,11 @@ let skip = (wait: int): operatorT('a, 'a) =>
   );
 
 type skipUntilStateT = {
-  mutable skip: bool,
-  mutable ended: bool,
-  mutable gotSignal: bool,
   mutable sourceTalkback: (. talkbackT) => unit,
   mutable notifierTalkback: (. talkbackT) => unit,
+  mutable skip: bool,
+  mutable pulled: bool,
+  mutable ended: bool,
 };
 
 [@genType]
@@ -647,11 +647,11 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
   curry(source =>
     curry(sink => {
       let state: skipUntilStateT = {
-        skip: true,
-        ended: false,
-        gotSignal: false,
         sourceTalkback: talkbackPlaceholder,
         notifierTalkback: talkbackPlaceholder,
+        skip: true,
+        pulled: false,
+        ended: false,
       };
 
       source((. signal) =>
@@ -664,17 +664,17 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
             | Start(innerTb) =>
               state.notifierTalkback = innerTb;
               innerTb(. Pull);
-              tb(. Pull);
             | Push(_) =>
               state.skip = false;
               state.notifierTalkback(. Close);
+            | End when state.skip =>
+              state.ended = true;
+              state.sourceTalkback(. Close);
             | End => ()
             }
           );
-        | Push(_) when state.skip && !state.ended =>
-          state.sourceTalkback(. Pull)
-        | Push(_) when !state.ended =>
-          state.gotSignal = false;
+        | Push(_) when !state.skip && !state.ended =>
+          state.pulled = false;
           sink(. signal);
         | Push(_) => ()
         | End =>
@@ -689,17 +689,22 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
       sink(.
         Start(
           (. signal) =>
-            switch (signal) {
-            | Close =>
-              if (state.skip) {
-                state.notifierTalkback(. Close);
+            if (!state.ended) {
+              switch (signal) {
+              | Close =>
+                state.ended = true;
+                state.sourceTalkback(. Close);
+                if (state.skip) {
+                  state.notifierTalkback(. Close);
+                };
+              | Pull when !state.pulled =>
+                state.pulled = true;
+                if (state.skip) {
+                  state.notifierTalkback(. Pull);
+                };
+                state.sourceTalkback(. Pull);
+              | Pull => ()
               };
-              state.ended = true;
-              state.sourceTalkback(. Close);
-            | Pull when !state.gotSignal && !state.ended =>
-              state.gotSignal = true;
-              state.sourceTalkback(. Pull);
-            | Pull => ()
             },
         ),
       );
