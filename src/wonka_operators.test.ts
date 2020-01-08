@@ -15,12 +15,15 @@ const passesPassivePull = (
 ) =>
   it('responds to Pull talkback signals (spec)', () => {
     let talkback = null;
+    let push = 0;
     const values = [];
 
     const source: types.sourceT<any> = sink => {
       sink(deriving.start(tb => {
-        if (tb === deriving.pull)
+        if (!push && tb === deriving.pull) {
+          push++;
           sink(deriving.push(0));
+        }
       }));
     };
 
@@ -334,19 +337,20 @@ describe('combine', () => {
 });
 
 describe('buffer', () => {
-  const noop = operators.buffer(
-    operators.merge([
-      sources.fromValue(null),
-      sources.never
-    ])
-  );
+  const valueThenNever: types.sourceT<any> = sink =>
+    sink(deriving.start(tb => {
+      if (tb === deriving.pull)
+        sink(deriving.push(null));
+    }));
 
-  // TODO: passesPassivePull(noop, [0]);
-  // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  const noop = operators.buffer(valueThenNever);
+
+  passesPassivePull(noop, [0]);
+  passesActivePush(noop, [0]);
+  passesSinkClose(noop);
+  passesSourceEnd(noop, [0]);
   passesSingleStart(noop);
-  // TODO: passesStrictEnd(noop);
+  passesStrictEnd(noop);
 
   it('emits batches of input values when a notifier emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
@@ -361,6 +365,10 @@ describe('buffer', () => {
 
     notify(null);
     expect(fn).toHaveBeenCalledWith([1, 2]);
+
+    next(3);
+    notify(null);
+    expect(fn).toHaveBeenCalledWith([3]);
   });
 });
 
