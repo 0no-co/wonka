@@ -944,6 +944,28 @@ describe('switchMap', () => {
     ]);
   });
 
+  // This synchronous test for switchMap will behave the same as concatMap & mergeMap
+  it('lets inner sources finish when outer source ends', () => {
+    const values = [];
+    const teardown = jest.fn();
+    const fn = (signal: types.signalT<any>) => {
+      values.push(signal);
+      if (deriving.isStart(signal)) {
+        deriving.unboxStart(signal)(deriving.pull);
+        deriving.unboxStart(signal)(deriving.close);
+      }
+    };
+
+    operators.switchMap(() => {
+      return sources.make(() => teardown);
+    })(sources.fromValue(null))(fn);
+
+    expect(teardown).toHaveBeenCalled();
+    expect(values).toEqual([
+      deriving.start(expect.any(Function)),
+    ]);
+  });
+
   // This asynchronous test for switchMap will behave differently than concatMap & mergeMap
   it('emits values from each flattened asynchronous source, one at a time', () => {
     const source = web.delay<number>(4)(sources.fromArray([1, 10]));
