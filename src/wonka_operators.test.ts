@@ -797,10 +797,10 @@ describe('skipWhile', () => {
 
 describe('switchMap', () => {
   const noop = operators.switchMap(x => sources.fromValue(x));
-  // TODO: passesPassivePull(noop);
+  passesPassivePull(noop);
   // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  passesSinkClose(noop);
+  passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
   passesAsyncSequence(noop);
@@ -833,9 +833,9 @@ describe('switchMap', () => {
     const fn = jest.fn();
 
     sinks.forEach(fn)(
-      operators.switchMap((x: number) => {
-        return web.delay(5)(sources.fromArray([x, x * 2]));
-      })(source)
+      operators.switchMap((x: number) => (
+        operators.take(2)(operators.map((y: number) => x * (y + 1))(web.interval(5)))
+      ))(source)
     );
 
     jest.runAllTimers();
