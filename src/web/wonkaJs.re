@@ -82,53 +82,28 @@ let debounce = (f: (. 'a) => int): operatorT('a, 'a) =>
     })
   );
 
-type delayStateT = {
-  mutable talkback: (. talkbackT) => unit,
-  mutable active: int,
-  mutable ended: bool,
-};
-
 [@genType]
 let delay = (wait: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let state: delayStateT = {
-        talkback: Wonka_helpers.talkbackPlaceholder,
-        active: 0,
-        ended: false,
-      };
+      let active = ref(0);
 
       source((. signal) =>
         switch (signal) {
-        | Start(tb) => state.talkback = tb
-        | _ when !state.ended =>
-          state.active = state.active + 1;
+        | Start(_) => sink(. signal)
+        | _ =>
+          active := active^ + 1;
           ignore(
             Js.Global.setTimeout(
               () =>
-                if (!state.ended || state.active !== 0) {
-                  state.active = state.active - 1;
+                if (active^ !== 0) {
+                  active := active^ - 1;
                   sink(. signal);
                 },
               wait,
             ),
           );
-        | _ => ()
         }
-      );
-
-      sink(.
-        Start(
-          (. signal) =>
-            switch (signal) {
-            | Close when !state.ended =>
-              state.ended = true;
-              state.talkback(. Close);
-            | Close => ()
-            | Pull when !state.ended => state.talkback(. Pull)
-            | Pull => ()
-            },
-        ),
       );
     })
   );
