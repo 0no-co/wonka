@@ -798,7 +798,7 @@ describe('skipWhile', () => {
 describe('switchMap', () => {
   const noop = operators.switchMap(x => sources.fromValue(x));
   passesPassivePull(noop);
-  // TODO: passesActivePush(noop);
+  passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);

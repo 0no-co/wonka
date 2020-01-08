@@ -744,6 +744,7 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
           };
 
           if (!state.outerPulled) {
+            state.outerPulled = true;
             state.outerTalkback(. Pull);
           } else {
             state.outerPulled = false;
