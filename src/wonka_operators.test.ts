@@ -692,13 +692,20 @@ describe('onStart', () => {
 });
 
 describe('sample', () => {
-  const noop = operators.sample(sources.fromValue(null));
-  // TODO: passesPassivePull(noop);
-  // TODO: passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
-  // TODO: passesSourceEnd(noop);
+  const valueThenNever: types.sourceT<any> = sink =>
+    sink(deriving.start(tb => {
+      if (tb === deriving.pull)
+        sink(deriving.push(null));
+    }));
+
+  const noop = operators.sample(valueThenNever);
+
+  passesPassivePull(noop);
+  passesActivePush(noop);
+  passesSinkClose(noop);
+  passesSourceEnd(noop);
   passesSingleStart(noop);
-  // TODO: passesStrictEnd(noop);
+  passesStrictEnd(noop);
 
   it('emits the latest value when a notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
