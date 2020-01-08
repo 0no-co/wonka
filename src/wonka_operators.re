@@ -504,7 +504,13 @@ let sample = (notifier: sourceT('a)): operatorT('b, 'b) =>
         | Start(tb) => state.sourceTalkback = tb
         | Push(x) =>
           state.value = Some(x);
-          state.notifierTalkback(. Pull);
+          if (!state.pulled) {
+            state.pulled = true;
+            state.notifierTalkback(. Pull);
+            state.sourceTalkback(. Pull);
+          } else {
+            state.pulled = false;
+          };
         | End when !state.ended =>
           state.ended = true;
           state.notifierTalkback(. Close);
