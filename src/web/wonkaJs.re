@@ -12,17 +12,26 @@ let toCallbag = Wonka_callbag.toCallbag;
 
 /* operators */
 
+type debounceStateT = {
+  mutable id: option(Js.Global.timeoutId),
+  mutable deferredEnded: bool,
+  mutable ended: bool,
+};
+
 [@genType]
 let debounce = (f: (. 'a) => int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      let gotEndSignal = ref(false);
-      let id: ref(option(Js.Global.timeoutId)) = ref(None);
+      let state: debounceStateT = {
+        id: None,
+        deferredEnded: false,
+        ended: false,
+      };
 
       let clearTimeout = () =>
-        switch (id^) {
+        switch (state.id) {
         | Some(timeoutId) =>
-          id := None;
+          state.id = None;
           Js.Global.clearTimeout(timeoutId);
         | None => ()
         };
@@ -33,36 +42,41 @@ let debounce = (f: (. 'a) => int): operatorT('a, 'a) =>
           sink(.
             Start(
               (. signal) =>
-                switch (signal) {
-                | Close =>
-                  clearTimeout();
-                  tb(. Close);
-                | _ => tb(. signal)
+                if (!state.ended) {
+                  switch (signal) {
+                  | Close =>
+                    state.ended = true;
+                    state.deferredEnded = false;
+                    clearTimeout();
+                    tb(. Close);
+                  | Pull => tb(. Pull)
+                  };
                 },
             ),
           )
-        | Push(x) =>
+        | Push(x) when !state.ended =>
           clearTimeout();
-          id :=
+          state.id =
             Some(
               Js.Global.setTimeout(
                 () => {
-                  id := None;
+                  state.id = None;
                   sink(. signal);
-                  if (gotEndSignal^) {
+                  if (state.deferredEnded) {
                     sink(. End);
                   };
                 },
                 f(. x),
               ),
             );
-        | End =>
-          gotEndSignal := true;
-
-          switch (id^) {
+        | Push(_) => ()
+        | End when !state.ended =>
+          state.ended = true;
+          switch (state.id) {
+          | Some(_) => state.deferredEnded = true
           | None => sink(. End)
-          | _ => ()
           };
+        | End => ()
         }
       );
     })
