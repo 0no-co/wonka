@@ -23,4 +23,6 @@ script:
   - yarn run build
   - yarn run check
   - yarn run test --coverage
+  - ls src
+  - cat coverage/lcov.info
   - yarn run codecov
