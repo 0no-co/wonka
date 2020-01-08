@@ -345,12 +345,10 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
           (. signal) =>
             switch (signal) {
             | Close when !state.ended =>
-              state.ended = true;
-              state.outerTalkback(. Close);
-              Rebel.Array.forEach(state.innerTalkbacks, talkback =>
-                talkback(. Close)
-              );
+              let tbs = state.innerTalkbacks;
               state.innerTalkbacks = Rebel.Array.makeEmpty();
+              state.outerTalkback(. signal);
+              Rebel.Array.forEach(tbs, tb => tb(. signal));
             | Close => ()
             | Pull when !state.ended =>
               if (!state.outerPulled) {

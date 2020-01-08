@@ -523,7 +523,7 @@ describe('mergeMap', () => {
   const noop = operators.mergeMap(x => sources.fromValue(x));
   passesPassivePull(noop);
   passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
+  passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesStrictEnd(noop);
