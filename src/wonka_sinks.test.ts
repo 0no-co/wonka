@@ -1,5 +1,6 @@
 import * as deriving from './helpers/wonka_deriving';
 import * as sinks from './wonka_sinks.gen';
+import * as sources from './wonka_sources.gen';
 import * as web from './web/wonkaJs.gen';
 import * as types from './wonka_types.gen';
 
@@ -198,6 +199,12 @@ describe('toPromise', () => {
 
     await promise;
     expect(fn).toHaveBeenCalledWith(1);
+  });
+
+  it('creates a Promise for synchronous sources', async () => {
+    const fn = jest.fn();
+    await web.toPromise(sources.fromArray([1, 2, 3])).then(fn);
+    expect(fn).toHaveBeenCalledWith(3);
   });
 });
 

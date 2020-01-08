@@ -457,6 +457,22 @@ describe('concatMap', () => {
     ]);
   });
 
+  it('works for fully asynchronous sources', () => {
+    const fn = jest.fn();
+
+    sinks.forEach(fn)(
+      operators.concatMap(() => {
+        return sources.make(observer => {
+          setTimeout(() => observer.next(1));
+          return () => {};
+        })
+      })(sources.fromValue(null))
+    );
+
+    jest.runAllTimers();
+    expect(fn).toHaveBeenCalledWith(1);
+  });
+
   it('emits synchronous values in order', () => {
     const values = [];
 

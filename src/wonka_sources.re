@@ -63,6 +63,20 @@ let make = (f: (. observerT('a)) => teardownT): sourceT('a) =>
   curry(sink => {
     let state: makeStateT = {teardown: (.) => (), ended: false};
 
+    state.teardown =
+      f(. {
+        next: value =>
+          if (!state.ended) {
+            sink(. Push(value));
+          },
+        complete: () =>
+          if (!state.ended) {
+            state.ended = true;
+            sink(. End);
+            state.teardown(.);
+          },
+      });
+
     sink(.
       Start(
         (. signal) =>
@@ -74,19 +88,6 @@ let make = (f: (. observerT('a)) => teardownT): sourceT('a) =>
           },
       ),
     );
-
-    state.teardown =
-      f(. {
-        next: value =>
-          if (!state.ended) {
-            sink(. Push(value));
-          },
-        complete: () =>
-          if (!state.ended) {
-            state.ended = true;
-            sink(. End);
-          },
-      });
   });
 
 type subjectState('a) = {
