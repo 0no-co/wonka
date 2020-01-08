@@ -308,9 +308,12 @@ let map = (f: (. 'a) => 'b): operatorT('a, 'b) =>
     curry(sink =>
       source((. signal) =>
         sink(.
+          /* The signal needs to be recreated for genType to generate
+             the correct generics during codegen */
           switch (signal) {
+          | Start(x) => Start(x)
           | Push(x) => Push(f(. x))
-          | _ => signal
+          | End => End
           },
         )
       )
