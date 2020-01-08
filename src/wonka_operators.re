@@ -595,11 +595,11 @@ let skip = (wait: int): operatorT('a, 'a) =>
   );
 
 type skipUntilStateT = {
-  mutable skip: bool,
-  mutable ended: bool,
-  mutable gotSignal: bool,
   mutable sourceTalkback: (. talkbackT) => unit,
   mutable notifierTalkback: (. talkbackT) => unit,
+  mutable skip: bool,
+  mutable pulled: bool,
+  mutable ended: bool,
 };
 
 [@genType]
@@ -607,11 +607,11 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
   curry(source =>
     curry(sink => {
       let state: skipUntilStateT = {
-        skip: true,
-        ended: false,
-        gotSignal: false,
         sourceTalkback: talkbackPlaceholder,
         notifierTalkback: talkbackPlaceholder,
+        skip: true,
+        pulled: false,
+        ended: false,
       };
 
       source((. signal) =>
@@ -634,7 +634,7 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
         | Push(_) when state.skip && !state.ended =>
           state.sourceTalkback(. Pull)
         | Push(_) when !state.ended =>
-          state.gotSignal = false;
+          state.pulled = false;
           sink(. signal);
         | Push(_) => ()
         | End =>
@@ -656,8 +656,8 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
               };
               state.ended = true;
               state.sourceTalkback(. Close);
-            | Pull when !state.gotSignal && !state.ended =>
-              state.gotSignal = true;
+            | Pull when !state.pulled && !state.ended =>
+              state.pulled = true;
               state.sourceTalkback(. Pull);
             | Pull => ()
             },
