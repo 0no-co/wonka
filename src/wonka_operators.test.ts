@@ -456,7 +456,7 @@ describe('delay', () => {
   const noop = web.delay(0);
   passesPassivePull(noop);
   passesActivePush(noop);
-  // TODO: passesSinkClose(noop);
+  passesSinkClose(noop);
   passesSourceEnd(noop);
   passesSingleStart(noop);
   passesAsyncSequence(noop);
