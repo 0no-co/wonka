@@ -264,12 +264,15 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
                 state.innerPulled = true;
                 state.innerTalkback(. Pull);
               };
-            | Close when !state.ended =>
-              state.ended = true;
-              state.innerActive = false;
-              state.innerTalkback(. Close);
-              state.outerTalkback(. Close);
-            | Close => ()
+            | Close =>
+              if (!state.ended) {
+                state.ended = true;
+                state.outerTalkback(. Close);
+              };
+              if (state.innerActive) {
+                state.innerActive = false;
+                state.innerTalkback(. Close);
+              };
             },
         ),
       );
