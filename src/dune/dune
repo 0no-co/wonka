@@ -5,7 +5,4 @@
   (preprocess (pps belt.ppx)))
 
 (copy_files ../include/rebel_native/*.{re,rei})
-(copy_files ../operators/*.{re,rei})
-(copy_files ../sources/*.{re,rei})
-(copy_files ../sinks/*.{re,rei})
 (copy_files ../wonka_*.{re,rei})
