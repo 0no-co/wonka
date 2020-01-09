@@ -73,7 +73,6 @@ let make = (f: (. observerT('a)) => teardownT): sourceT('a) =>
           if (!state.ended) {
             state.ended = true;
             sink(. End);
-            state.teardown(.);
           },
       });
 
