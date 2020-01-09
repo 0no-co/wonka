@@ -376,9 +376,12 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         switch (signal) {
         | Start(tb) => state.outerTalkback = tb
         | Push(x) when !state.ended =>
+          state.outerPulled = false;
           applyInnerSource(f(. x));
-          state.outerPulled = true;
-          state.outerTalkback(. Pull);
+          if (!state.outerPulled) {
+            state.outerPulled = true;
+            state.outerTalkback(. Pull);
+          };
         | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
@@ -405,6 +408,8 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
               if (!state.outerPulled && !state.ended) {
                 state.outerPulled = true;
                 state.outerTalkback(. Pull);
+              } else {
+                state.outerPulled = false;
               };
 
               Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));

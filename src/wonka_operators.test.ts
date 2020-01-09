@@ -99,14 +99,12 @@ const passesSinkClose = (operator: types.operatorT<any, any>) =>
   it('responds to Close signals from sink (spec)', () => {
     let talkback = null;
     let closing = 0;
-    let pulls = 0;
 
     const source: types.sourceT<any> = sink => {
       sink(deriving.start(tb => {
-        if (tb === deriving.pull) {
-          pulls++;
-          if (!closing) sink(deriving.push(0));
-        } if (tb === deriving.close) {
+        if (tb === deriving.pull && !closing) {
+          sink(deriving.push(0));
+        } else if (tb === deriving.close) {
           closing++;
         }
       }));
@@ -127,7 +125,6 @@ const passesSinkClose = (operator: types.operatorT<any, any>) =>
     talkback(deriving.pull);
     jest.runAllTimers();
     expect(closing).toBe(1);
-    expect(pulls).toBe(1);
   });
 
 /* This tests a noop operator for End signals from the source.
@@ -735,8 +732,8 @@ describe('mergeMap', () => {
     jest.runAllTimers();
     expect(fn.mock.calls).toEqual([
       [1],
-      [2],
       [10],
+      [2],
       [20],
     ]);
   });
