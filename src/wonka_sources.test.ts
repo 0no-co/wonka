@@ -163,17 +163,40 @@ describe('merge', () => {
     const onStart = jest.fn();
     const source = operators.merge<any>([
       operators.onStart(onStart)(sources.never),
-      operators.onStart(onStart)(sources.never),
       operators.onStart(onStart)(sources.fromArray([1, 2])),
     ]);
 
     const signals = collectSignals(source);
-    expect(onStart).toHaveBeenCalledTimes(3);
+    expect(onStart).toHaveBeenCalledTimes(2);
 
     expect(signals).toEqual([
       deriving.start(expect.any(Function)),
       deriving.push(1),
       deriving.push(2),
+    ]);
+  });
+
+  it('correctly merges asynchronous sources', () => {
+    jest.useFakeTimers();
+
+    const onStart = jest.fn();
+    const source = operators.merge<any>([
+      operators.onStart(onStart)(sources.fromValue(-1)),
+      operators.onStart(onStart)(
+        operators.take(2)(web.interval(50))
+      ),
+    ]);
+
+    const signals = collectSignals(source);
+    jest.advanceTimersByTime(100);
+    expect(onStart).toHaveBeenCalledTimes(2);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(-1),
+      deriving.push(0),
+      deriving.push(1),
+      deriving.end(),
     ]);
   });
 });
