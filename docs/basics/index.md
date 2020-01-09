@@ -1,6 +1,6 @@
 ---
 title: Basics
-order: 2
+order: 3
 ---
 
 Wonka introduces a new primitive for streams.
