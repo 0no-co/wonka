@@ -758,6 +758,7 @@ describe('onEnd', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesStrictEnd(noop);
   passesSingleStart(noop);
   passesAsyncSequence(noop);
 
@@ -781,6 +782,7 @@ describe('onPush', () => {
   passesActivePush(noop);
   passesSinkClose(noop);
   passesSourceEnd(noop);
+  passesStrictEnd(noop);
   passesSingleStart(noop);
   passesAsyncSequence(noop);
 
