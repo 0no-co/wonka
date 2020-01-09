@@ -1,5 +1,6 @@
 import * as deriving from './helpers/wonka_deriving';
 import * as sources from './wonka_sources.gen';
+import * as operators from './wonka_operators.gen';
 import * as types from './wonka_types.gen';
 import * as web from './web/wonkaJs.gen';
 
@@ -132,6 +133,93 @@ describe('fromValue', () => {
       deriving.start(expect.any(Function)),
       deriving.push(1),
       deriving.end()
+    ]);
+  });
+});
+
+describe('merge', () => {
+  const source = operators.merge<any>([
+    sources.fromValue(0),
+    sources.empty
+  ]);
+
+  passesColdPull(source);
+  passesActiveClose(source);
+
+  it('correctly merges two sources where the second is empty', () => {
+    const source = operators.merge<any>([
+      sources.fromValue(0),
+      sources.empty
+    ]);
+
+    expect(collectSignals(source)).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(0),
+      deriving.end(),
+    ]);
+  });
+
+  it('correctly merges hot sources', () => {
+    const onStart = jest.fn();
+    const source = operators.merge<any>([
+      operators.onStart(onStart)(sources.never),
+      operators.onStart(onStart)(sources.fromArray([1, 2])),
+    ]);
+
+    const signals = collectSignals(source);
+    expect(onStart).toHaveBeenCalledTimes(2);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+    ]);
+  });
+
+  it('correctly merges asynchronous sources', () => {
+    jest.useFakeTimers();
+
+    const onStart = jest.fn();
+    const source = operators.merge<any>([
+      operators.onStart(onStart)(sources.fromValue(-1)),
+      operators.onStart(onStart)(
+        operators.take(2)(web.interval(50))
+      ),
+    ]);
+
+    const signals = collectSignals(source);
+    jest.advanceTimersByTime(100);
+    expect(onStart).toHaveBeenCalledTimes(2);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(-1),
+      deriving.push(0),
+      deriving.push(1),
+      deriving.end(),
+    ]);
+  });
+});
+
+describe('concat', () => {
+  const source = operators.concat<any>([
+    sources.fromValue(0),
+    sources.empty
+  ]);
+
+  passesColdPull(source);
+  passesActiveClose(source);
+
+  it('correctly concats two sources where the second is empty', () => {
+    const source = operators.concat<any>([
+      sources.fromValue(0),
+      sources.empty
+    ]);
+
+    expect(collectSignals(source)).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(0),
+      deriving.end(),
     ]);
   });
 });

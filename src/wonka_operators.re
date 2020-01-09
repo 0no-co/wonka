@@ -48,8 +48,13 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
           );
         | Push(value) when !state.ended =>
           Rebel.MutableQueue.add(state.buffer, value);
-          state.pulled = false;
-          state.notifierTalkback(. Pull);
+          if (!state.pulled) {
+            state.pulled = true;
+            state.sourceTalkback(. Pull);
+            state.notifierTalkback(. Pull);
+          } else {
+            state.pulled = false;
+          };
         | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
@@ -218,6 +223,9 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             switch (Rebel.MutableQueue.pop(state.inputQueue)) {
             | Some(input) => applyInnerSource(f(. input))
             | None when state.ended => sink(. End)
+            | None when !state.outerPulled =>
+              state.outerPulled = true;
+              state.outerTalkback(. Pull);
             | None => ()
             };
           | End => ()
@@ -228,13 +236,7 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         switch (signal) {
         | Start(tb) => state.outerTalkback = tb
         | Push(x) when !state.ended =>
-          if (!state.outerPulled) {
-            state.outerPulled = true;
-            state.outerTalkback(. Pull);
-          } else {
-            state.outerPulled = false;
-          };
-
+          state.outerPulled = false;
           if (state.innerActive) {
             Rebel.MutableQueue.add(state.inputQueue, x);
           } else {
@@ -264,12 +266,15 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
                 state.innerPulled = true;
                 state.innerTalkback(. Pull);
               };
-            | Close when !state.ended =>
-              state.ended = true;
-              state.innerActive = false;
-              state.innerTalkback(. Close);
-              state.outerTalkback(. Close);
-            | Close => ()
+            | Close =>
+              if (!state.ended) {
+                state.ended = true;
+                state.outerTalkback(. Close);
+              };
+              if (state.innerActive) {
+                state.innerActive = false;
+                state.innerTalkback(. Close);
+              };
             },
         ),
       );
@@ -355,8 +360,12 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
           | End when Rebel.Array.size(state.innerTalkbacks) !== 0 =>
             state.innerTalkbacks =
               Rebel.Array.filter(state.innerTalkbacks, x => x !== talkback^);
-            if (state.ended && Rebel.Array.size(state.innerTalkbacks) === 0) {
+            let exhausted = Rebel.Array.size(state.innerTalkbacks) === 0;
+            if (state.ended && exhausted) {
               sink(. End);
+            } else if (!state.outerPulled && exhausted) {
+              state.outerPulled = true;
+              state.outerTalkback(. Pull);
             };
           | End => ()
           }
@@ -369,6 +378,10 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         | Push(x) when !state.ended =>
           state.outerPulled = false;
           applyInnerSource(f(. x));
+          if (!state.outerPulled) {
+            state.outerPulled = true;
+            state.outerTalkback(. Pull);
+          };
         | Push(_) => ()
         | End when !state.ended =>
           state.ended = true;
@@ -382,22 +395,24 @@ let mergeMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
       sink(.
         Start(
           (. signal) =>
-            if (!state.ended) {
-              switch (signal) {
-              | Close =>
-                let tbs = state.innerTalkbacks;
+            switch (signal) {
+            | Close =>
+              if (!state.ended) {
                 state.ended = true;
-                state.innerTalkbacks = Rebel.Array.makeEmpty();
                 state.outerTalkback(. signal);
-                Rebel.Array.forEach(tbs, tb => tb(. signal));
-              | Pull =>
-                if (!state.outerPulled) {
-                  state.outerPulled = true;
-                  state.outerTalkback(. Pull);
-                };
-
-                Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));
               };
+
+              Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. signal));
+              state.innerTalkbacks = Rebel.Array.makeEmpty();
+            | Pull =>
+              if (!state.outerPulled && !state.ended) {
+                state.outerPulled = true;
+                state.outerTalkback(. Pull);
+              } else {
+                state.outerPulled = false;
+              };
+
+              Rebel.Array.forEach(state.innerTalkbacks, tb => tb(. Pull));
             },
         ),
       );
@@ -500,7 +515,13 @@ let sample = (notifier: sourceT('a)): operatorT('b, 'b) =>
         | Start(tb) => state.sourceTalkback = tb
         | Push(x) =>
           state.value = Some(x);
-          state.notifierTalkback(. Pull);
+          if (!state.pulled) {
+            state.pulled = true;
+            state.notifierTalkback(. Pull);
+            state.sourceTalkback(. Pull);
+          } else {
+            state.pulled = false;
+          };
         | End when !state.ended =>
           state.ended = true;
           state.notifierTalkback(. Close);
@@ -682,7 +703,11 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
         | Push(_) when !state.skip && !state.ended =>
           state.pulled = false;
           sink(. signal);
-        | Push(_) => ()
+        | Push(_) when !state.pulled =>
+          state.pulled = true;
+          state.sourceTalkback(. Pull);
+          state.notifierTalkback(. Pull);
+        | Push(_) => state.pulled = false
         | End =>
           if (state.skip) {
             state.notifierTalkback(. Close);
@@ -791,6 +816,9 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             state.innerActive = false;
             if (state.ended) {
               sink(. signal);
+            } else if (!state.outerPulled) {
+              state.outerPulled = true;
+              state.outerTalkback(. Pull);
             };
           | End => ()
           }
@@ -836,12 +864,15 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
                 state.innerPulled = true;
                 state.innerTalkback(. Pull);
               };
-            | Close when !state.ended =>
-              state.ended = true;
-              state.innerActive = false;
-              state.innerTalkback(. Close);
-              state.outerTalkback(. Close);
-            | Close => ()
+            | Close =>
+              if (!state.ended) {
+                state.ended = true;
+                state.outerTalkback(. Close);
+              };
+              if (state.innerActive) {
+                state.innerActive = false;
+                state.innerTalkback(. Close);
+              };
             },
         ),
       );
