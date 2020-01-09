@@ -434,42 +434,68 @@ let flatten = mergeAll;
 let onEnd = (f: (. unit) => unit): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
+      let ended = ref(false);
       source((. signal) =>
         switch (signal) {
         | Start(talkback) =>
           sink(.
             Start(
-              (. signal) => {
-                switch (signal) {
-                | Close => f(.)
-                | _ => ()
-                };
-                talkback(. signal);
-              },
+              (. signal) =>
+                if (! ended^) {
+                  switch (signal) {
+                  | Pull => talkback(. signal)
+                  | Close =>
+                    ended := true;
+                    talkback(. signal);
+                    f(.);
+                  };
+                },
             ),
           )
-        | End =>
+        | Push(_) when ! ended^ => sink(. signal)
+        | Push(_) => ()
+        | End when ! ended^ =>
+          ended := true;
           sink(. signal);
           f(.);
-        | _ => sink(. signal)
+        | End => ()
         }
-      )
+      );
     })
   );
 
 [@genType]
 let onPush = (f: (. 'a) => unit): operatorT('a, 'a) =>
   curry(source =>
-    curry(sink =>
+    curry(sink => {
+      let ended = ref(false);
       source((. signal) => {
         switch (signal) {
-        | Push(x) => f(. x)
-        | _ => ()
-        };
-
-        sink(. signal);
-      })
-    )
+        | Start(talkback) =>
+          sink(.
+            Start(
+              (. signal) =>
+                if (! ended^) {
+                  switch (signal) {
+                  | Pull => talkback(. signal)
+                  | Close =>
+                    ended := true;
+                    talkback(. signal);
+                  };
+                },
+            ),
+          )
+        | Push(x) when ! ended^ =>
+          f(. x);
+          sink(. signal);
+        | Push(_) => ()
+        | End when ! ended^ =>
+          ended := true;
+          sink(. signal);
+        | End => ()
+        }
+      });
+    })
   );
 
 [@genType]
