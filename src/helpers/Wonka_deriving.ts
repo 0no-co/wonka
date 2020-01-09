@@ -1,6 +1,6 @@
 import { __ as block } from 'bs-platform/lib/es6/block';
-import { talkbackPlaceholder } from './wonka_helpers.bs';
-import * as types from '../wonka_types.gen';
+import { talkbackPlaceholder } from './Wonka_helpers.bs';
+import * as types from '../Wonka_types.gen';
 
 type talkbackCb = (tb: types.talkbackT) => void;
 

@@ -1,8 +1,8 @@
-import * as deriving from './helpers/wonka_deriving';
-import * as sinks from './wonka_sinks.gen';
-import * as sources from './wonka_sources.gen';
-import * as web from './web/wonkaJs.gen';
-import * as types from './wonka_types.gen';
+import * as deriving from './helpers/Wonka_deriving';
+import * as sinks from './Wonka_sinks.gen';
+import * as sources from './Wonka_sources.gen';
+import * as web from './web/WonkaJs.gen';
+import * as types from './Wonka_types.gen';
 
 import Observable from 'zen-observable';
 import callbagIterate from 'callbag-iterate';

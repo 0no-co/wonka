@@ -1,8 +1,8 @@
-import * as deriving from './helpers/wonka_deriving';
-import * as sources from './wonka_sources.gen';
-import * as operators from './wonka_operators.gen';
-import * as types from './wonka_types.gen';
-import * as web from './web/wonkaJs.gen';
+import * as deriving from './helpers/Wonka_deriving';
+import * as sources from './Wonka_sources.gen';
+import * as operators from './Wonka_operators.gen';
+import * as types from './Wonka_types.gen';
+import * as web from './web/WonkaJs.gen';
 
 import callbagFromArray from 'callbag-from-iter';
 import Observable from 'zen-observable';

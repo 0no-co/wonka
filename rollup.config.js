@@ -179,7 +179,7 @@ const makePlugins = isProduction =>
   ].filter(Boolean);
 
 const config = {
-  input: './src/wonka.ts',
+  input: './src/Wonka.ts',
   onwarn: () => {},
   external: () => false,
   treeshake: {

@@ -1,4 +1,4 @@
-import { sourceT as Source } from '../wonka_types.gen';
+import { sourceT as Source } from '../Wonka_types.gen';
 
 interface UnaryFn<T, R> {
   (source: T): R;

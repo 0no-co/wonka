@@ -1,9 +1,9 @@
-import * as deriving from './helpers/wonka_deriving';
-import * as sources from './wonka_sources.gen';
-import * as sinks from './wonka_sinks.gen';
-import * as operators from './wonka_operators.gen';
-import * as web from './web/wonkaJs.gen';
-import * as types from './wonka_types.gen';
+import * as deriving from './helpers/Wonka_deriving';
+import * as sources from './Wonka_sources.gen';
+import * as sinks from './Wonka_sinks.gen';
+import * as operators from './Wonka_operators.gen';
+import * as web from './web/WonkaJs.gen';
+import * as types from './Wonka_types.gen';
 
 /* This tests a noop operator for passive Pull talkback signals.
   A Pull will be sent from the sink upwards and should pass through

@@ -3,7 +3,7 @@
   "description": "A fast push & pull stream library for Reason/OCaml, Flow, and TypeScript",
   "version": "4.0.0",
   "author": "Phil Pluckthun <phil@kitten.sh>",
-  "source": "./src/wonka.ts",
+  "source": "./src/Wonka.ts",
   "main": "./dist/wonka.js",
   "module": "./dist/wonka.es.js",
   "jsnext:main": "./dist/wonka.es.js",
