@@ -15,6 +15,10 @@
     "docs/*.md",
     "*.md",
     "index.js.flow",
+    "esy.lock",
+    "dune-project",
+    "wonka.opam",
+    "esy.json",
     "bsconfig.json"
   ],
   "scripts": {
