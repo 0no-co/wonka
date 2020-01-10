@@ -7,7 +7,7 @@
   "main": "./dist/wonka.js",
   "module": "./dist/wonka.es.js",
   "jsnext:main": "./dist/wonka.es.js",
-  "types": "./dist/types/src/wonka.d.ts",
+  "types": "./dist/types/src/Wonka.d.ts",
   "sideEffects": false,
   "files": [
     "src",
