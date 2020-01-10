@@ -24,7 +24,9 @@
   "scripts": {
     "docs:dev": "gatsby develop",
     "docs:build": "gatsby build",
-    "check": "tsc --noEmit",
+    "check:ts": "tsc --noEmit",
+    "check:flow": "flow focus-check ./src/helpers/Wonka_flow_test.js",
+    "check": "run-s check:ts check:flow",
     "bs:clean": "bsb -clean-world",
     "bs:build": "bsb -make-world",
     "bs:watch": "bsb -make-world -w",
@@ -72,6 +74,7 @@
     "callbag-iterate": "^1.0.0",
     "callbag-take": "^1.4.0",
     "coveralls": "^3.0.9",
+    "flow-bin": "^0.115.0",
     "flowgen": "^1.10.0",
     "gatsby": "^2.18.17",
     "gatsby-plugin-netlify": "^2.1.30",

@@ -53,7 +53,8 @@ const gen = async () => {
     const basename = path.basename(fullpath, '.d.ts');
     const filepath = path.dirname(fullpath);
     const newpath = path.join(filepath, basename + '.js.flow');
-    return writeFile(newpath, preamble + flowdef);
+    const definition = flowdef.replace(/import/g, 'import type');
+    return writeFile(newpath, preamble + definition);
   });
 
   return Promise.all([...write, genEntry()]);
