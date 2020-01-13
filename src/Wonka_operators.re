@@ -826,25 +826,27 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
       let applyInnerSource = innerSource => {
         state.innerActive = true;
         innerSource((. signal) =>
-          switch (signal) {
-          | Start(tb) =>
-            state.innerTalkback = tb;
-            state.innerPulled = false;
-            tb(. Pull);
-          | Push(_) =>
-            sink(. signal);
-            if (!state.innerPulled) {
-              state.innerTalkback(. Pull);
-            } else {
+          if (state.innerActive) {
+            switch (signal) {
+            | Start(tb) =>
+              state.innerTalkback = tb;
               state.innerPulled = false;
-            };
-          | End =>
-            state.innerActive = false;
-            if (state.ended) {
+              tb(. Pull);
+            | Push(_) =>
               sink(. signal);
-            } else if (!state.outerPulled) {
-              state.outerPulled = true;
-              state.outerTalkback(. Pull);
+              if (!state.innerPulled) {
+                state.innerTalkback(. Pull);
+              } else {
+                state.innerPulled = false;
+              };
+            | End =>
+              state.innerActive = false;
+              if (state.ended) {
+                sink(. signal);
+              } else if (!state.outerPulled) {
+                state.outerPulled = true;
+                state.outerTalkback(. Pull);
+              };
             };
           }
         );
