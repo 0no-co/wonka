@@ -202,11 +202,11 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         ended: false,
       };
 
-      let rec applyInnerSource = innerSource =>
+      let rec applyInnerSource = innerSource => {
+        state.innerActive = true;
         innerSource((. signal) =>
           switch (signal) {
           | Start(tb) =>
-            state.innerActive = true;
             state.innerTalkback = tb;
             state.innerPulled = false;
             tb(. Pull);
@@ -231,6 +231,7 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
           | End => ()
           }
         );
+      };
 
       source((. signal) =>
         switch (signal) {
@@ -822,33 +823,34 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
         ended: false,
       };
 
-      let applyInnerSource = innerSource =>
+      let applyInnerSource = innerSource => {
+        state.innerActive = true;
         innerSource((. signal) =>
-          switch (signal) {
-          | Start(tb) =>
-            state.innerActive = true;
-            state.innerTalkback = tb;
-            state.innerPulled = false;
-            tb(. Pull);
-          | Push(_) when state.innerActive =>
-            sink(. signal);
-            if (!state.innerPulled) {
-              state.innerTalkback(. Pull);
-            } else {
+          if (state.innerActive) {
+            switch (signal) {
+            | Start(tb) =>
+              state.innerTalkback = tb;
               state.innerPulled = false;
-            };
-          | Push(_) => ()
-          | End when state.innerActive =>
-            state.innerActive = false;
-            if (state.ended) {
+              tb(. Pull);
+            | Push(_) =>
               sink(. signal);
-            } else if (!state.outerPulled) {
-              state.outerPulled = true;
-              state.outerTalkback(. Pull);
+              if (!state.innerPulled) {
+                state.innerTalkback(. Pull);
+              } else {
+                state.innerPulled = false;
+              };
+            | End =>
+              state.innerActive = false;
+              if (state.ended) {
+                sink(. signal);
+              } else if (!state.outerPulled) {
+                state.outerPulled = true;
+                state.outerTalkback(. Pull);
+              };
             };
-          | End => ()
           }
         );
+      };
 
       source((. signal) =>
         switch (signal) {
