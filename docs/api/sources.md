@@ -144,7 +144,7 @@ on the source whenever the DOM emits them on the passed element.
 open Webapi.Dom;
 open Document;
 
-let element = getElementById("root", document);
+let element = getElementById("root", document)->Belt.Option.getExn;
 
 Wonka.fromDomEvent(element, "click")
   |> Wonka.subscribe((. click) => Js.log(click));
