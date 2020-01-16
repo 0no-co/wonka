@@ -141,7 +141,7 @@ on the source whenever the DOM emits them on the passed element.
 > when compiling natively.
 
 ```reason
-open WebApi.Dom;
+open Webapi.Dom;
 open Document;
 
 let element = getElementById("root", document);
