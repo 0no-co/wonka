@@ -129,6 +129,69 @@ let makeSubject = (): subjectT('a) => {
   {source, next, complete};
 };
 
+type replaySubjectStateT('a) = {
+  mutable values: Rebel.Array.t('a),
+  mutable sinks: Rebel.Array.t(sinkT('a)),
+  mutable ended: bool,
+};
+
+[@genType]
+let makeReplaySubject = (bufferSize: int): subjectT('a) => {
+  let state: replaySubjectStateT('a) = {
+    values: Rebel.Array.makeEmpty(),
+    sinks: Rebel.Array.makeEmpty(),
+    ended: false,
+  };
+
+  let source = sink => {
+    let isClosed = ref(false);
+    state.sinks = Rebel.Array.append(state.sinks, sink);
+    sink(.
+      Start(
+        (. signal) =>
+          switch (signal) {
+          | Close =>
+            state.sinks = Rebel.Array.filter(state.sinks, x => x !== sink);
+            isClosed := true;
+          | _ => ()
+          },
+      ),
+    );
+    Rebel.Array.forEach(state.values, value =>
+      if (! isClosed^) {
+        sink(. Push(value));
+      }
+    );
+  };
+
+  let prepend = (array, value) =>
+    Rebel.Array.concat(Rebel.Array.make(1, value), array);
+
+  let next = value =>
+    if (!state.ended) {
+      let newValues = ref(prepend(state.values, value));
+      if (Rebel.Array.size(state.values) > bufferSize) {
+        newValues :=
+          Rebel.Array.slice(
+            newValues^,
+            ~start=0,
+            ~end_=Rebel.Array.size(newValues^) - bufferSize,
+          );
+      };
+      state.values = newValues^;
+      Rebel.Array.forEach(state.sinks, sink => sink(. Push(value)));
+    };
+
+  let complete = () =>
+    if (!state.ended) {
+      state.ended = true;
+      state.values = Rebel.Array.makeEmpty();
+      Rebel.Array.forEach(state.sinks, sink => sink(. End));
+    };
+
+  {source, next, complete};
+};
+
 [@genType]
 let empty = (sink: sinkT('a)): unit => {
   let ended = ref(false);
