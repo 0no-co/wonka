@@ -164,19 +164,11 @@ let makeReplaySubject = (bufferSize: int): subjectT('a) => {
     );
   };
 
-  let prepend = (array, value) =>
-    Rebel.Array.concat(Rebel.Array.make(1, value), array);
-
   let next = value =>
     if (!state.ended) {
-      let newValues = ref(prepend(state.values, value));
+      let newValues = ref(Rebel.Array.append(state.values, value));
       if (Rebel.Array.size(state.values) > bufferSize) {
-        newValues :=
-          Rebel.Array.slice(
-            newValues^,
-            ~start=0,
-            ~end_=Rebel.Array.size(newValues^) - bufferSize,
-          );
+        newValues := Rebel.Array.remove(newValues^, 0);
       };
       state.values = newValues^;
       Rebel.Array.forEach(state.sinks, sink => sink(. Push(value)));
