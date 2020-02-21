@@ -303,6 +303,42 @@ describe('makeSubject', () => {
   });
 });
 
+describe('makeReplaySubject', () => {
+  it('correctly send values emitted after subscription', () => {
+    const { source, next, complete } = sources.makeReplaySubject(1);
+    const signals = collectSignals(source);
+
+    next(1);
+    next(2);
+    complete();
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+      deriving.end(),
+    ]);
+  });
+
+  it('correctly send the last *bufferSize* values emitted before subscription, in order', () => {
+    const { source, next, complete } = sources.makeReplaySubject(2);
+
+    next(1);
+    next(2);
+
+    const signals = collectSignals(source);
+
+    complete();
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+      deriving.end(),
+    ]);
+  });
+});
+
 describe('never', () => {
   it('emits nothing and ends immediately', () => {
     const signals = collectSignals(sources.never);
