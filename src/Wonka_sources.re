@@ -167,8 +167,13 @@ let makeReplaySubject = (bufferSize: int): subjectT('a) => {
   let next = value =>
     if (!state.ended) {
       let newValues = ref(Rebel.Array.append(state.values, value));
-      if (Rebel.Array.size(state.values) > bufferSize) {
-        newValues := Rebel.Array.remove(newValues^, 0);
+      if (Rebel.Array.size(newValues^) > bufferSize) {
+        newValues :=
+          Rebel.Array.slice(
+            newValues^,
+            ~start=1,
+            ~end_=Rebel.Array.size(newValues^),
+          );
       };
       state.values = newValues^;
       Rebel.Array.forEach(state.sinks, sink => sink(. Push(value)));

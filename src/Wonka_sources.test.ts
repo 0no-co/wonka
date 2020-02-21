@@ -304,7 +304,7 @@ describe('makeSubject', () => {
 });
 
 describe('makeReplaySubject', () => {
-  it('correctly send values emitted after subscription', () => {
+  it('forwards signals emitted after subscription', () => {
     const { source, next, complete } = sources.makeReplaySubject(1);
     const signals = collectSignals(source);
 
@@ -320,14 +320,11 @@ describe('makeReplaySubject', () => {
     ]);
   });
 
-  it('correctly send the last *bufferSize* values emitted before subscription, in order', () => {
+  it('emits the last *bufferSize* values received before subscription', () => {
     const { source, next, complete } = sources.makeReplaySubject(2);
-
     next(1);
     next(2);
-
     const signals = collectSignals(source);
-
     complete();
 
     expect(signals).toEqual([
@@ -337,6 +334,37 @@ describe('makeReplaySubject', () => {
       deriving.end(),
     ]);
   });
+
+  it('emits *bufferSize* old values at most', () => {
+    const { source, next, complete } = sources.makeReplaySubject(2);
+    next(1);
+    next(2);
+    next(3);
+    const signals = collectSignals(source);
+    complete();
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(2),
+      deriving.push(3),
+      deriving.end(),
+    ]);
+  })
+
+  it('emits all values when *bufferSize* is > than n° signals', () => {
+    const { source, next, complete } = sources.makeReplaySubject(3);
+    next(1);
+    next(2);
+    const signals = collectSignals(source);
+    complete();
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+      deriving.end(),
+    ]);
+  })
 });
 
 describe('never', () => {
