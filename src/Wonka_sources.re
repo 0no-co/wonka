@@ -162,6 +162,9 @@ let makeReplaySubject = (bufferSize: int): subjectT('a) => {
         sink(. Push(value));
       }
     );
+    if (state.ended) {
+      sink(. End);
+    };
   };
 
   let next = value =>
