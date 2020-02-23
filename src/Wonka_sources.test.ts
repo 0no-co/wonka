@@ -365,6 +365,21 @@ describe('makeReplaySubject', () => {
       deriving.end(),
     ]);
   })
+
+  it('should replay values and complete', () => {
+    const { source, next, complete } = sources.makeReplaySubject(2);
+    next(1);
+    next(2);
+    complete();
+    const signals = collectSignals(source);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
+      deriving.push(2),
+      deriving.end(),
+    ]);
+  })
 });
 
 describe('never', () => {
