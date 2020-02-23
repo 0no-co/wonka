@@ -304,7 +304,7 @@ describe('makeSubject', () => {
 });
 
 describe('makeReplaySubject', () => {
-  it('forwards signals emitted after subscription', () => {
+  it('emits values received after subscription', () => {
     const { source, next, complete } = sources.makeReplaySubject(1);
     const signals = collectSignals(source);
 
@@ -320,7 +320,7 @@ describe('makeReplaySubject', () => {
     ]);
   });
 
-  it('emits the last *bufferSize* values received before subscription', () => {
+  it('should replay values upon subscription', () => {
     const { source, next, complete } = sources.makeReplaySubject(2);
     next(1);
     next(2);
@@ -335,7 +335,7 @@ describe('makeReplaySubject', () => {
     ]);
   });
 
-  it('emits *bufferSize* old values at most', () => {
+  it('should only replay values within its buffer size', () => {
     const { source, next, complete } = sources.makeReplaySubject(2);
     next(1);
     next(2);
@@ -351,7 +351,7 @@ describe('makeReplaySubject', () => {
     ]);
   })
 
-  it('emits all values when *bufferSize* is > than n° signals', () => {
+  it('should replay all values with a buffer size bigger than values length', () => {
     const { source, next, complete } = sources.makeReplaySubject(3);
     next(1);
     next(2);
