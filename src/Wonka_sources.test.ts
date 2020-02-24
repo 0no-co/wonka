@@ -307,7 +307,6 @@ describe('makeReplaySubject', () => {
   it('emits values received after subscription', () => {
     const { source, next, complete } = sources.makeReplaySubject(1);
     const signals = collectSignals(source);
-
     next(1);
     next(2);
     complete();
@@ -377,6 +376,20 @@ describe('makeReplaySubject', () => {
       deriving.start(expect.any(Function)),
       deriving.push(1),
       deriving.push(2),
+      deriving.end(),
+    ]);
+  })
+
+  it('should not replay values received after completion', () => {
+    const { source, next, complete } = sources.makeReplaySubject(2);
+    next(1);
+    complete();
+    next(2);
+    const signals = collectSignals(source);
+
+    expect(signals).toEqual([
+      deriving.start(expect.any(Function)),
+      deriving.push(1),
       deriving.end(),
     ]);
   })
