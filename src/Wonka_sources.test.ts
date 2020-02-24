@@ -350,7 +350,7 @@ describe('makeReplaySubject', () => {
     ]);
   })
 
-  it('should replay all values with a buffer size bigger than values length', () => {
+  it('should replay all values when buffer size is bigger than values length', () => {
     const { source, next, complete } = sources.makeReplaySubject(3);
     next(1);
     next(2);
