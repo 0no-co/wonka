@@ -414,6 +414,8 @@ pipe(
 
 Run a callback on each `Push` signal sent to the sink by the source.
 
+> _Note:_ This operator is also exported as `tap` which is just an alias for `onPush`
+
 ```reason
 Wonka.fromArray([|1, 2, 3, 4, 5, 6|])
   |> Wonka.onPush((. x) => print_string({j|Push $x|j}))
