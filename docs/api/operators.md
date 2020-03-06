@@ -512,7 +512,7 @@ import { fromArray, pipe, scan, subscribe } from 'wonka';
 
 pipe(
   fromArray([1, 2, 3, 4, 5, 6]),
-  scan((acc, val) => acc + val),
+  scan((acc, val) => acc + val, 0),
   subscribe(val => console.log(val))
 );
 
