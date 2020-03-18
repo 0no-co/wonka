@@ -203,7 +203,7 @@ export default [
         legacy: true,
         freeze: false,
         esModule: false,
-        file: `./dist/${name}.esm.mjs`,
+        file: `./dist/${name}.mjs`,
         format: 'esm'
       }
     ]
