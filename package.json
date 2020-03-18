@@ -5,9 +5,17 @@
   "author": "Phil Pluckthun <phil@kitten.sh>",
   "source": "./src/Wonka.ts",
   "main": "./dist/wonka.js",
-  "module": "./dist/wonka.es.js",
+  "module": "./dist/wonka.esm.mjs",
   "jsnext:main": "./dist/wonka.es.js",
   "types": "./dist/types/src/Wonka.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/wonka.esm.mjs",
+      "require": "./dist/wonka.cjs.js",
+      "types": "./dist/types/src/Wonka.d.ts",
+      "source": "./src/Wonka.ts"
+    }
+  },
   "sideEffects": false,
   "files": [
     "src",
