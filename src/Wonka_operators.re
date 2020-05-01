@@ -21,12 +21,12 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
         ended: false,
       };
 
-      source((. signal) =>
+      source((. signal) => {
         switch (signal) {
         | Start(tb) =>
           state.sourceTalkback = tb;
 
-          notifier((. signal) =>
+          notifier((. signal) => {
             switch (signal) {
             | Start(tb) => state.notifierTalkback = tb
             | Push(_) when !state.ended =>
@@ -44,8 +44,9 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
               };
               sink(. End);
             | End => ()
-            }
-          );
+            };
+            ();
+          });
         | Push(value) when !state.ended =>
           Rebel.MutableQueue.add(state.buffer, value);
           if (!state.pulled) {
@@ -64,8 +65,9 @@ let buffer = (notifier: sourceT('a)): operatorT('b, array('b)) =>
           };
           sink(. End);
         | End => ()
-        }
-      );
+        };
+        ();
+      });
 
       sink(.
         Start(
@@ -204,7 +206,7 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
 
       let rec applyInnerSource = innerSource => {
         state.innerActive = true;
-        innerSource((. signal) =>
+        innerSource((. signal) => {
           switch (signal) {
           | Start(tb) =>
             state.innerTalkback = tb;
@@ -229,11 +231,13 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             | None => ()
             };
           | End => ()
-          }
-        );
+          };
+          ();
+        });
+        ();
       };
 
-      source((. signal) =>
+      source((. signal) => {
         switch (signal) {
         | Start(tb) => state.outerTalkback = tb
         | Push(x) when !state.ended =>
@@ -251,8 +255,9 @@ let concatMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             sink(. End);
           };
         | End => ()
-        }
-      );
+        };
+        ();
+      });
 
       sink(.
         Start(
@@ -296,15 +301,16 @@ let filter = (f: (. 'a) => bool): operatorT('a, 'a) =>
     curry(sink => {
       let talkback = ref(talkbackPlaceholder);
 
-      source((. signal) =>
+      source((. signal) => {
         switch (signal) {
         | Start(tb) =>
           talkback := tb;
           sink(. signal);
         | Push(x) when !f(. x) => talkback^(. Pull)
         | _ => sink(. signal)
-        }
-      );
+        };
+        ();
+      });
     })
   );
 
@@ -312,7 +318,7 @@ let filter = (f: (. 'a) => bool): operatorT('a, 'a) =>
 let map = (f: (. 'a) => 'b): operatorT('a, 'b) =>
   curry(source =>
     curry(sink =>
-      source((. signal) =>
+      source((. signal) => {
         sink(.
           /* The signal needs to be recreated for genType to generate
              the correct generics during codegen */
@@ -322,7 +328,7 @@ let map = (f: (. 'a) => 'b): operatorT('a, 'b) =>
           | End => End
           },
         )
-      )
+      })
     )
   );
 
@@ -494,7 +500,8 @@ let onPush = (f: (. 'a) => unit): operatorT('a, 'a) =>
           ended := true;
           sink(. signal);
         | End => ()
-        }
+        };
+        ();
       });
     })
   );
@@ -708,12 +715,12 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
         ended: false,
       };
 
-      source((. signal) =>
+      source((. signal) => {
         switch (signal) {
         | Start(tb) =>
           state.sourceTalkback = tb;
 
-          notifier((. signal) =>
+          notifier((. signal) => {
             switch (signal) {
             | Start(innerTb) =>
               state.notifierTalkback = innerTb;
@@ -725,8 +732,9 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
               state.ended = true;
               state.sourceTalkback(. Close);
             | End => ()
-            }
-          );
+            };
+            ();
+          });
         | Push(_) when !state.skip && !state.ended =>
           state.pulled = false;
           sink(. signal);
@@ -741,8 +749,9 @@ let skipUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
           };
           state.ended = true;
           sink(. End);
-        }
-      );
+        };
+        ();
+      });
 
       sink(.
         Start(
@@ -850,9 +859,10 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             };
           }
         );
+        ();
       };
 
-      source((. signal) =>
+      source((. signal) => {
         switch (signal) {
         | Start(tb) => state.outerTalkback = tb
         | Push(x) when !state.ended =>
@@ -876,8 +886,9 @@ let switchMap = (f: (. 'a) => sourceT('b)): operatorT('a, 'b) =>
             sink(. End);
           };
         | End => ()
-        }
-      );
+        };
+        ();
+      });
 
       sink(.
         Start(
@@ -981,7 +992,7 @@ let takeLast = (max: int): operatorT('a, 'a) =>
         talkback: talkbackPlaceholder,
       };
 
-      source((. signal) =>
+      source((. signal) => {
         switch (signal) {
         | Start(talkback) when max <= 0 =>
           talkback(. Close);
@@ -1002,8 +1013,9 @@ let takeLast = (max: int): operatorT('a, 'a) =>
             Rebel.MutableQueue.toArray(state.queue),
             sink,
           )
-        }
-      );
+        };
+        ();
+      });
     })
   );
 
@@ -1023,12 +1035,12 @@ let takeUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
         notifierTalkback: talkbackPlaceholder,
       };
 
-      source((. signal) =>
+      source((. signal) => {
         switch (signal) {
         | Start(tb) =>
           state.sourceTalkback = tb;
 
-          notifier((. signal) =>
+          notifier((. signal) => {
             switch (signal) {
             | Start(innerTb) =>
               state.notifierTalkback = innerTb;
@@ -1038,8 +1050,9 @@ let takeUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
               state.sourceTalkback(. Close);
               sink(. End);
             | End => ()
-            }
-          );
+            };
+            ();
+          });
         | End when !state.ended =>
           state.ended = true;
           state.notifierTalkback(. Close);
@@ -1047,8 +1060,9 @@ let takeUntil = (notifier: sourceT('a)): operatorT('b, 'b) =>
         | End => ()
         | Push(_) when !state.ended => sink(. signal)
         | Push(_) => ()
-        }
-      );
+        };
+        ();
+      });
 
       sink(.
         Start(

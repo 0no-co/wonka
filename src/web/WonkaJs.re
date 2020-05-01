@@ -160,15 +160,16 @@ let throttle = (f: (. 'a) => int): operatorT('a, 'a) =>
 /* sinks */
 [@genType]
 let toPromise = (source: sourceT('a)): Js.Promise.t('a) => {
-  Js.Promise.make((~resolve, ~reject as _) =>
+  Js.Promise.make((~resolve, ~reject as _) => {
     Wonka_operators.takeLast(1, source, (. signal) =>
       switch (signal) {
       | Start(x) => x(. Pull)
       | Push(x) => resolve(. x)
       | End => ()
       }
-    )
-  );
+    );
+    ();
+  });
 };
 
 /* sources */
