@@ -120,6 +120,49 @@ const unwrapStatePlugin = ({ types: t }) => ({
   },
 });
 
+const curryGuaranteePlugin = ({ types: t }) => {
+  const curryFnName = /^_(\d)$/;
+  const lengthId = t.identifier('length');
+  const bindId = t.identifier('bindId');
+
+  return {
+    visitor: {
+      CallExpression(path) {
+        if (
+          !t.isMemberExpression(path.node.callee) ||
+          !t.isIdentifier(path.node.callee.object) ||
+          !t.isIdentifier(path.node.callee.property) ||
+          !path.node.callee.object.name === 'Curry' ||
+          !curryFnName.test(path.node.callee.property.name)
+        )
+          return;
+
+        const callFn = path.node.arguments[0];
+        const callArgs = path.node.arguments.slice(1);
+        if (t.isExpressionStatement(path.parent)) {
+          path.replaceWith(t.callExpression(callFn, callArgs));
+          return;
+        }
+
+        const arityLiteral = t.numericLiteral(callArgs.length);
+        const argIds = callArgs.map((init) => {
+          const id = path.scope.generateUidIdentifierBasedOnNode(path.node.id);
+          path.scope.parent.push({ id, init });
+          return id;
+        });
+
+        path.replaceWith(
+          t.conditionalExpression(
+            t.binaryExpression('===', t.memberExpression(callFn, lengthId), arityLiteral),
+            t.callExpression(callFn, argIds),
+            t.callExpression(t.memberExpression(callFn, bindId), [t.nullLiteral()].concat(argIds))
+          )
+        );
+      },
+    },
+  };
+};
+
 const makePlugins = (isProduction) =>
   [
     babel({
@@ -169,14 +212,12 @@ const makePlugins = (isProduction) =>
       extensions: ['ts', 'tsx', 'js'],
       exclude: 'node_modules/**',
       presets: [],
-      plugins: ['babel-plugin-closure-elimination', unwrapStatePlugin],
+      plugins: ['babel-plugin-closure-elimination', unwrapStatePlugin, curryGuaranteePlugin],
     }),
-    /*
     compiler({
       formatting: 'PRETTY_PRINT',
-      compilation_level: 'SIMPLE_OPTIMIZATIONS'
+      compilation_level: 'SIMPLE_OPTIMIZATIONS',
     }),
-    */
     isProduction ? terserMinified : terserPretty,
   ].filter(Boolean);
 
