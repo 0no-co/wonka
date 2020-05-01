@@ -110,6 +110,55 @@ function curryGuaranteePlugin({ types: t }) {
   };
 }
 
+function squashImplicitUnitReturn({ types: t }) {
+  return {
+    visitor: {
+      ReturnStatement(path) {
+        if (
+          t.isCallExpression(path.node.argument) &&
+          t.isIdentifier(path.node.argument.callee) &&
+          (path.node.argument.callee.name === 'sink' || path.node.argument.callee.name === 'source')
+        ) {
+          path.replaceWithMultiple([
+            t.expressionStatement(path.node.argument),
+            t.returnStatement(),
+          ]);
+        }
+      },
+      Function: {
+        exit(functionPath) {
+          if (t.isIdentifier(functionPath.id) && functionPath.id.name === 'valFromOption') return;
+
+          let hasEmptyReturn = false;
+          let hasCallReturnOnly = true;
+          functionPath.traverse({
+            Function(innerPath) {
+              innerPath.skip();
+            },
+            ReturnStatement: {
+              enter(path) {
+                if (path.node.argument === null) {
+                  hasEmptyReturn = true;
+                } else if (!t.isCallExpression(path.node.argument)) {
+                  hasCallReturnOnly = false;
+                }
+              },
+              exit(path) {
+                if (hasEmptyReturn && hasCallReturnOnly && path.node.argument !== null) {
+                  path.replaceWithMultiple([
+                    t.expressionStatement(path.node.argument),
+                    t.returnStatement(),
+                  ]);
+                }
+              },
+            },
+          });
+        },
+      },
+    },
+  };
+}
+
 function cleanup(opts = {}) {
   const filter = createFilter(opts.include, opts.exclude, {
     resolve: false,
@@ -124,7 +173,7 @@ function cleanup(opts = {}) {
       }
 
       return transform(code, {
-        plugins: [unwrapStatePlugin, curryGuaranteePlugin],
+        plugins: [unwrapStatePlugin, curryGuaranteePlugin, squashImplicitUnitReturn],
         babelrc: false,
       });
     },
