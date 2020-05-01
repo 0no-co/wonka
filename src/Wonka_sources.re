@@ -1,35 +1,77 @@
 open Wonka_types;
 open Wonka_helpers;
 
+type trampolineT('a) = {
+  mutable ended: bool,
+  mutable looping: bool,
+  mutable pulled: bool,
+  mutable current: 'a,
+};
+
 [@genType]
 let fromArray = (arr: array('a)): sourceT('a) =>
   curry(sink => {
     let size = Rebel.Array.size(arr);
-    let index = ref(0);
+    let state = {ended: false, looping: false, pulled: false, current: 0};
 
-    makeTrampoline(sink, (.) =>
-      if (index^ < size) {
-        let x = Rebel.Array.getUnsafe(arr, index^);
-        index := index^ + 1;
-        Some(x);
-      } else {
-        None;
-      }
+    sink(.
+      Start(
+        (. signal) =>
+          switch (signal, state.looping) {
+          | (Pull, false) =>
+            state.pulled = true;
+            state.looping = true;
+
+            while (state.pulled && !state.ended) {
+              if (state.current < size) {
+                let x = Rebel.Array.getUnsafe(arr, state.current);
+                state.current = state.current + 1;
+                state.pulled = false;
+                sink(. Push(x));
+              } else {
+                state.ended = true;
+                sink(. End);
+              };
+            };
+
+            state.looping = false;
+          | (Pull, true) => state.pulled = true
+          | (Close, _) => state.ended = true
+          },
+      ),
     );
   });
 
 [@genType]
 let fromList = (ls: list('a)): sourceT('a) =>
   curry(sink => {
-    let value = ref(ls);
+    let state = {ended: false, looping: false, pulled: false, current: ls};
 
-    makeTrampoline(sink, (.) =>
-      switch (value^) {
-      | [x, ...rest] =>
-        value := rest;
-        Some(x);
-      | [] => None
-      }
+    sink(.
+      Start(
+        (. signal) =>
+          switch (signal, state.looping) {
+          | (Pull, false) =>
+            state.pulled = true;
+            state.looping = true;
+
+            while (state.pulled && !state.ended) {
+              switch (state.current) {
+              | [x, ...rest] =>
+                state.current = rest;
+                state.pulled = false;
+                sink(. Push(x));
+              | [] =>
+                state.ended = true;
+                sink(. End);
+              };
+            };
+
+            state.looping = false;
+          | (Pull, true) => state.pulled = true
+          | (Close, _) => state.ended = true
+          },
+      ),
     );
   });
 
