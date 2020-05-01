@@ -3515,10 +3515,10 @@ bs-logger@0.x:
   dependencies:
     fast-json-stable-stringify "2.x"
 
-bs-platform@7.2.2:
-  version "7.2.2"
-  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-7.2.2.tgz#76fdc63e4889458ae3d257a0132107a792f2309c"
-  integrity sha512-PWcFfN+jCTtT/rMaHDhKh+W9RUTpaRunmSF9vbLYcrJbpgCNW6aFKAY33u0P3mLxwuhshN3b4FxqGUBPj6exZQ==
+bs-platform@^7.3.1:
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-7.3.1.tgz#2c148fb8aef687c6c195eae5821b31e887fb5bc4"
+  integrity sha512-RlQexm6i2gMKsfuHL8IcOHN0R/SQgxiurP96fo2nj71QgQQRh332ahOwIl0p0yNl9DH2Tg7ZV2pjG6MMMkaU6w==
 
 bser@2.1.1:
   version "2.1.1"
