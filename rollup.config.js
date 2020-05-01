@@ -28,14 +28,14 @@ const terserPretty = terser({
     sequences: false,
     loops: false,
     conditionals: false,
-    join_vars: false
+    join_vars: false,
   },
   mangle: false,
   output: {
     beautify: true,
     braces: true,
-    indent_level: 2
-  }
+    indent_level: 2,
+  },
 });
 
 const terserMinified = terser({
@@ -48,11 +48,11 @@ const terserMinified = terser({
   compress: {
     keep_infinity: true,
     pure_getters: true,
-    passes: 10
+    passes: 10,
   },
   output: {
-    comments: false
-  }
+    comments: false,
+  },
 });
 
 const importAllPlugin = ({ types: t }) => ({
@@ -72,14 +72,14 @@ const importAllPlugin = ({ types: t }) => ({
           )
         );
       }
-    }
-  }
+    },
+  },
 });
 
 const unwrapStatePlugin = ({ types: t }) => ({
   pre() {
     this.props = new Map();
-    this.test = node =>
+    this.test = (node) =>
       /state$/i.test(node.id.name) ||
       (node.init.properties.length === 1 && node.init.properties[0].key.name === 'contents');
   },
@@ -89,14 +89,14 @@ const unwrapStatePlugin = ({ types: t }) => ({
         t.isIdentifier(path.node.id) &&
         t.isObjectExpression(path.node.init) &&
         path.node.init.properties.every(
-          prop => t.isObjectProperty(prop) && t.isIdentifier(prop.key)
+          (prop) => t.isObjectProperty(prop) && t.isIdentifier(prop.key)
         ) &&
         this.test(path.node)
       ) {
         const id = path.node.id.name;
         const properties = path.node.init.properties;
-        const propNames = new Set(properties.map(x => x.key.name));
-        const decl = properties.map(prop => {
+        const propNames = new Set(properties.map((x) => x.key.name));
+        const decl = properties.map((prop) => {
           const key = `${id}$${prop.key.name}`;
           return t.variableDeclarator(t.identifier(key), prop.value);
         });
@@ -116,23 +116,22 @@ const unwrapStatePlugin = ({ types: t }) => ({
         const propName = path.node.property.name;
         path.replaceWith(t.identifier(`${id}$${propName}`));
       }
-    }
-  }
+    },
+  },
 });
 
-const makePlugins = isProduction =>
+const makePlugins = (isProduction) =>
   [
     babel({
       babelrc: false,
       extensions: ['ts', 'tsx', 'js'],
       exclude: 'node_modules/**',
       presets: [],
-      plugins: ['@babel/plugin-syntax-typescript', importAllPlugin]
+      plugins: ['@babel/plugin-syntax-typescript', importAllPlugin],
     }),
     typescript({
       typescript: require('typescript'),
       cacheRoot: './node_modules/.cache/.rts2_cache',
-      objectHashIgnoreUnknownHack: true,
       useTsconfigDeclarationDir: true,
       tsconfigOverride: {
         compilerOptions: {
@@ -142,40 +141,43 @@ const makePlugins = isProduction =>
           declarationDir: resolve(cwd, './dist/types/'),
           target: 'esnext',
           module: 'es2015',
-          rootDir: cwd
-        }
-      }
+          rootDir: cwd,
+        },
+      },
     }),
     commonjs({
       ignoreGlobal: true,
       include: ['*', '**'],
-      extensions: ['.js', '.ts', '.tsx']
+      extensions: ['.js', '.ts', '.tsx'],
     }),
     nodeResolve({
       mainFields: ['module', 'jsnext', 'main'],
       extensions: ['.js', '.ts', '.tsx'],
-      browser: true
+      browser: true,
     }),
     buble({
       transforms: {
         unicodeRegExp: false,
         dangerousForOf: true,
-        dangerousTaggedTemplateString: true
+        dangerousTaggedTemplateString: true,
       },
       objectAssign: 'Object.assign',
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
     }),
     babel({
       babelrc: false,
       extensions: ['ts', 'tsx', 'js'],
       exclude: 'node_modules/**',
       presets: [],
-      plugins: ['babel-plugin-closure-elimination', unwrapStatePlugin]
+      plugins: ['babel-plugin-closure-elimination', unwrapStatePlugin],
     }),
+    /*
     compiler({
+      formatting: 'PRETTY_PRINT',
       compilation_level: 'SIMPLE_OPTIMIZATIONS'
     }),
-    isProduction ? terserMinified : terserPretty
+    */
+    isProduction ? terserMinified : terserPretty,
   ].filter(Boolean);
 
 const config = {
@@ -183,8 +185,8 @@ const config = {
   onwarn: () => {},
   external: () => false,
   treeshake: {
-    propertyReadSideEffects: false
-  }
+    propertyReadSideEffects: false,
+  },
 };
 
 export default [
@@ -197,16 +199,14 @@ export default [
         freeze: false,
         esModule: false,
         file: `./dist/${name}.js`,
-        format: 'cjs'
+        format: 'cjs',
       },
       {
-        legacy: true,
-        freeze: false,
-        esModule: false,
+        compact: true,
         file: `./dist/${name}.mjs`,
-        format: 'esm'
-      }
-    ]
+        format: 'esm',
+      },
+    ],
   },
   {
     ...config,
@@ -217,8 +217,8 @@ export default [
         freeze: false,
         esModule: false,
         file: `./dist/${name}.min.js`,
-        format: 'cjs'
-      }
-    ]
-  }
+        format: 'cjs',
+      },
+    ],
+  },
 ];
