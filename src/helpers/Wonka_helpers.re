@@ -5,24 +5,24 @@ let talkbackPlaceholder = (. _: talkbackT) => ();
 type trampolineT = {
   mutable ended: bool,
   mutable looping: bool,
-  mutable pull: bool,
+  mutable pulled: bool,
 };
 
 let makeTrampoline = (sink: sinkT('a), f: (. unit) => option('a)) => {
-  let state: trampolineT = {ended: false, looping: false, pull: false};
+  let state: trampolineT = {ended: false, looping: false, pulled: false};
 
   sink(.
     Start(
       (. signal) =>
         switch (signal, state.looping) {
         | (Pull, false) =>
-          state.pull = true;
+          state.pulled = true;
           state.looping = true;
 
-          while (state.pull && !state.ended) {
+          while (state.pulled && !state.ended) {
             switch (f(.)) {
             | Some(x) =>
-              state.pull = false;
+              state.pulled = false;
               sink(. Push(x));
             | None =>
               state.ended = true;
@@ -31,7 +31,7 @@ let makeTrampoline = (sink: sinkT('a), f: (. unit) => option('a)) => {
           };
 
           state.looping = false;
-        | (Pull, true) => state.pull = true
+        | (Pull, true) => state.pulled = true
         | (Close, _) => state.ended = true
         },
     ),

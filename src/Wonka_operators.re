@@ -967,31 +967,41 @@ let take = (max: int): operatorT('a, 'a) =>
     })
   );
 
+type takeLastStateT('a) = {
+  mutable queue: Rebel.MutableQueue.t('a),
+  mutable talkback: (. talkbackT) => unit,
+};
+
 [@genType]
 let takeLast = (max: int): operatorT('a, 'a) =>
   curry(source =>
     curry(sink => {
-      open Rebel;
-      let talkback = ref(talkbackPlaceholder);
-      let queue = MutableQueue.make();
+      let state: takeLastStateT('a) = {
+        queue: Rebel.MutableQueue.make(),
+        talkback: talkbackPlaceholder,
+      };
 
       source((. signal) =>
         switch (signal) {
-        | Start(tb) when max <= 0 =>
-          tb(. Close);
+        | Start(talkback) when max <= 0 =>
+          talkback(. Close);
           Wonka_sources.empty(sink);
-        | Start(tb) =>
-          talkback := tb;
-          tb(. Pull);
+        | Start(talkback) =>
+          state.talkback = talkback;
+          talkback(. Pull);
         | Push(x) =>
-          let size = MutableQueue.size(queue);
+          let size = Rebel.MutableQueue.size(state.queue);
           if (size >= max && max > 0) {
-            ignore(MutableQueue.pop(queue));
+            ignore(Rebel.MutableQueue.pop(state.queue));
           };
 
-          MutableQueue.add(queue, x);
-          talkback^(. Pull);
-        | End => makeTrampoline(sink, (.) => MutableQueue.pop(queue))
+          Rebel.MutableQueue.add(state.queue, x);
+          state.talkback(. Pull);
+        | End =>
+          Wonka_sources.fromArray(
+            Rebel.MutableQueue.toArray(state.queue),
+            sink,
+          )
         }
       );
     })
