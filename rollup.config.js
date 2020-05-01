@@ -146,6 +146,7 @@ const curryGuaranteePlugin = ({ types: t }) => {
 
         const arityLiteral = t.numericLiteral(callArgs.length);
         const argIds = callArgs.map((init) => {
+          if (t.isIdentifier(init)) return init;
           const id = path.scope.generateUidIdentifierBasedOnNode(path.node.id);
           path.scope.push({ id, init });
           return id;
