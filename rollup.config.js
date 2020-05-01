@@ -123,7 +123,7 @@ const unwrapStatePlugin = ({ types: t }) => ({
 const curryGuaranteePlugin = ({ types: t }) => {
   const curryFnName = /^_(\d)$/;
   const lengthId = t.identifier('length');
-  const bindId = t.identifier('bindId');
+  const bindId = t.identifier('bind');
 
   return {
     visitor: {
