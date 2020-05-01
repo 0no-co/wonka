@@ -62,11 +62,13 @@ function curryGuaranteePlugin({ types: t }) {
         const callFn = path.node.arguments[0];
         const callArgs = path.node.arguments.slice(1);
 
+        // Check whether the value of the call is unused
         if (t.isExpressionStatement(path.parent)) {
           path.replaceWith(t.callExpression(callFn, callArgs));
           return;
         }
 
+        // Check whether the callee is a local function definition whose arity matches
         if (t.isIdentifier(callFn) && path.scope.hasBinding(callFn.name)) {
           const callFnDefinition = path.scope.getBinding(callFn.name).path.node;
           if (
@@ -76,6 +78,16 @@ function curryGuaranteePlugin({ types: t }) {
             path.replaceWith(t.callExpression(callFn, callArgs));
             return;
           }
+        }
+
+        // Special case since sources don't return any value
+        if (
+          t.isIdentifier(callFn) &&
+          callFn.name === 'source' &&
+          t.isReturnStatement(path.parent)
+        ) {
+          path.replaceWith(t.callExpression(callFn, callArgs));
+          return;
         }
 
         const arityLiteral = t.numericLiteral(callArgs.length);
