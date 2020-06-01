@@ -14,23 +14,22 @@ const pkgInfo = require('./package.json');
 const name = basename(pkgInfo.main, '.js');
 
 const terserPretty = terser({
-  sourcemap: true,
   warnings: true,
   ecma: 5,
-  keep_fnames: true,
   ie8: false,
   compress: {
+    hoist_vars: true,
+    hoist_funs: true,
     pure_getters: true,
     toplevel: true,
     booleans_as_integers: false,
-    keep_fnames: true,
-    keep_fargs: true,
     if_return: false,
     ie8: false,
     sequences: false,
     loops: false,
     conditionals: false,
     join_vars: false,
+    passes: 3,
   },
   mangle: false,
   output: {
@@ -41,7 +40,6 @@ const terserPretty = terser({
 });
 
 const terserMinified = terser({
-  sourcemap: true,
   warnings: true,
   ecma: 5,
   ie8: false,
