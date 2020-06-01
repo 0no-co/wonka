@@ -6,6 +6,7 @@ import buble from '@rollup/plugin-buble';
 import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import compiler from '@ampproject/rollup-plugin-closure-compiler';
+import prettier from 'rollup-plugin-prettier';
 
 import minifyBucklescript from './scripts/minify-bucklescript-plugin';
 
@@ -133,6 +134,13 @@ const makePlugins = (isProduction) =>
       compilation_level: 'SIMPLE_OPTIMIZATIONS',
     }),
     isProduction ? terserMinified : terserPretty,
+    !isProduction &&
+      prettier({
+        parser: 'babel',
+        tabWidth: 2,
+        printWidth: 100,
+        singleQuote: true,
+      }),
   ].filter(Boolean);
 
 const config = {
