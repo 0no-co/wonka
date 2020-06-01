@@ -7,6 +7,10 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "outDir": "dist/cjs",
+    "types": [
+      "@types/node",
+      "@types/jest"
+    ],
     "lib": ["dom", "esnext"],
     "jsx": "react",
     "declaration": false,
