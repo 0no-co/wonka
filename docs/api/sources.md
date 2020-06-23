@@ -53,7 +53,7 @@ source you're creating. The first argument `observer` is a tuple with two method
 - `next(value)` emits a value on the sink
 - `complete()` ends the source and completes the sink
 
-The subscriber function also needs ot return a `teardown` function. This function
+The subscriber function also needs to return a `teardown` function. This function
 is called when either `complete()` is called and the source ends, or if the source
 is being cancelled, since the sink unsubscribed.
 
