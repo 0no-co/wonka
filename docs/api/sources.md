@@ -85,7 +85,7 @@ import { make } from 'wonka';
 const waitForArray = () => Promise.resolve([1, 2, 3]);
 
 const source = make(observer => {
-  const [next, complete] = observer;
+  const { next, complete } = observer;
   let cancelled = false;
 
   waitForArray().then(arr => {
@@ -124,7 +124,7 @@ next(complete);
 ```typescript
 import { makeSubject } from 'wonka'
 const subject = Wonka.makeSubject();
-const [source, next, complete] = subject;
+const { source, next, complete } = subject;
 
 /* This will push the values synchronously to any subscribers of source */
 next(1);
