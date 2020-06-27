@@ -4,8 +4,8 @@ export type Internal_meth<_T, R> = () => R;
 export type talkbackT = 0 | 1;
 
 export type signalT<a> =
-  | ({ tag: 0 } & [(talkback: talkbackT) => void])
-  | ({ tag: 1 } & [a])
+  | ({ TAG: 0, _0: (talkback: talkbackT) => void })
+  | ({ TAG: 1, _0: a })
   | 0;
 
 export interface observableSubscriptionT {
