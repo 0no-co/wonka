@@ -119,9 +119,9 @@ describe('fromArray', () => {
 });
 
 describe('fromList', () => {
-  passesTrampoline(sources.fromList([1, [2]] as any));
-  passesColdPull(sources.fromList([0] as any));
-  passesActiveClose(sources.fromList([0] as any));
+  passesTrampoline(sources.fromList({hd: 1, tl: { hd: 2, tl: 0 } } as any));
+  passesColdPull(sources.fromList({ hd: 0, tl: 0 } as any));
+  passesActiveClose(sources.fromList({ hd: 1, tl: 0 } as any));
 });
 
 describe('fromValue', () => {
