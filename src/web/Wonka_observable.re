@@ -88,13 +88,13 @@ let toObservable = (source: sourceT('a)): observableT('a) => {
           (_observer: observableObserverT('a)): observableSubscriptionT => {
         let next: (. 'a) => unit = [%raw
           {|
-          (typeof _observer === 'object' ? _observer.next : _observer) || function () {}
+          (typeof _observer === 'object' ? _observer.next.bind(_observer) : _observer) || function () {}
         |}
         ];
 
         let complete: (. unit) => unit = [%raw
           {|
-          (typeof _observer === 'object' ? _observer.complete : arguments[2]) || function () {}
+          (typeof _observer === 'object' ? _observer.complete.bind(_observer) : arguments[2]) || function () {}
         |}
         ];
 
