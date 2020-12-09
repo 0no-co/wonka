@@ -123,7 +123,7 @@ next(complete);
 
 ```typescript
 import { makeSubject } from 'wonka'
-const subject = Wonka.makeSubject();
+const subject = makeSubject();
 const { source, next, complete } = subject;
 
 /* This will push the values synchronously to any subscribers of source */
