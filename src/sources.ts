@@ -1,5 +1,5 @@
-import { Source, Sink, TalkbackKind, Observer, Subject, TeardownFn } from './types'
-import { push, start, end, talkbackPlaceholder } from './helpers'
+import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn } from './types'
+import { push, start, talkbackPlaceholder } from './helpers'
 
 export function fromArray<T>(array: T[]): Source<T> {
   return (sink) => {
@@ -21,7 +21,7 @@ export function fromArray<T>(array: T[]): Source<T> {
             sink(push(array[current]));
           } else {
             ended = true;
-            sink(end);
+            sink(SignalKind.End);
           }
         }
         looping = false;
@@ -39,7 +39,7 @@ export function fromValue<T>(value: T): Source<T> {
       } else if (!ended) {
         ended = true;
         sink(push(value));
-        sink(end);
+        sink(SignalKind.End);
       }
     }))
   }
@@ -55,7 +55,7 @@ export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<
       complete() {
         if (!ended) {
           ended = false;
-          sink(end);
+          sink(SignalKind.End);
         }
       },
     });
@@ -90,7 +90,7 @@ export function makeSubject<T>(): Subject<T> {
     complete() {
       if (!ended) {
         ended = true;
-        for (let i = 0; i < sinks.length; i++) sinks[i](end);
+        for (let i = 0; i < sinks.length; i++) sinks[i](SignalKind.End);
       }
     },
   };
@@ -103,7 +103,7 @@ export const empty: Source<any> = (sink: Sink<any>): void => {
       ended = true;
     } else if (!ended) {
       ended = true;
-      sink(end);
+      sink(SignalKind.End);
     }
   }));
 };

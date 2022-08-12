@@ -14,5 +14,3 @@ export function push<T>(value: T): Push<T> {
   box.tag = SignalKind.Push;
   return box
 }
-
-export const end: SignalKind.End = 0
