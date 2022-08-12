@@ -111,3 +111,44 @@ export const empty: Source<any> = (sink: Sink<any>): void => {
 export const never: Source<any> = (sink: Sink<any>): void => {
   sink(start(talkbackPlaceholder));
 };
+
+export function interval(ms: number): Source<number> {
+  return (sink) => {
+    let i = 0;
+    const id = setInterval(() => {
+      sink(push(i++));
+    }, ms);
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Close)
+        clearInterval(id);
+    }));
+  };
+}
+
+export function fromDomEvent(element: HTMLElement, event: string): Source<Event> {
+  return (sink) => {
+    const handler = (payload: Event) => {
+      sink(push(payload));
+    };
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Close)
+        element.removeEventListener(event, handler);
+    }));
+    element.addEventListener(event, handler);
+  };
+}
+
+export function fromPromise<T>(promise: Promise<T>): Source<T> {
+  return (sink) => {
+    let ended = false;
+    promise.then((value) => {
+      if (!ended) {
+        sink(push(value));
+        sink(SignalKind.End);
+      }
+    });
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Close) ended = true;
+    }));
+  };
+}

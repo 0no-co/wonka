@@ -794,6 +794,95 @@ export function takeWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
   };
 }
 
+export function debounce<T>(timing: (value: T) => number): Operator<T, T> {
+  return (source) => (sink) => {
+    let id: any | void;
+    let deferredEnded = false;
+    let ended = false;
+    source((signal) => {
+      if (ended) {
+        /*noop*/
+      } else if (signal === SignalKind.End) {
+        ended = true;
+        if (id) {
+          deferredEnded = true;
+        } else {
+          sink(SignalKind.End);
+        }
+      } else if (signal.tag === SignalKind.Start) {
+        const talkback = signal[0];
+        sink(start((signal) => {
+          if (signal === TalkbackKind.Close && !ended) {
+            ended = true;
+            deferredEnded = false;
+            if (id) clearTimeout(id);
+            talkback(TalkbackKind.Close);
+          } else if (!ended) {
+            talkback(TalkbackKind.Pull);
+          }
+        }));
+      } else {
+        if (id) clearTimeout(id);
+        id = setTimeout(() => {
+          id = undefined;
+          sink(signal);
+          if (deferredEnded) sink(SignalKind.End);
+        }, timing(signal[0]));
+      }
+    });
+  };
+}
+
+export function delay<T>(wait: number): Operator<T, T> {
+  return (source) => (sink) => {
+    let active = 0;
+    source((signal) => {
+      if (typeof signal !== 'number' && signal.tag === SignalKind.Start) {
+        sink(signal);
+      } else {
+        active++;
+        setTimeout(() => {
+          if (active) {
+            active--;
+            sink(signal);
+          }
+        }, wait);
+      }
+    });
+  };
+}
+
+export function throttle<T>(timing: (value: T) => number): Operator<T, T> {
+  return (source) => (sink) => {
+    let skip = false;
+    let id: any | void;
+    source((signal) => {
+      if (signal === SignalKind.End) {
+        if (id) clearTimeout(id);
+        sink(SignalKind.End);
+      } else if (signal.tag === SignalKind.Start) {
+        const talkback = signal[0];
+        sink(start((signal) => {
+          if (signal === TalkbackKind.Close) {
+            if (id) clearTimeout(id);
+            talkback(TalkbackKind.Close);
+          } else {
+            talkback(TalkbackKind.Pull);
+          }
+        }));
+      } else if (!skip) {
+        skip = true;
+        if (id) clearTimeout(id);
+        id = setTimeout(() => {
+          id = undefined;
+          skip = false;
+        }, timing(signal[0]));
+        sink(signal);
+      }
+    });
+  };
+}
+
 export {
   mergeAll as flatten,
   onPush as tap,

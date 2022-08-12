@@ -54,3 +54,20 @@ export function toArray<T>(source: Source<T>): T[] {
   });
   return values;
 }
+
+export function toPromise<T>(source: Source<T>): Promise<T> {
+  return new Promise(resolve => {
+    let talkback = talkbackPlaceholder;
+    let value: T | void;
+    source((signal) => {
+      if (signal === SignalKind.End) {
+        resolve(value!);
+      } else if (signal.tag === SignalKind.Start) {
+        (talkback = signal[0])(TalkbackKind.Pull);
+      } else {
+        value = signal[0];
+        talkback(TalkbackKind.Pull);
+      }
+    });
+  })
+}
