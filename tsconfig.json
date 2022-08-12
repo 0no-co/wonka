@@ -7,20 +7,17 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "outDir": "dist/cjs",
-    "types": [
-      "@types/node",
-      "@types/jest"
-    ],
+    "types": ["node", "jest"],
     "lib": ["dom", "esnext"],
     "jsx": "react",
     "declaration": false,
-    "module": "commonjs",
+    "module": "es2015",
     "moduleResolution": "node",
     "target": "esnext",
-    "strict": false,
+    "strict": true,
     "noImplicitAny": false,
-    "noUnusedParameters": false,
-    "sourceMap": true,
-    "pretty": true
-  }
+    "noUnusedParameters": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
 }

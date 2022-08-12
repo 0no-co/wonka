@@ -1,0 +1,113 @@
+import { Source, Sink, TalkbackKind, Observer, Subject, TeardownFn } from './types'
+import { push, start, end, talkbackPlaceholder } from './helpers'
+
+export function fromArray<T>(array: T[]): Source<T> {
+  return (sink) => {
+    let ended = false;
+    let looping = false;
+    let pulled = false;
+    let current = 0;
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Close) {
+        ended = true;
+      } else if (looping) {
+        pulled = true;
+      } else {
+        pulled = true;
+        looping = true;
+        for (pulled = looping = true; pulled && !ended; current++) {
+          if (current < array.length) {
+            pulled = false;
+            sink(push(array[current]));
+          } else {
+            ended = true;
+            sink(end);
+          }
+        }
+        looping = false;
+      }
+    }))
+  }
+}
+
+export function fromValue<T>(value: T): Source<T> {
+  return (sink) => {
+    let ended = false;
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Close) {
+        ended = true;
+      } else if (!ended) {
+        ended = true;
+        sink(push(value));
+        sink(end);
+      }
+    }))
+  }
+}
+
+export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<T> {
+  return (sink) => {
+    let ended = false;
+    const teardown = produce({
+      next(value: T) {
+        if (!ended) sink(push(value));
+      },
+      complete() {
+        if (!ended) {
+          ended = false;
+          sink(end);
+        }
+      },
+    });
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Close && !ended) {
+        ended = true;
+        teardown();
+      }
+    }));
+  }
+}
+
+export function makeSubject<T>(): Subject<T> {
+  const sinks: Sink<T>[] = [];
+  let ended = false;
+  return {
+    source(sink: Sink<T>) {
+      sinks.push(sink);
+      sink(start((signal) => {
+        if (signal === TalkbackKind.Close) {
+          const index = sinks.indexOf(sink);
+          if (index > -1) sinks.splice(index, 1);
+        }
+      }));
+    },
+    next(value: T) {
+      if (!ended) {
+        const signal = push(value);
+        for (let i = 0; i < sinks.length; i++) sinks[i](signal);
+      }
+    },
+    complete() {
+      if (!ended) {
+        ended = true;
+        for (let i = 0; i < sinks.length; i++) sinks[i](end);
+      }
+    },
+  };
+}
+
+export const empty: Source<any> = (sink: Sink<any>): void => {
+  let ended = false;
+  sink(start((signal) => {
+    if (signal === TalkbackKind.Close) {
+      ended = true;
+    } else if (!ended) {
+      ended = true;
+      sink(end);
+    }
+  }));
+};
+
+export const never: Source<any> = (sink: Sink<any>): void => {
+  sink(start(talkbackPlaceholder));
+};
