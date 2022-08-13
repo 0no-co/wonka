@@ -259,7 +259,7 @@ describe('toObservable', () => {
 
   it('forwards cancellations from the Observable as a talkback', () => {
     let ending = 0;
-    const source: Source<T> = sink =>
+    const source: Source<any> = sink =>
       sink(
         start(signal => {
           if (signal === TalkbackKind.Close) ending++;
