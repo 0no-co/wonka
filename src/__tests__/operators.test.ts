@@ -1,9 +1,9 @@
-import { Source, Sink, Operator, Signal, SignalKind, TalkbackKind, TalkbackFn } from './types';
-import { push, start } from './helpers';
+import { Source, Sink, Operator, Signal, SignalKind, TalkbackKind, TalkbackFn } from '../types';
+import { push, start } from '../helpers';
 
-import * as sources from './sources';
-import * as sinks from './sinks';
-import * as operators from './operators';
+import * as sources from '../sources';
+import * as sinks from '../sinks';
+import * as operators from '../operators';
 
 /* This tests a noop operator for passive Pull talkback signals.
   A Pull will be sent from the sink upwards and should pass through

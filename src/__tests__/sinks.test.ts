@@ -1,10 +1,10 @@
-import { Source, Sink, SignalKind, TalkbackKind } from './types';
-import { push, start } from './helpers';
+import { Source, Sink, SignalKind, TalkbackKind } from '../types';
+import { push, start } from '../helpers';
 
-import * as sinks from './sinks';
-import * as sources from './sources';
-import * as callbag from './callbag';
-import * as observable from './observable';
+import * as sinks from '../sinks';
+import * as sources from '../sources';
+import * as callbag from '../callbag';
+import * as observable from '../observable';
 
 import Observable from 'zen-observable';
 import callbagIterate from 'callbag-iterate';
