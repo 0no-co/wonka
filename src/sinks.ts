@@ -32,10 +32,8 @@ export function forEach<T>(subscriber: (value: T) => void) {
   };
 }
 
-export function publish<T>() {
-  return (source: Source<T>): void => {
-    subscribe((_value) => {/*noop*/})(source);
-  };
+export function publish<T>(source: Source<T>): void {
+  subscribe((_value) => {/*noop*/})(source);
 }
 
 export function toArray<T>(source: Source<T>): T[] {

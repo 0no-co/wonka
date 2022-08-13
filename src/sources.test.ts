@@ -1,27 +1,30 @@
-import * as deriving from './helpers/Wonka_deriving';
-import * as sources from './Wonka_sources.gen';
-import * as operators from './Wonka_operators.gen';
-import * as types from './Wonka_types.gen';
-import * as web from './web/WonkaJs.gen';
+import { Source, Sink, Signal, SignalKind, TalkbackKind, TalkbackFn } from './types';
+import { push, start, talkbackPlaceholder } from './helpers';
+
+import * as sources from './sources';
+import * as operators from './operators';
+import * as callbag from './callbag';
+import * as observable from './observable';
 
 import callbagFromArray from 'callbag-from-iter';
 import Observable from 'zen-observable';
 
 const collectSignals = (
-  source: types.sourceT<any>,
-  onStart?: (talkbackCb: (tb: types.talkbackT) => void) => void
+  source: Source<any>,
+  onStart?: (talkbackCb: TalkbackFn) => void
 ) => {
-  let talkback = null;
-  const signals = [];
-
+  let talkback = talkbackPlaceholder;
+  const signals: Signal<any>[] = [];
   source(signal => {
     signals.push(signal);
-    if (deriving.isStart(signal)) {
-      talkback = deriving.unboxStart(signal);
+    if (signal === SignalKind.End) {
+      /*noop*/
+    } else if (signal.tag === SignalKind.Start) {
+      talkback = signal[0];
       if (onStart) onStart(talkback);
-      talkback(deriving.pull);
-    } else if (deriving.isPush(signal)) {
-      talkback(deriving.pull);
+      talkback(TalkbackKind.Pull);
+    } else {
+      talkback(TalkbackKind.Pull);
     }
   })
 
@@ -29,35 +32,35 @@ const collectSignals = (
 };
 
 /* When a Close talkback signal is sent the source should immediately end */
-const passesActiveClose = (source: types.sourceT<any>) =>
+const passesActiveClose = (source: Source<any>) => {
   it('stops emitting when a Close talkback signal is received (spec)', () => {
-    let talkback = null;
-
-    const sink: types.sinkT<any> = signal => {
-      expect(deriving.isPush(signal)).toBeFalsy();
-      expect(deriving.isEnd(signal)).toBeFalsy();
-      if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
-        talkback(deriving.close);
+    let talkback: TalkbackFn | null = null;
+    const sink: Sink<any> = signal => {
+      expect(signal).not.toBe(SignalKind.End);
+      expect((signal as any).tag).not.toBe(SignalKind.Push);
+      if ((signal as any).tag === SignalKind.Start) {
+        (talkback = signal[0])(TalkbackKind.Close);
       }
     };
-
     source(sink);
     expect(talkback).not.toBe(null);
   });
+};
 
 /* All synchronous, cold sources won't send anything unless a Pull signal
   has been received. */
-const passesColdPull = (source: types.sourceT<any>) =>
+const passesColdPull = (source: Source<any>) => {
   it('sends nothing when no Pull talkback signal has been sent (spec)', () => {
+    let talkback: TalkbackFn | null = null;
     let pushes = 0;
-    let talkback = null;
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isPush(signal)) {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
+        /*noop*/
+      } else if (signal.tag === SignalKind.Push) {
         pushes++;
-      } else if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
+      } else {
+        talkback = signal[0];
       }
     };
 
@@ -67,46 +70,46 @@ const passesColdPull = (source: types.sourceT<any>) =>
 
     setTimeout(() => {
       expect(pushes).toBe(0);
-      talkback(deriving.pull);
+      talkback!(TalkbackKind.Pull);
     }, 10);
 
     jest.runAllTimers();
     expect(pushes).toBe(1);
   });
+};
 
 /* All synchronous, cold sources need to use trampoline scheduling to avoid
   recursively sending more and more Push signals which would eventually lead
   to a call stack overflow when too many values are emitted. */
-const passesTrampoline = (source: types.sourceT<any>) =>
+const passesTrampoline = (source: Source<any>) => {
   it('uses trampoline scheduling instead of recursive push signals (spec)', () => {
-    let talkback = null;
+    let talkback: TalkbackFn | null = null;
     let pushes = 0;
 
-    const signals = [];
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isPush(signal)) {
+    const signals: Signal<any>[] = [];
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
+        signals.push(signal);
+        expect(pushes).toBe(2);
+      } else if (signal.tag === SignalKind.Push) {
         const lastPushes = ++pushes;
         signals.push(signal);
-        talkback(deriving.pull);
+        talkback!(TalkbackKind.Pull);
         expect(lastPushes).toBe(pushes);
-      } else if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
-        talkback(deriving.pull);
-        expect(pushes).toBe(2);
-      } else if (deriving.isEnd(signal)) {
-        signals.push(signal);
+      } else if (signal.tag === SignalKind.Start) {
+        (talkback = signal[0])(TalkbackKind.Pull);
         expect(pushes).toBe(2);
       }
     };
 
     source(sink);
-
     expect(signals).toEqual([
-      deriving.push(1),
-      deriving.push(2),
-      deriving.end(),
+      push(1),
+      push(2),
+      SignalKind.End,
     ]);
   });
+};
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -118,21 +121,15 @@ describe('fromArray', () => {
   passesActiveClose(sources.fromArray([0]));
 });
 
-describe('fromList', () => {
-  passesTrampoline(sources.fromList({hd: 1, tl: { hd: 2, tl: 0 } } as any));
-  passesColdPull(sources.fromList({ hd: 0, tl: 0 } as any));
-  passesActiveClose(sources.fromList({ hd: 1, tl: 0 } as any));
-});
-
 describe('fromValue', () => {
   passesColdPull(sources.fromValue(0));
   passesActiveClose(sources.fromValue(0));
 
   it('sends a single value and ends', () => {
     expect(collectSignals(sources.fromValue(1))).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
-      deriving.end()
+      start(expect.any(Function)),
+      push(1),
+      SignalKind.End,
     ]);
   });
 });
@@ -153,9 +150,9 @@ describe('merge', () => {
     ]);
 
     expect(collectSignals(source)).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(0),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(0),
+      end(),
     ]);
   });
 
@@ -170,9 +167,9 @@ describe('merge', () => {
     expect(onStart).toHaveBeenCalledTimes(2);
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
-      deriving.push(2),
+      start(expect.any(Function)),
+      push(1),
+      push(2),
     ]);
   });
 
@@ -183,7 +180,7 @@ describe('merge', () => {
     const source = operators.merge<any>([
       operators.onStart(onStart)(sources.fromValue(-1)),
       operators.onStart(onStart)(
-        operators.take(2)(web.interval(50))
+        operators.take(2)(sources.interval(50))
       ),
     ]);
 
@@ -192,11 +189,11 @@ describe('merge', () => {
     expect(onStart).toHaveBeenCalledTimes(2);
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(-1),
-      deriving.push(0),
-      deriving.push(1),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(-1),
+      push(0),
+      push(1),
+      SignalKind.End,
     ]);
   });
 });
@@ -217,9 +214,9 @@ describe('concat', () => {
     ]);
 
     expect(collectSignals(source)).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(0),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(0),
+      SignalKind.End,
     ]);
   });
 });
@@ -234,13 +231,13 @@ describe('make', () => {
     });
 
     const signals = collectSignals(source);
-    expect(signals).toEqual([deriving.start(expect.any(Function))]);
+    expect(signals).toEqual([start(expect.any(Function))]);
     jest.runAllTimers();
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(1),
+      SignalKind.End,
     ]);
   });
 
@@ -248,11 +245,10 @@ describe('make', () => {
     const teardown = jest.fn();
     const source = sources.make(() => teardown);
 
-    const sink: types.sinkT<any> = signal => {
-      expect(deriving.isPush(signal)).toBeFalsy();
-      expect(deriving.isEnd(signal)).toBeFalsy();
-      if (deriving.isStart(signal))
-        setTimeout(() => deriving.unboxStart(signal)(deriving.close));
+    const sink: Sink<any> = signal => {
+      expect(signal).not.toBe(SignalKind.End);
+      expect((signal as any).tag).not.toBe(SignalKind.Push);
+      setTimeout(() => signal[0](TalkbackKind.Close));
     };
 
     source(sink);
@@ -268,22 +264,22 @@ describe('makeSubject', () => {
     const signals = collectSignals(source);
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
+      start(expect.any(Function)),
     ]);
 
     next(1);
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
+      start(expect.any(Function)),
+      push(1),
     ]);
 
     complete();
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(1),
+      SignalKind.End,
     ]);
   });
 
@@ -293,8 +289,8 @@ describe('makeSubject', () => {
     complete();
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.end(),
+      start(expect.any(Function)),
+      SignalKind.End,
     ]);
 
     next(1);
@@ -306,7 +302,7 @@ describe('makeSubject', () => {
 describe('never', () => {
   it('emits nothing and ends immediately', () => {
     const signals = collectSignals(sources.never);
-    expect(signals).toEqual([deriving.start(expect.any(Function)) ]);
+    expect(signals).toEqual([start(expect.any(Function)) ]);
   });
 });
 
@@ -315,29 +311,29 @@ describe('empty', () => {
     const signals = collectSignals(sources.empty);
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.end(),
+      start(expect.any(Function)),
+      SignalKind.End,
     ]);
   });
 });
 
 describe('fromPromise', () => {
-  passesActiveClose(web.fromPromise(Promise.resolve(null)));
+  passesActiveClose(sources.fromPromise(Promise.resolve(null)));
 
   it('emits a value when the promise resolves', async () => {
     const promise = Promise.resolve(1);
-    const signals = collectSignals(web.fromPromise(promise));
+    const signals = collectSignals(sources.fromPromise(promise));
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
+      start(expect.any(Function)),
     ]);
 
     await promise;
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(1),
+      SignalKind.End,
     ]);
   });
 });
@@ -348,54 +344,54 @@ describe('fromObservable', () => {
   });
 
   it('converts an Observable to a Wonka source', async () => {
-    const source = web.fromObservable(Observable.from([1, 2]));
+    const source = observable.fromObservable(Observable.from([1, 2]));
     const signals = collectSignals(source);
 
     await new Promise(resolve => setTimeout(resolve));
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
-      deriving.push(2),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(1),
+      push(2),
+      SignalKind.End,
     ]);
   });
 
   it('supports cancellation on converted Observables', async () => {
-    const source = web.fromObservable(Observable.from([1, 2]));
+    const source = observable.fromObservable(Observable.from([1, 2]));
     const signals = collectSignals(source, talkback => {
-      talkback(deriving.close);
+      talkback(TalkbackKind.Close);
     });
 
     await new Promise(resolve => setTimeout(resolve));
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
+      start(expect.any(Function)),
     ]);
   });
 });
 
 describe('fromCallbag', () => {
   it('converts a Callbag to a Wonka source', () => {
-    const source = web.fromCallbag(callbagFromArray([1, 2]));
+    const source = callbag.fromCallbag(callbagFromArray([1, 2]) as any);
     const signals = collectSignals(source);
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(1),
-      deriving.push(2),
-      deriving.end(),
+      start(expect.any(Function)),
+      push(1),
+      push(2),
+      SignalKind.End,
     ]);
   });
 
   it('supports cancellation on converted Observables', () => {
-    const source = web.fromCallbag(callbagFromArray([1, 2]));
+    const source = callbag.fromCallbag(callbagFromArray([1, 2]) as any);
     const signals = collectSignals(source, talkback => {
-      talkback(deriving.close);
+      talkback(TalkbackKind.Close);
     });
 
     expect(signals).toEqual([
-      deriving.start(expect.any(Function)),
+      start(expect.any(Function)),
     ]);
   });
 });
@@ -403,17 +399,19 @@ describe('fromCallbag', () => {
 describe('interval', () => {
   it('emits Push signals until Cancel is sent', () => {
     let pushes = 0;
-    let talkback = null;
+    let talkback: TalkbackFn | null = null;
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isPush(signal)) {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
+        /*noop*/
+      } else if (signal.tag === SignalKind.Push) {
         pushes++;
-      } else if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
+      } else {
+        talkback = signal[0];
       }
     };
 
-    web.interval(100)(sink);
+    sources.interval(100)(sink);
     expect(talkback).not.toBe(null);
     expect(pushes).toBe(0);
 
@@ -422,7 +420,7 @@ describe('interval', () => {
     jest.advanceTimersByTime(100);
     expect(pushes).toBe(2);
 
-    talkback(deriving.close);
+    talkback!(TalkbackKind.Close);
     jest.advanceTimersByTime(100);
     expect(pushes).toBe(2);
   });
@@ -430,20 +428,20 @@ describe('interval', () => {
 
 describe('fromDomEvent', () => {
   it('emits Push signals for events on a DOM element', () => {
-    let talkback = null;
+    let talkback: TalkbackFn | null = null;
 
     const element = {
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
     };
 
-    const sink: types.sinkT<any> = signal => {
-      expect(deriving.isEnd(signal)).toBeFalsy();
-      if (deriving.isStart(signal))
-        talkback = deriving.unboxStart(signal);
+    const sink: Sink<any> = signal => {
+      expect(signal).not.toBe(SignalKind.End);
+      if ((signal as any).tag === SignalKind.Start)
+        talkback = signal[0];
     };
 
-    web.fromDomEvent(element as any, 'click')(sink);
+    sources.fromDomEvent(element as any, 'click')(sink);
 
     expect(element.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
     expect(element.removeEventListener).not.toHaveBeenCalled();
@@ -451,7 +449,7 @@ describe('fromDomEvent', () => {
 
     listener(1);
     listener(2);
-    talkback(deriving.close);
+    talkback!(TalkbackKind.Close);
     expect(element.removeEventListener).toHaveBeenCalledWith('click', listener);
   });
 });

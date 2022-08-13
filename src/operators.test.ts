@@ -1,38 +1,40 @@
-import * as deriving from './helpers/Wonka_deriving';
-import * as sources from './Wonka_sources.gen';
-import * as sinks from './Wonka_sinks.gen';
-import * as operators from './Wonka_operators.gen';
-import * as web from './web/WonkaJs.gen';
-import * as types from './Wonka_types.gen';
+import { Source, Sink, Operator, Signal, SignalKind, TalkbackKind, TalkbackFn } from './types';
+import { push, start } from './helpers';
+
+import * as sources from './sources';
+import * as sinks from './sinks';
+import * as operators from './operators';
 
 /* This tests a noop operator for passive Pull talkback signals.
   A Pull will be sent from the sink upwards and should pass through
   the operator until the source receives it, which then pushes a
   value down. */
 const passesPassivePull = (
-  operator: types.operatorT<any, any>,
+  operator: Operator<any, any>,
   output: any = 0
-) =>
+) => {
   it('responds to Pull talkback signals (spec)', () => {
-    let talkback = null;
-    let push = 0;
-    const values = [];
+    let talkback: TalkbackFn | null = null;
+    let pushes = 0;
+    const values: any[] = [];
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
-        if (!push && tb === deriving.pull) {
-          push++;
-          sink(deriving.push(0));
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
+        if (!pushes && signal === TalkbackKind.Pull) {
+          pushes++;
+          sink(push(0));
         }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      expect(deriving.isEnd(signal)).toBeFalsy();
-      if (deriving.isPush(signal)) {
-        values.push(deriving.unboxPush(signal));
-      } else if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
+    const sink: Sink<any> = (signal) => {
+      expect(signal).not.toBe(SignalKind.End);
+      if (signal === SignalKind.End) {
+        /*noop*/
+      } else if (signal.tag === SignalKind.Push) {
+        values.push(signal[0]);
+      } else {
+        talkback = signal[0];
       }
     };
 
@@ -43,206 +45,217 @@ const passesPassivePull = (
     expect(values).toEqual([]);
 
     // When pulling a value we expect an immediate response
-    talkback(deriving.pull);
+    talkback!(TalkbackKind.Pull);
     jest.runAllTimers();
     expect(values).toEqual([output]);
   });
+};
 
 /* This tests a noop operator for regular, active Push signals.
   A Push will be sent downwards from the source, through the
   operator to the sink. Pull events should be let through from
   the sink after every Push event. */
 const passesActivePush = (
-  operator: types.operatorT<any, any>,
+  operator: Operator<any, any>,
   result: any = 0
-) =>
+) => {
   it('responds to eager Push signals (spec)', () => {
-    const values = [];
-    let talkback = null;
-    let push = null;
+    const values: any[] = [];
+    let sink: Sink<any> | null = null;
     let pulls = 0;
 
-    const source: types.sourceT<any> = sink => {
-      push = (value: any) => sink(deriving.push(value));
-      sink(deriving.start(tb => {
-        if (tb === deriving.pull)
+    const source: Source<any> = (_sink) => {
+      sink = _sink;
+      sink(start((signal) => {
+        if (signal === TalkbackKind.Pull)
           pulls++;
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      expect(deriving.isEnd(signal)).toBeFalsy();
-      if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
-      } else if (deriving.isPush(signal)) {
-        values.push(deriving.unboxPush(signal));
-        talkback(deriving.pull);
+    operator(source)((signal) => {
+      expect(signal).not.toBe(SignalKind.End);
+      if (signal === SignalKind.End) {
+        /*noop*/
+      } else if (signal.tag === SignalKind.Push) {
+        values.push(signal[0]);
       }
-    };
+    });
 
-    operator(source)(sink);
     // No Pull signals should be issued initially
     expect(pulls).toBe(0);
 
     // When pushing a value we expect an immediate response
-    push(0);
+    sink!(push(0));
     jest.runAllTimers();
     expect(values).toEqual([result]);
     // Subsequently the Pull signal should have travelled upwards
     expect(pulls).toBe(1);
   });
+};
 
 /* This tests a noop operator for Close talkback signals from the sink.
   A Close signal will be sent, which should be forwarded to the source,
   which then ends the communication without sending an End signal. */
-const passesSinkClose = (operator: types.operatorT<any, any>) =>
+const passesSinkClose = (operator: Operator<any, any>) => {
   it('responds to Close signals from sink (spec)', () => {
-    let talkback = null;
+    let talkback: TalkbackFn | null = null;
     let closing = 0;
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
-        if (tb === deriving.pull && !closing) {
-          sink(deriving.push(0));
-        } else if (tb === deriving.close) {
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
+        if (signal === TalkbackKind.Pull && !closing) {
+          sink(push(0));
+        } else if (signal === TalkbackKind.Close) {
           closing++;
         }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      expect(deriving.isEnd(signal)).toBeFalsy();
-      if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
-      } else if (deriving.isPush(signal)) {
-        talkback(deriving.close);
+    const sink: Sink<any> = signal => {
+      expect(signal).not.toBe(SignalKind.End);
+      if (signal === SignalKind.End) {
+        /*noop*/
+      } else if (signal.tag === SignalKind.Push) {
+        talkback!(TalkbackKind.Close);
+      } else {
+        talkback = signal[0];
       }
     };
 
     operator(source)(sink);
 
     // When pushing a value we expect an immediate close signal
-    talkback(deriving.pull);
+    talkback!(TalkbackKind.Pull);
     jest.runAllTimers();
     expect(closing).toBe(1);
   });
+};
 
 /* This tests a noop operator for End signals from the source.
   A Push and End signal will be sent after the first Pull talkback
   signal from the sink, which shouldn't lead to any extra Close or Pull
   talkback signals. */
 const passesSourceEnd = (
-  operator: types.operatorT<any, any>,
+  operator: Operator<any, any>,
   result: any = 0
-) =>
+) => {
   it('passes on immediate Push then End signals from source (spec)', () => {
-    const signals = [];
-    let talkback = null;
+    const signals: Signal<any>[] = [];
+    let talkback: TalkbackFn | null = null;
     let pulls = 0;
     let ending = 0;
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
-        expect(tb).not.toBe(deriving.close);
-        if (tb === deriving.pull) {
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
+        expect(signal).not.toBe(TalkbackKind.Close);
+        if (signal === TalkbackKind.Pull) {
           pulls++;
           if (pulls === 1) {
-            sink(deriving.push(0));
-            sink(deriving.end());
+            sink(push(0));
+            sink(SignalKind.End);
           }
         }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
-      } else {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
         signals.push(signal);
-        if (deriving.isEnd(signal)) ending++;
+        ending++;
+      } else if (signal.tag === SignalKind.Push) {
+        signals.push(signal);
+      } else {
+        talkback = signal[0];
       }
     };
 
     operator(source)(sink);
 
     // When pushing a value we expect an immediate Push then End signal
-    talkback(deriving.pull);
+    talkback!(TalkbackKind.Pull);
     jest.runAllTimers();
     expect(ending).toBe(1);
-    expect(signals).toEqual([deriving.push(result), deriving.end()]);
+    expect(signals).toEqual([push(result), SignalKind.End]);
     // Also no additional pull event should be created by the operator
     expect(pulls).toBe(1);
   });
+};
 
 /* This tests a noop operator for End signals from the source
   after the first pull in response to another.
   This is similar to passesSourceEnd but more well behaved since
   mergeMap/switchMap/concatMap are eager operators. */
 const passesSourcePushThenEnd = (
-  operator: types.operatorT<any, any>,
+  operator: Operator<any, any>,
   result: any = 0
-) =>
+) => {
   it('passes on End signals from source (spec)', () => {
-    const signals = [];
-    let talkback = null;
+    const signals: Signal<any>[] = [];
+    let talkback: TalkbackFn | null = null;
     let pulls = 0;
     let ending = 0;
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
-        expect(tb).not.toBe(deriving.close);
-        if (tb === deriving.pull) {
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
+        expect(signal).not.toBe(TalkbackKind.Close);
+        if (signal === TalkbackKind.Pull) {
           pulls++;
-          if (pulls <= 2) { sink(deriving.push(0)); }
-          else { sink(deriving.end()); }
+          if (pulls <= 2) { sink(push(0)); }
+          else { sink(SignalKind.End); }
         }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isStart(signal)) {
-        talkback = deriving.unboxStart(signal);
-      } else {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
         signals.push(signal);
-        if (deriving.isPush(signal)) talkback(deriving.pull);
-        if (deriving.isEnd(signal)) ending++;
+        ending++;
+      } else if (signal.tag === SignalKind.Push) {
+        signals.push(signal);
+        talkback!(TalkbackKind.Pull);
+      } else {
+        talkback = signal[0];
       }
     };
 
     operator(source)(sink);
 
     // When pushing a value we expect an immediate Push then End signal
-    talkback(deriving.pull);
+    talkback!(TalkbackKind.Pull);
     jest.runAllTimers();
     expect(ending).toBe(1);
     expect(pulls).toBe(3);
     expect(signals).toEqual([
-      deriving.push(result),
-      deriving.push(result),
-      deriving.end()
+      push(result),
+      push(result),
+      SignalKind.End
     ]);
   });
+};
 
 /* This tests a noop operator for Start signals from the source.
   When the operator's sink is started by the source it'll receive
   a Start event. As a response it should never send more than one
   Start signals to the sink. */
-const passesSingleStart = (operator: types.operatorT<any, any>) =>
+const passesSingleStart = (operator: Operator<any, any>) => {
   it('sends a single Start event to the incoming sink (spec)', () => {
-    let start = 0;
+    let starts = 0;
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(() => {}));
+    const source: Source<any> = sink => {
+      sink(start(() => {}));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isStart(signal)) start++;
+    const sink: Sink<any> = signal => {
+      if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
+        starts++;
+      }
     };
 
     // When starting the operator we expect a single start event on the sink
     operator(source)(sink);
-    expect(start).toBe(1);
+    expect(starts).toBe(1);
   });
+};
 
 /* This tests a noop operator for silence after End signals from the source.
   When the operator receives the End signal it shouldn't forward any other
@@ -250,26 +263,28 @@ const passesSingleStart = (operator: types.operatorT<any, any>) =>
   This isn't a strict requirement, but some operators should ensure that
   all sources are well behaved. This is particularly true for operators
   that either Close sources themselves or may operate on multiple sources. */
-const passesStrictEnd = (operator: types.operatorT<any, any>) => {
+const passesStrictEnd = (operator: Operator<any, any>) => {
   it('stops all signals after End has been received (spec: strict end)', () => {
     let pulls = 0;
-    const signals = [];
+    const signals: Signal<any>[] = [];
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
-        if (tb === deriving.pull) {
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
+        if (signal === TalkbackKind.Pull) {
           pulls++;
-          sink(deriving.end());
-          sink(deriving.push(123));
+          sink(SignalKind.End);
+          sink(push(123));
         }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isStart(signal)) {
-        deriving.unboxStart(signal)(deriving.pull);
-      } else {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
         signals.push(signal);
+      } else if (signal.tag === SignalKind.Push) {
+        signals.push(signal);
+      } else {
+        signal[0](TalkbackKind.Pull);
       }
     };
 
@@ -277,26 +292,28 @@ const passesStrictEnd = (operator: types.operatorT<any, any>) => {
 
     // The Push signal should've been dropped
     jest.runAllTimers();
-    expect(signals).toEqual([deriving.end()]);
+    expect(signals).toEqual([SignalKind.End]);
     expect(pulls).toBe(1);
   });
 
   it('stops all signals after Close has been received (spec: strict close)', () => {
-    const signals = [];
+    const signals: Signal<any>[] = [];
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
-        if (tb === deriving.close) {
-          sink(deriving.push(123));
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
+        if (signal === TalkbackKind.Close) {
+          sink(push(123));
         }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isStart(signal)) {
-        deriving.unboxStart(signal)(deriving.close);
-      } else {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
         signals.push(signal);
+      } else if (signal.tag === SignalKind.Push) {
+        signals.push(signal);
+      } else {
+        signal[0](TalkbackKind.Close);
       }
     };
 
@@ -313,26 +330,27 @@ const passesStrictEnd = (operator: types.operatorT<any, any>) => {
   When an operator closes immediately we expect to see a Close
   signal at the source and an End signal to the sink, since the
   closing operator is expected to end the entire chain. */
-const passesCloseAndEnd = (closingOperator: types.operatorT<any, any>) =>
+const passesCloseAndEnd = (closingOperator: Operator<any, any>) => {
   it('closes the source and ends the sink correctly (spec: ending operator)', () => {
     let closing = 0;
     let ending = 0;
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
         // For some operator tests we do need to send a single value
-        if (tb === deriving.pull)
-          sink(deriving.push(null));
-        if (tb === deriving.close)
+        if (signal === TalkbackKind.Pull) {
+          sink(push(null));
+        } else {
           closing++;
+        }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isStart(signal)) {
-        deriving.unboxStart(signal)(deriving.pull);
-      } if (deriving.isEnd(signal)) {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
         ending++;
+      } else if (signal.tag === SignalKind.Start) {
+        signal[0](TalkbackKind.Pull);
       }
     };
 
@@ -341,32 +359,35 @@ const passesCloseAndEnd = (closingOperator: types.operatorT<any, any>) =>
     expect(closing).toBe(1);
     expect(ending).toBe(1);
   });
+};
 
 const passesAsyncSequence = (
-  operator: types.operatorT<any, any>,
+  operator: Operator<any, any>,
   result: any = 0
-) =>
+) => {
   it('passes an async push with an async end (spec)', () => {
     let hasPushed = false;
-    const signals = [];
+    const signals: Signal<any>[] = [];
 
-    const source: types.sourceT<any> = sink => {
-      sink(deriving.start(tb => {
-        if (tb === deriving.pull && !hasPushed) {
+    const source: Source<any> = sink => {
+      sink(start((signal) => {
+        if (signal === TalkbackKind.Pull && !hasPushed) {
           hasPushed = true;
-          setTimeout(() => sink(deriving.push(0)), 10);
-          setTimeout(() => sink(deriving.end()), 20);
+          setTimeout(() => sink(push(0)), 10);
+          setTimeout(() => sink(SignalKind.End), 20);
         }
       }));
     };
 
-    const sink: types.sinkT<any> = signal => {
-      if (deriving.isStart(signal)) {
-        setTimeout(() => {
-          deriving.unboxStart(signal)(deriving.pull);
-        }, 5);
-      } else {
+    const sink: Sink<any> = signal => {
+      if (signal === SignalKind.End) {
         signals.push(signal);
+      } else if (signal.tag === SignalKind.Push) {
+        signals.push(signal);
+      } else {
+        setTimeout(() => {
+          signal[0](TalkbackKind.Pull);
+        }, 5);
       }
     };
 
@@ -379,17 +400,18 @@ const passesAsyncSequence = (
     jest.runAllTimers();
 
     expect(signals).toEqual([
-      deriving.push(result),
-      deriving.end()
+      push(result),
+      SignalKind.End
     ]);
   });
+};
 
 beforeEach(() => {
   jest.useFakeTimers();
 });
 
 describe('combine', () => {
-  const noop = (source: types.sourceT<any>) => operators.combine(sources.fromValue(0), source);
+  const noop = (source: Source<any>) => operators.combine(sources.fromValue(0), source);
 
   passesPassivePull(noop, [0, 0]);
   passesActivePush(noop, [0, 0]);
@@ -413,10 +435,10 @@ describe('combine', () => {
 });
 
 describe('buffer', () => {
-  const valueThenNever: types.sourceT<any> = sink =>
-    sink(deriving.start(tb => {
-      if (tb === deriving.pull)
-        sink(deriving.push(null));
+  const valueThenNever: Source<any> = sink =>
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Pull)
+        sink(push(null));
     }));
 
   const noop = operators.buffer(valueThenNever);
@@ -471,24 +493,24 @@ describe('concatMap', () => {
 
     expect(fn).toHaveBeenCalledTimes(6);
     expect(fn.mock.calls).toEqual([
-      [deriving.start(expect.any(Function))],
-      [deriving.push(1)],
-      [deriving.push(2)],
-      [deriving.push(3)],
-      [deriving.push(4)],
-      [deriving.end()],
+      [start(expect.any(Function))],
+      [push(1)],
+      [push(2)],
+      [push(3)],
+      [push(4)],
+      [SignalKind.End],
     ]);
   });
 
   // This synchronous test for concatMap will behave the same as mergeMap & switchMap
   it('lets inner sources finish when outer source ends', () => {
-    const values = [];
+    const signals: Signal<any>[] = [];
     const teardown = jest.fn();
-    const fn = (signal: types.signalT<any>) => {
-      values.push(signal);
-      if (deriving.isStart(signal)) {
-        deriving.unboxStart(signal)(deriving.pull);
-        deriving.unboxStart(signal)(deriving.close);
+    const fn = (signal: Signal<any>) => {
+      signals.push(signal);
+      if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
+        signal[0](TalkbackKind.Pull);
+        signal[0](TalkbackKind.Close);
       }
     };
 
@@ -497,19 +519,19 @@ describe('concatMap', () => {
     })(sources.fromValue(null))(fn);
 
     expect(teardown).toHaveBeenCalled();
-    expect(values).toEqual([
-      deriving.start(expect.any(Function)),
+    expect(signals).toEqual([
+      start(expect.any(Function)),
     ]);
   });
 
   // This asynchronous test for concatMap will behave differently than mergeMap & switchMap
   it('emits values from each flattened asynchronous source, one at a time', () => {
-    const source = web.delay<number>(4)(sources.fromArray([1, 10]));
+    const source = operators.delay<number>(4)(sources.fromArray([1, 10]));
     const fn = jest.fn();
 
     sinks.forEach(fn)(
       operators.concatMap((x: number) => {
-        return web.delay(5)(sources.fromArray([x, x * 2]));
+        return operators.delay(5)(sources.fromArray([x, x * 2]));
       })(source)
     );
 
@@ -545,7 +567,7 @@ describe('concatMap', () => {
   });
 
   it('emits synchronous values in order', () => {
-    const values = [];
+    const values: any[] = [];
 
     sinks.forEach(x => values.push(x))(
       operators.concat([
@@ -559,7 +581,7 @@ describe('concatMap', () => {
 });
 
 describe('debounce', () => {
-  const noop = web.debounce(() => 0);
+  const noop = operators.debounce(() => 0);
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
@@ -572,7 +594,7 @@ describe('debounce', () => {
     const { source, next } = sources.makeSubject<number>();
     const fn = jest.fn();
 
-    sinks.forEach(fn)(web.debounce(() => 100)(source));
+    sinks.forEach(fn)(operators.debounce(() => 100)(source));
 
     next(1);
     jest.advanceTimersByTime(50);
@@ -590,7 +612,7 @@ describe('debounce', () => {
     const { source, next, complete } = sources.makeSubject<number>();
     const fn = jest.fn();
 
-    sinks.forEach(fn)(web.debounce(() => 100)(source));
+    sinks.forEach(fn)(operators.debounce(() => 100)(source));
 
     next(1);
     complete();
@@ -600,7 +622,7 @@ describe('debounce', () => {
 });
 
 describe('delay', () => {
-  const noop = web.delay(0);
+  const noop = operators.delay(0);
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
@@ -612,7 +634,7 @@ describe('delay', () => {
     const { source, next } = sources.makeSubject();
     const fn = jest.fn();
 
-    sinks.forEach(fn)(web.delay(100)(source));
+    sinks.forEach(fn)(operators.delay(100)(source));
 
     next(1);
     expect(fn).not.toHaveBeenCalled();
@@ -687,24 +709,24 @@ describe('mergeMap', () => {
     complete();
 
     expect(fn.mock.calls).toEqual([
-      [deriving.start(expect.any(Function))],
-      [deriving.push(1)],
-      [deriving.push(2)],
-      [deriving.push(3)],
-      [deriving.push(4)],
-      [deriving.end()],
+      [start(expect.any(Function))],
+      [push(1)],
+      [push(2)],
+      [push(3)],
+      [push(4)],
+      [SignalKind.End],
     ]);
   });
 
   // This synchronous test for mergeMap will behave the same as concatMap & switchMap
   it('lets inner sources finish when outer source ends', () => {
-    const values = [];
+    const values: Signal<any>[] = [];
     const teardown = jest.fn();
-    const fn = (signal: types.signalT<any>) => {
+    const fn = (signal: Signal<any>) => {
       values.push(signal);
-      if (deriving.isStart(signal)) {
-        deriving.unboxStart(signal)(deriving.pull);
-        deriving.unboxStart(signal)(deriving.close);
+      if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
+        signal[0](TalkbackKind.Pull);
+        signal[0](TalkbackKind.Close);
       }
     };
 
@@ -714,18 +736,18 @@ describe('mergeMap', () => {
 
     expect(teardown).toHaveBeenCalled();
     expect(values).toEqual([
-      deriving.start(expect.any(Function)),
+      start(expect.any(Function)),
     ]);
   });
 
   // This asynchronous test for mergeMap will behave differently than concatMap & switchMap
   it('emits values from each flattened asynchronous source simultaneously', () => {
-    const source = web.delay<number>(4)(sources.fromArray([1, 10]));
+    const source = operators.delay<number>(4)(sources.fromArray([1, 10]));
     const fn = jest.fn();
 
     sinks.forEach(fn)(
       operators.mergeMap((x: number) => {
-        return web.delay(5)(sources.fromArray([x, x * 2]));
+        return operators.delay(5)(sources.fromArray([x, x * 2]));
       })(source)
     );
 
@@ -739,7 +761,7 @@ describe('mergeMap', () => {
   });
 
   it('emits synchronous values in order', () => {
-    const values = [];
+    const values: any[] = [];
 
     sinks.forEach(x => values.push(x))(
       operators.merge([
@@ -763,7 +785,7 @@ describe('onEnd', () => {
   passesAsyncSequence(noop);
 
   it('calls a callback when the source ends', () => {
-    const { source, next, complete } = sources.makeSubject<number>();
+    const { source, next, complete } = sources.makeSubject<any>();
     const fn = jest.fn();
 
     sinks.forEach(() => {})(operators.onEnd(fn)(source));
@@ -813,25 +835,25 @@ describe('onStart', () => {
   passesAsyncSequence(noop);
 
   it('is called when the source starts', () => {
-    let sink: types.sinkT<any>;
+    let sink: Sink<any>;
 
     const fn = jest.fn();
-    const source: types.sourceT<any> = _sink => { sink = _sink; };
+    const source: Source<any> = _sink => { sink = _sink; };
 
     sinks.forEach(() => {})(operators.onStart(fn)(source));
 
     expect(fn).not.toHaveBeenCalled();
 
-    sink(deriving.start(() => {}));
+    sink!(start(() => {}));
     expect(fn).toHaveBeenCalled();
   });
 });
 
 describe('sample', () => {
-  const valueThenNever: types.sourceT<any> = sink =>
-    sink(deriving.start(tb => {
-      if (tb === deriving.pull)
-        sink(deriving.push(null));
+  const valueThenNever: Source<any> = sink =>
+    sink(start((signal) => {
+      if (signal === TalkbackKind.Pull)
+        sink(push(null));
     }));
 
   const noop = operators.sample(valueThenNever);
@@ -860,7 +882,7 @@ describe('sample', () => {
 });
 
 describe('scan', () => {
-  const noop = operators.scan((_acc, x) => x, null);
+  const noop = operators.scan<any, any>((_acc, x) => x, null);
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
@@ -893,13 +915,13 @@ describe('share', () => {
   passesAsyncSequence(noop);
 
   it('shares output values between sinks', () => {
-    let push = () => {};
+    let onPush = () => {};
 
-    const source: types.sourceT<any> = operators.share(sink => {
-      sink(deriving.start(() => {}));
-      push = () => {
-        sink(deriving.push([0]));
-        sink(deriving.end());
+    const source: Source<any> = operators.share(sink => {
+      sink(start(() => {}));
+      onPush = () => {
+        sink(push([0]));
+        sink(SignalKind.End);
       };
     });
 
@@ -908,7 +930,7 @@ describe('share', () => {
 
     sinks.forEach(fnA)(source);
     sinks.forEach(fnB)(source);
-    push();
+    onPush();
 
     expect(fnA).toHaveBeenCalledWith([0]);
     expect(fnB).toHaveBeenCalledWith([0]);
@@ -976,7 +998,7 @@ describe('skipWhile', () => {
     const { source, next } = sources.makeSubject<number>();
     const fn = jest.fn();
 
-    sinks.forEach(fn)(operators.skipWhile(x => x <= 1)(source));
+    sinks.forEach(fn)(operators.skipWhile((x: any) => x <= 1)(source));
 
     next(1);
     expect(fn).not.toHaveBeenCalled();
@@ -1008,24 +1030,24 @@ describe('switchMap', () => {
 
     expect(fn).toHaveBeenCalledTimes(6);
     expect(fn.mock.calls).toEqual([
-      [deriving.start(expect.any(Function))],
-      [deriving.push(1)],
-      [deriving.push(2)],
-      [deriving.push(3)],
-      [deriving.push(4)],
-      [deriving.end()],
+      [start(expect.any(Function))],
+      [push(1)],
+      [push(2)],
+      [push(3)],
+      [push(4)],
+      [SignalKind.End],
     ]);
   });
 
   // This synchronous test for switchMap will behave the same as concatMap & mergeMap
   it('lets inner sources finish when outer source ends', () => {
-    const values = [];
+    const signals: Signal<any>[] = [];
     const teardown = jest.fn();
-    const fn = (signal: types.signalT<any>) => {
-      values.push(signal);
-      if (deriving.isStart(signal)) {
-        deriving.unboxStart(signal)(deriving.pull);
-        deriving.unboxStart(signal)(deriving.close);
+    const fn = (signal: Signal<any>) => {
+      signals.push(signal);
+      if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
+        signal[0](TalkbackKind.Pull);
+        signal[0](TalkbackKind.Close);
       }
     };
 
@@ -1034,19 +1056,19 @@ describe('switchMap', () => {
     })(sources.fromValue(null))(fn);
 
     expect(teardown).toHaveBeenCalled();
-    expect(values).toEqual([
-      deriving.start(expect.any(Function)),
+    expect(signals).toEqual([
+      start(expect.any(Function)),
     ]);
   });
 
   // This asynchronous test for switchMap will behave differently than concatMap & mergeMap
   it('emits values from each flattened asynchronous source, one at a time', () => {
-    const source = web.delay<number>(4)(sources.fromArray([1, 10]));
+    const source = operators.delay<number>(4)(sources.fromArray([1, 10]));
     const fn = jest.fn();
 
     sinks.forEach(fn)(
       operators.switchMap((x: number) => (
-        operators.take(2)(operators.map((y: number) => x * (y + 1))(web.interval(5)))
+        operators.take(2)(operators.map((y: number) => x * (y + 1))(sources.interval(5)))
       ))(source)
     );
 
@@ -1080,9 +1102,9 @@ describe('take', () => {
 
     expect(fn).toHaveBeenCalledTimes(3);
     expect(fn.mock.calls).toEqual([
-      [deriving.start(expect.any(Function))],
-      [deriving.push(1)],
-      [deriving.end()],
+      [start(expect.any(Function))],
+      [push(1)],
+      [SignalKind.End],
     ]);
   });
 });
@@ -1101,7 +1123,7 @@ describe('takeUntil', () => {
   passesCloseAndEnd(ending);
 
   it('emits values until a notifier emits', () => {
-    const { source: notifier$, next: notify } = sources.makeSubject<number>();
+    const { source: notifier$, next: notify } = sources.makeSubject<any>();
     const { source: input$, next } = sources.makeSubject<number>();
     const fn = jest.fn();
 
@@ -1110,13 +1132,13 @@ describe('takeUntil', () => {
 
     expect(fn).toHaveBeenCalledTimes(2);
     expect(fn.mock.calls).toEqual([
-      [deriving.start(expect.any(Function))],
-      [deriving.push(1)],
+      [start(expect.any(Function))],
+      [push(1)],
     ]);
 
     notify(null);
     expect(fn).toHaveBeenCalledTimes(3);
-    expect(fn.mock.calls[2][0]).toEqual(deriving.end());
+    expect(fn.mock.calls[2][0]).toEqual(SignalKind.End);
   });
 });
 
@@ -1136,14 +1158,14 @@ describe('takeWhile', () => {
     const { source, next } = sources.makeSubject<number>();
     const fn = jest.fn();
 
-    operators.takeWhile(x => x < 2)(source)(fn);
+    operators.takeWhile((x: any) => x < 2)(source)(fn);
     next(1);
     next(2);
 
     expect(fn.mock.calls).toEqual([
-      [deriving.start(expect.any(Function))],
-      [deriving.push(1)],
-      [deriving.end()],
+      [start(expect.any(Function))],
+      [push(1)],
+      [SignalKind.End],
     ]);
   });
 });
@@ -1153,33 +1175,37 @@ describe('takeLast', () => {
 
   it('emits the last max values of an ended source', () => {
     const { source, next, complete } = sources.makeSubject<number>();
-    const values = [];
+    const signals: Signal<any>[] = [];
 
-    let talkback;
+    let talkback: TalkbackFn;
+
     operators.takeLast(1)(source)(signal => {
-      values.push(signal);
-      if (deriving.isStart(signal))
-        talkback = deriving.unboxStart(signal);
-      if (!deriving.isEnd(signal))
-        talkback(deriving.pull);
+      signals.push(signal);
+      if (signal === SignalKind.End) {
+        /*noop*/
+      } else if (signal.tag === SignalKind.Start) {
+        talkback = signal[0];
+      } else {
+        talkback!(TalkbackKind.Pull);
+      }
     });
 
     next(1);
     next(2);
 
-    expect(values.length).toBe(0);
+    expect(signals.length).toBe(0);
     complete();
 
-    expect(values).toEqual([
-      deriving.start(expect.any(Function)),
-      deriving.push(2),
-      deriving.end(),
+    expect(signals).toEqual([
+      start(expect.any(Function)),
+      push(2),
+      SignalKind.End,
     ]);
   });
 });
 
 describe('throttle', () => {
-  const noop = web.throttle(() => 0);
+  const noop = operators.throttle(() => 0);
   passesPassivePull(noop);
   passesActivePush(noop);
   passesSinkClose(noop);
@@ -1191,7 +1217,7 @@ describe('throttle', () => {
     const { source, next } = sources.makeSubject<number>();
     const fn = jest.fn();
 
-    sinks.forEach(fn)(web.throttle(() => 100)(source));
+    sinks.forEach(fn)(operators.throttle(() => 100)(source));
 
     next(1);
     expect(fn).toHaveBeenCalledWith(1);
