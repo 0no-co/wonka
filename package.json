@@ -38,8 +38,14 @@
     "url": "https://github.com/0no-co/wonka/issues"
   },
   "license": "MIT",
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "@sucrase/jest-plugin"
+    }
+  },
   "dependencies": {},
   "devDependencies": {
+    "@sucrase/jest-plugin": "^2.2.1",
     "@types/jest": "^28.1.6",
     "@types/node": "^18.7.2",
     "@types/zen-observable": "^0.8.3",
