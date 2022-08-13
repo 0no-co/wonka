@@ -152,7 +152,7 @@ describe('merge', () => {
     expect(collectSignals(source)).toEqual([
       start(expect.any(Function)),
       push(0),
-      end(),
+      SignalKind.End,
     ]);
   });
 

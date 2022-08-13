@@ -145,17 +145,27 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
     function applyInnerSource(innerSource: Source<Out>): void {
       innerActive = true;
       innerSource((signal) => {
-        if (!innerActive) {
-          /*noop*/
-        } else if (signal === SignalKind.End) {
-          innerActive = false;
-          if (inputQueue.length) {
-            applyInnerSource(map(inputQueue.pop()!))
-          } else if (ended) {
-            sink(SignalKind.End);
-          } else if (!outerPulled) {
-            outerPulled = true;
-            outerTalkback(TalkbackKind.Pull);
+        if (signal === SignalKind.End) {
+          if (innerActive) {
+            innerActive = false;
+            if (inputQueue.length) {
+              applyInnerSource(map(inputQueue.pop()!))
+            } else if (ended) {
+              sink(SignalKind.End);
+            } else if (!outerPulled) {
+              outerPulled = true;
+              outerTalkback(TalkbackKind.Pull);
+            }
+          }
+        } else if (signal.tag === SignalKind.Start) {
+          innerPulled = false;
+          (innerTalkback = signal[0])(TalkbackKind.Pull);
+        } else if (innerActive) {
+          sink(signal);
+          if (innerPulled) {
+            innerPulled = false;
+          } else {
+            innerTalkback(TalkbackKind.Pull);
           }
         }
       });
@@ -247,23 +257,23 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
     function applyInnerSource(innerSource: Source<Out>): void {
       let talkback = talkbackPlaceholder;
       innerSource((signal) => {
-        if (!innerTalkbacks.length) {
-          /*noop*/
-        } else if (signal === SignalKind.End) {
-          const index = innerTalkbacks.indexOf(talkback);
-          if (index > -1) innerTalkbacks.splice(index, 1);
-          if (!innerTalkbacks.length) {
-            if (ended) {
-              sink(SignalKind.End);
-            } else if (!outerPulled) {
-              outerPulled = true;
-              outerTalkback(TalkbackKind.Pull);
+        if (signal === SignalKind.End) {
+          if (innerTalkbacks.length) {
+            const index = innerTalkbacks.indexOf(talkback);
+            if (index > -1) innerTalkbacks.splice(index, 1);
+            if (!innerTalkbacks.length) {
+              if (ended) {
+                sink(SignalKind.End);
+              } else if (!outerPulled) {
+                outerPulled = true;
+                outerTalkback(TalkbackKind.Pull);
+              }
             }
           }
         } else if (signal.tag === SignalKind.Start) {
           innerTalkbacks.push(talkback = signal[0]);
           talkback(TalkbackKind.Pull);
-        } else {
+        } else if (innerTalkbacks.length) {
           sink(signal);
           talkback(TalkbackKind.Pull);
         }
