@@ -1,8 +1,10 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript2';
+import typescript from '@rollup/plugin-typescript';
 import buble from '@rollup/plugin-buble';
 import { terser } from 'rollup-plugin-terser';
+
+import flowTypings from './scripts/flow-typings-plugin';
 
 const plugins = [
   resolve({
@@ -13,27 +15,27 @@ const plugins = [
   }),
 
   commonjs({
-    ignoreGloba: true,
+    ignoreGlobal: true,
     include: /\/node_modules\//,
     extensions: ['.mjs', '.js', '.ts'],
   }),
 
   typescript({
-    useTsconfigDeclarationDir: true,
-    tsconfigOverride: {
-      exclude: [
-        'src/**/*.test.ts',
-        '**/__tests__/*',
-      ],
-      compilerOptions: {
-        sourceMap: true,
-        noEmit: false,
-        declaration: true,
-        declarationDir: './dist/types/',
-        target: 'esnext',
-      },
+    typescript: require('typescript'),
+    exclude: [
+      'src/**/*.test.ts',
+      '**/__tests__/*',
+    ],
+    compilerOptions: {
+      sourceMap: true,
+      noEmit: false,
+      declaration: true,
+      declarationDir: './dist/types/',
+      target: 'esnext',
     },
   }),
+
+  flowTypings(),
 
   buble({
     transforms: {

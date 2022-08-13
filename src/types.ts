@@ -16,8 +16,8 @@ export interface Tag<T> {
   tag: T
 }
 
-export type Start<_T> = (Tag<SignalKind.Start> & [talkback: TalkbackFn])
-export type Push<T> = (Tag<SignalKind.Push> & [value: T])
+export type Start<_T> = (Tag<SignalKind.Start> & [TalkbackFn])
+export type Push<T> = (Tag<SignalKind.Push> & [T])
 export type Signal<T> = Start<T> | Push<T> | SignalKind.End;
 
 export type Sink<T> = (signal: Signal<T>) => void;
