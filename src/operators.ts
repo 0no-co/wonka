@@ -256,7 +256,7 @@ export function map<In, Out>(map: (value: In) => Out): Operator<In, Out> {
 
 export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> {
   return source => sink => {
-    const innerTalkbacks: TalkbackFn[] = [];
+    let innerTalkbacks: TalkbackFn[] = [];
     let outerTalkback = talkbackPlaceholder;
     let outerPulled = false;
     let ended = false;
@@ -266,7 +266,7 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
         if (signal === SignalKind.End) {
           if (innerTalkbacks.length) {
             const index = innerTalkbacks.indexOf(talkback);
-            if (index > -1) innerTalkbacks.splice(index, 1);
+            if (index > -1) (innerTalkbacks = innerTalkbacks.slice()).splice(index, 1);
             if (!innerTalkbacks.length) {
               if (ended) {
                 sink(SignalKind.End);
@@ -309,7 +309,9 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
             ended = true;
             outerTalkback(TalkbackKind.Close);
           }
-          while (innerTalkbacks.length) innerTalkbacks.shift()!(TalkbackKind.Close);
+          for (let i = 0, a = innerTalkbacks, l = innerTalkbacks.length; i < l; i++)
+            a[i](TalkbackKind.Close);
+          innerTalkbacks.length = 0;
         } else {
           if (!ended && !outerPulled) {
             outerPulled = true;
@@ -317,7 +319,8 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
           } else {
             outerPulled = false;
           }
-          for (let i = 0; i < innerTalkbacks.length; i++) innerTalkbacks[i](TalkbackKind.Pull);
+          for (let i = 0, a = innerTalkbacks, l = innerTalkbacks.length; i < l; i++)
+            a[i](TalkbackKind.Pull);
         }
       })
     );
@@ -475,7 +478,7 @@ export function scan<In, Out>(reducer: (acc: Out, value: In) => Out, seed: Out):
 }
 
 export function share<T>(source: Source<T>): Source<T> {
-  const sinks: Sink<T>[] = [];
+  let sinks: Sink<T>[] = [];
   let talkback = talkbackPlaceholder;
   let gotSignal = false;
   return sink => {
@@ -483,12 +486,13 @@ export function share<T>(source: Source<T>): Source<T> {
     if (sinks.length === 1) {
       source(signal => {
         if (signal === SignalKind.End) {
-          while (sinks.length) sinks.pop()!(SignalKind.End);
+          for (let i = 0, a = sinks, l = sinks.length; i < l; i++) a[i](SignalKind.End);
+          sinks.length = 0;
         } else if (signal.tag === SignalKind.Start) {
           talkback = signal[0];
         } else {
           gotSignal = false;
-          for (let i = 0; i < sinks.length; i++) sinks[i](signal);
+          for (let i = 0, a = sinks, l = sinks.length; i < l; i++) a[i](signal);
         }
       });
     }
@@ -496,7 +500,7 @@ export function share<T>(source: Source<T>): Source<T> {
       start(signal => {
         if (signal === TalkbackKind.Close) {
           const index = sinks.indexOf(sink);
-          if (index > -1) sinks.splice(index, 1);
+          if (index > -1) (sinks = sinks.slice()).splice(index, 1);
           if (!sinks.length) talkback(TalkbackKind.Close);
         } else if (!gotSignal) {
           gotSignal = true;

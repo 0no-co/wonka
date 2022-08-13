@@ -73,7 +73,7 @@ export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<
 }
 
 export function makeSubject<T>(): Subject<T> {
-  const sinks: Sink<T>[] = [];
+  let sinks: Sink<T>[] = [];
   let ended = false;
   return {
     source(sink: Sink<T>) {
@@ -82,7 +82,7 @@ export function makeSubject<T>(): Subject<T> {
         start(signal => {
           if (signal === TalkbackKind.Close) {
             const index = sinks.indexOf(sink);
-            if (index > -1) sinks.splice(index, 1);
+            if (index > -1) (sinks = sinks.slice()).splice(index, 1);
           }
         })
       );
@@ -90,13 +90,13 @@ export function makeSubject<T>(): Subject<T> {
     next(value: T) {
       if (!ended) {
         const signal = push(value);
-        for (let i = 0; i < sinks.length; i++) sinks[i](signal);
+        for (let i = 0, a = sinks, l = sinks.length; i < l; i++) a[i](signal);
       }
     },
     complete() {
       if (!ended) {
         ended = true;
-        for (let i = 0; i < sinks.length; i++) sinks[i](SignalKind.End);
+        for (let i = 0, a = sinks, l = sinks.length; i < l; i++) a[i](SignalKind.End);
       }
     },
   };
