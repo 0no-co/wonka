@@ -1187,7 +1187,7 @@ describe('takeLast', () => {
       if (signal === SignalKind.End) {
         /*noop*/
       } else if (signal.tag === SignalKind.Start) {
-        talkback = signal[0];
+        (talkback = signal[0])(TalkbackKind.Pull);
       } else {
         talkback!(TalkbackKind.Pull);
       }
