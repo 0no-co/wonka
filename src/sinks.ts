@@ -47,7 +47,7 @@ export function toArray<T>(source: Source<T>): T[] {
       ended = true;
     } else if (signal.tag === SignalKind.Start) {
       (talkback = signal[0])(TalkbackKind.Pull);
-    } else if (!ended) {
+    } else {
       values.push(signal[0]);
       talkback(TalkbackKind.Pull);
     }

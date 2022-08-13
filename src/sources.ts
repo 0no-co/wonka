@@ -14,8 +14,6 @@ export function fromArray<T>(array: T[]): Source<T> {
         } else if (looping) {
           pulled = true;
         } else {
-          pulled = true;
-          looping = true;
           for (pulled = looping = true; pulled && !ended; current++) {
             if (current < array.length) {
               pulled = false;
@@ -58,7 +56,7 @@ export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<
       },
       complete() {
         if (!ended) {
-          ended = false;
+          ended = true;
           sink(SignalKind.End);
         }
       },

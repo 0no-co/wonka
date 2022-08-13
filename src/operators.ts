@@ -230,7 +230,7 @@ export function filter<T>(predicate: (value: T) => boolean): Operator<T, T> {
     let talkback = talkbackPlaceholder;
     source(signal => {
       if (signal === SignalKind.End) {
-        sink(signal);
+        sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         talkback = signal[0];
         sink(signal);
@@ -309,7 +309,7 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
             ended = true;
             outerTalkback(TalkbackKind.Close);
           }
-          while (innerTalkbacks.length) innerTalkbacks.pop()!(TalkbackKind.Close);
+          while (innerTalkbacks.length) innerTalkbacks.shift()!(TalkbackKind.Close);
         } else {
           if (!ended && !outerPulled) {
             outerPulled = true;
