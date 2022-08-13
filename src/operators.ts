@@ -498,7 +498,7 @@ export function share<T>(source: Source<T>): Source<T> {
           const index = sinks.indexOf(sink);
           if (index > -1) sinks.splice(index, 1);
           if (!sinks.length) talkback(TalkbackKind.Close);
-        } else if (signal === TalkbackKind.Pull && !gotSignal) {
+        } else if (!gotSignal) {
           gotSignal = true;
           talkback(TalkbackKind.Pull);
         }
