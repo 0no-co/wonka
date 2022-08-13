@@ -50,6 +50,7 @@ export function toArray<T>(source: Source<T>): T[] {
       talkback(TalkbackKind.Pull);
     }
   });
+  if (!ended) talkback(TalkbackKind.Close);
   return values;
 }
 
