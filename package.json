@@ -32,12 +32,39 @@
     "iterable",
     "stream"
   ],
+  "scripts": {
+    "test": "jest",
+    "check": "tsc",
+    "lint": "eslint --ext=js,ts .",
+    "build": "rollup -c rollup.config.js"
+  },
   "repository": "https://github.com/0no-co/wonka",
   "homepage": "https://wonka.kitten.sh",
   "bugs": {
     "url": "https://github.com/0no-co/wonka/issues"
   },
   "license": "MIT",
+  "prettier": {
+    "singleQuote": true,
+    "tabWidth": 2,
+    "printWidth": 100
+  },
+  "lint-staged": {
+    "*.{ts,js}": "eslint -c scripts/eslint-preset.js --fix",
+    "*.json": "prettier --write",
+    "*.md": "prettier --write"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged --quiet --relative"
+    }
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "./scripts/eslint-preset.js"
+    ]
+  },
   "jest": {
     "transform": {
       "^.+\\.tsx?$": "@sucrase/jest-plugin"
@@ -54,12 +81,21 @@
     "@types/jest": "^28.1.6",
     "@types/node": "^18.7.2",
     "@types/zen-observable": "^0.8.3",
+    "@typescript-eslint/eslint-plugin": "^5.33.0",
+    "@typescript-eslint/parser": "^5.33.0",
     "callbag-from-iter": "^1.3.0",
     "callbag-iterate": "^1.0.0",
     "callbag-take": "^1.5.0",
+    "eslint": "^8.21.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jest": "^26.8.2",
+    "eslint-plugin-prettier": "^4.2.1",
     "flowgen": "^1.20.1",
     "glob": "^8.0.3",
+    "husky-v4": "^4.3.8",
     "jest": "^28.1.3",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
     "rollup": "^2.77.3",
     "rollup-plugin-terser": "^7.0.2",
     "tslib": "^2.4.0",
