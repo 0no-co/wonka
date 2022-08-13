@@ -22,26 +22,27 @@ This is called a "push" signal.
 Because a sink has a start, incoming values, and an end, there are three
 signals that a sink can receive: `Start`, `Push`, and `End`.
 
-``` reason
-type signalT('a) =
-  | Start
-  | Push('a)
-  | End;
+```typescript
+type Start = { tag: 0 }; // & [TalkbackFn]
+type Push<T> = { tag: 1 } & [T];
+type End = 0;
 
-type sinkT('a) = (. signalT('a)) => unit;
+type Signal<T> = Start | Push<T> | End;
+
+type Sink<T> = (signal: Signal<T>) => void;
 ```
 
 As shown, the sink is just a function accepting a signal as its argument.
 
 When the stream starts then the sink is called with `Start`,
-Then for every incoming, new value it's called with `Push('a)`,
+Then for every incoming, new value it's called with `Push<T>`,
 and when the stream ends it's finally called with `End`.
 
 Since we want a source to send these values to the sink, the source is
 also just a function and it accepts a sink as its argument.
 
-``` reason
-type sourceT('a) = sinkT('a) => unit;
+```typescript
+type Source<T> = (sink: Sink<T>) => void;
 ```
 
 This is completely sufficient to represent simple "push" streams, where
@@ -55,10 +56,10 @@ sink that their source will be called with.
 
 The type signature of an operator with no other arguments is thus:
 
-``` reason
-type operatorT('a, 'b) = sourceT('a) => sourceT('b);
+```typescript
+type Operator<In, Out> = (source: Source<In>) => Source<Out>;
 /* which is the same as: */
-type operatorT('a, 'b) = (sourceT('a), sinkT('b)) => unit;
+type Operator<In, Out> = (source: Source<In>) => (sink: Sink<Out>) => void;
 ```
 
 ## Adding Callbacks
@@ -76,18 +77,17 @@ We can achieve this by passing a callback function on when a stream starts.
 In Wonka, a sink's `Start` signal also carries a callback that is used to communicate
 back to the source, making these "talkback signals" flow from the bottom to the top.
 
-``` reason
-type talkbackT =
-  | Pull
-  | Close;
+```typescript
+const enum TalkbackKind {
+  Pull = 0,
+  Close = 1,
+}
 
-type signalT('a) =
-  | Start((. talkbackT) => unit)
-  | Push('a)
-  | End;
+type TalkbackFn = (signal: TalkbackKind) => void;
+type Start = { tag: 0 } & [TalkbackFn];
 ```
 
-This is like the previous `signalT('a)` definition, but the `Start` signal has the
+This is like the previous `Signal<T>` definition, but the `Start` signal has the
 callback definition now. The callback accepts one of two signals: `Pull` or `Close`.
 
 `Close` is a signal that will cancel the stream. It tells the source to stop sending
@@ -117,12 +117,12 @@ like an event dispatcher.
 In Wonka there's a separate type for subjects however, since this reduces the
 complexity of its streams a lot:
 
-``` reason
-type subjectT('a) = {
-  source: sourceT('a),
-  next: 'a => unit,
-  complete: unit => unit,
-};
+```reason
+interface Subject<T> {
+  next(value: T): void;
+  complete(): void;
+  source: Source<T>;
+}
 ```
 
 Hence in Wonka a subject is simply a wrapper around a source and a `next` and `complete`
