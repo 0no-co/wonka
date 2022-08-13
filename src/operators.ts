@@ -81,7 +81,7 @@ export function combine<A, B>(sourceA: Source<A>, sourceB: Source<B>): Source<[A
         }
       } else if (signal.tag === SignalKind.Start) {
         talkbackA = signal[0];
-      } else if (lastValB === undefined && !ended) {
+      } else if (lastValB === undefined) {
         lastValA = signal[0];
         if (!gotSignal) {
           talkbackB(TalkbackKind.Pull);
@@ -104,10 +104,10 @@ export function combine<A, B>(sourceA: Source<A>, sourceB: Source<B>): Source<[A
         }
       } else if (signal.tag === SignalKind.Start) {
         talkbackB = signal[0];
-      } else if (lastValA === undefined && !ended) {
+      } else if (lastValA === undefined) {
         lastValB = signal[0];
         if (!gotSignal) {
-          talkbackB(TalkbackKind.Pull);
+          talkbackA(TalkbackKind.Pull);
         } else {
           gotSignal = false;
         }
