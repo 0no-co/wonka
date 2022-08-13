@@ -149,7 +149,7 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
           if (innerActive) {
             innerActive = false;
             if (inputQueue.length) {
-              applyInnerSource(map(inputQueue.pop()!))
+              applyInnerSource(map(inputQueue.shift()!))
             } else if (ended) {
               sink(SignalKind.End);
             } else if (!outerPulled) {
