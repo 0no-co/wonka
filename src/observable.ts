@@ -1,4 +1,4 @@
-import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn } from './types'
+import { Source, SignalKind, TalkbackKind } from './types'
 import { push, start, talkbackPlaceholder } from './helpers'
 
 interface ObservableSubscription {
@@ -6,7 +6,7 @@ interface ObservableSubscription {
   unsubscribe(): void;
 }
 
-export interface ObservableObserver<T> {
+interface ObservableObserver<T> {
   next(value: T): void;
   error(error: any): void;
   complete(): void;
