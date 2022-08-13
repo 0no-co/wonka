@@ -61,12 +61,12 @@ const passesActivePush = (
 ) => {
   it('responds to eager Push signals (spec)', () => {
     const values: any[] = [];
+    let talkback: TalkbackFn | null = null;
     let sink: Sink<any> | null = null;
     let pulls = 0;
 
     const source: Source<any> = (_sink) => {
-      sink = _sink;
-      sink(start((signal) => {
+      (sink = _sink)(start((signal) => {
         if (signal === TalkbackKind.Pull)
           pulls++;
       }));
@@ -76,8 +76,11 @@ const passesActivePush = (
       expect(signal).not.toBe(SignalKind.End);
       if (signal === SignalKind.End) {
         /*noop*/
+      } else if (signal.tag === SignalKind.Start) {
+        talkback = signal[0];
       } else if (signal.tag === SignalKind.Push) {
         values.push(signal[0]);
+        talkback!(TalkbackKind.Pull);
       }
     });
 
