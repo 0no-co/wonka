@@ -13,13 +13,13 @@ const systemFonts = [
   'Apple Color Emoji',
   'Segoe UI Emoji',
   'Segoe UI Symbol',
-  'Noto Color Emoji'
+  'Noto Color Emoji',
 ];
 
 export const fonts = {
   header: ['phantom-sans', ...systemFonts],
   code: ['space-mono', 'monospace'],
-  body: systemFonts
+  body: systemFonts,
 };
 
 export const colors = {
@@ -29,7 +29,7 @@ export const colors = {
   fg: '#36313d',
   fgHeading: '#000000',
   fgPassive: '#78757a',
-  fgActive: '#f5735f'
+  fgActive: '#f5735f',
 };
 
 export const prismTheme = nightOwlLight;
@@ -46,5 +46,5 @@ export const zIndices = [0, 1, 2, 3];
 export const borders = [
   `${borderWidths[0]} solid ${colors.bgPassive}`,
   `${borderWidths[1]} solid ${colors.bgPassive}`,
-  `${borderWidths[2]} solid ${colors.bgPassive}`
+  `${borderWidths[2]} solid ${colors.bgPassive}`,
 ];

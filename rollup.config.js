@@ -22,10 +22,7 @@ const plugins = [
 
   typescript({
     typescript: require('typescript'),
-    exclude: [
-      'src/**/*.test.ts',
-      '**/__tests__/*',
-    ],
+    exclude: ['src/**/*.test.ts', '**/__tests__/*'],
     compilerOptions: {
       sourceMap: true,
       noEmit: false,
@@ -49,7 +46,7 @@ const plugins = [
       templateString: false,
       objectRestSpread: false,
     },
-    exclude: 'node_modules/**'
+    exclude: 'node_modules/**',
   }),
 
   terser({
@@ -68,7 +65,7 @@ const plugins = [
       sequences: false,
       loops: false,
       conditionals: false,
-      join_vars: false
+      join_vars: false,
     },
     mangle: {
       module: true,
@@ -77,12 +74,12 @@ const plugins = [
     output: {
       beautify: true,
       braces: true,
-      indent_level: 2
-    }
+      indent_level: 2,
+    },
   }),
 ];
 
-const output = (format) => {
+const output = format => {
   const extension = format === 'esm' ? '.mjs' : '.js';
   return {
     chunkFileNames: '[hash]' + extension,
@@ -119,10 +116,7 @@ const config = {
     tryCatchDeoptimization: false,
     moduleSideEffects: false,
   },
-  output: [
-    output('esm'),
-    output('cjs'),
-  ],
+  output: [output('esm'), output('cjs')],
 };
 
 export default config;

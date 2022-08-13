@@ -9,25 +9,24 @@ import * as operators from '../operators';
   A Pull will be sent from the sink upwards and should pass through
   the operator until the source receives it, which then pushes a
   value down. */
-const passesPassivePull = (
-  operator: Operator<any, any>,
-  output: any = 0
-) => {
+const passesPassivePull = (operator: Operator<any, any>, output: any = 0) => {
   it('responds to Pull talkback signals (spec)', () => {
     let talkback: TalkbackFn | null = null;
     let pushes = 0;
     const values: any[] = [];
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        if (!pushes && signal === TalkbackKind.Pull) {
-          pushes++;
-          sink(push(0));
-        }
-      }));
+      sink(
+        start(signal => {
+          if (!pushes && signal === TalkbackKind.Pull) {
+            pushes++;
+            sink(push(0));
+          }
+        })
+      );
     };
 
-    const sink: Sink<any> = (signal) => {
+    const sink: Sink<any> = signal => {
       expect(signal).not.toBe(SignalKind.End);
       if (signal === SignalKind.End) {
         /*noop*/
@@ -55,24 +54,22 @@ const passesPassivePull = (
   A Push will be sent downwards from the source, through the
   operator to the sink. Pull events should be let through from
   the sink after every Push event. */
-const passesActivePush = (
-  operator: Operator<any, any>,
-  result: any = 0
-) => {
+const passesActivePush = (operator: Operator<any, any>, result: any = 0) => {
   it('responds to eager Push signals (spec)', () => {
     const values: any[] = [];
     let talkback: TalkbackFn | null = null;
     let sink: Sink<any> | null = null;
     let pulls = 0;
 
-    const source: Source<any> = (_sink) => {
-      (sink = _sink)(start((signal) => {
-        if (signal === TalkbackKind.Pull)
-          pulls++;
-      }));
+    const source: Source<any> = _sink => {
+      (sink = _sink)(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
     };
 
-    operator(source)((signal) => {
+    operator(source)(signal => {
       expect(signal).not.toBe(SignalKind.End);
       if (signal === SignalKind.End) {
         /*noop*/
@@ -105,13 +102,15 @@ const passesSinkClose = (operator: Operator<any, any>) => {
     let closing = 0;
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull && !closing) {
-          sink(push(0));
-        } else if (signal === TalkbackKind.Close) {
-          closing++;
-        }
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull && !closing) {
+            sink(push(0));
+          } else if (signal === TalkbackKind.Close) {
+            closing++;
+          }
+        })
+      );
     };
 
     const sink: Sink<any> = signal => {
@@ -138,10 +137,7 @@ const passesSinkClose = (operator: Operator<any, any>) => {
   A Push and End signal will be sent after the first Pull talkback
   signal from the sink, which shouldn't lead to any extra Close or Pull
   talkback signals. */
-const passesSourceEnd = (
-  operator: Operator<any, any>,
-  result: any = 0
-) => {
+const passesSourceEnd = (operator: Operator<any, any>, result: any = 0) => {
   it('passes on immediate Push then End signals from source (spec)', () => {
     const signals: Signal<any>[] = [];
     let talkback: TalkbackFn | null = null;
@@ -149,16 +145,18 @@ const passesSourceEnd = (
     let ending = 0;
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        expect(signal).not.toBe(TalkbackKind.Close);
-        if (signal === TalkbackKind.Pull) {
-          pulls++;
-          if (pulls === 1) {
-            sink(push(0));
-            sink(SignalKind.End);
+      sink(
+        start(signal => {
+          expect(signal).not.toBe(TalkbackKind.Close);
+          if (signal === TalkbackKind.Pull) {
+            pulls++;
+            if (pulls === 1) {
+              sink(push(0));
+              sink(SignalKind.End);
+            }
           }
-        }
-      }));
+        })
+      );
     };
 
     const sink: Sink<any> = signal => {
@@ -188,10 +186,7 @@ const passesSourceEnd = (
   after the first pull in response to another.
   This is similar to passesSourceEnd but more well behaved since
   mergeMap/switchMap/concatMap are eager operators. */
-const passesSourcePushThenEnd = (
-  operator: Operator<any, any>,
-  result: any = 0
-) => {
+const passesSourcePushThenEnd = (operator: Operator<any, any>, result: any = 0) => {
   it('passes on End signals from source (spec)', () => {
     const signals: Signal<any>[] = [];
     let talkback: TalkbackFn | null = null;
@@ -199,14 +194,19 @@ const passesSourcePushThenEnd = (
     let ending = 0;
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        expect(signal).not.toBe(TalkbackKind.Close);
-        if (signal === TalkbackKind.Pull) {
-          pulls++;
-          if (pulls <= 2) { sink(push(0)); }
-          else { sink(SignalKind.End); }
-        }
-      }));
+      sink(
+        start(signal => {
+          expect(signal).not.toBe(TalkbackKind.Close);
+          if (signal === TalkbackKind.Pull) {
+            pulls++;
+            if (pulls <= 2) {
+              sink(push(0));
+            } else {
+              sink(SignalKind.End);
+            }
+          }
+        })
+      );
     };
 
     const sink: Sink<any> = signal => {
@@ -228,11 +228,7 @@ const passesSourcePushThenEnd = (
     jest.runAllTimers();
     expect(ending).toBe(1);
     expect(pulls).toBe(3);
-    expect(signals).toEqual([
-      push(result),
-      push(result),
-      SignalKind.End
-    ]);
+    expect(signals).toEqual([push(result), push(result), SignalKind.End]);
   });
 };
 
@@ -272,13 +268,15 @@ const passesStrictEnd = (operator: Operator<any, any>) => {
     const signals: Signal<any>[] = [];
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          pulls++;
-          sink(SignalKind.End);
-          sink(push(123));
-        }
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            pulls++;
+            sink(SignalKind.End);
+            sink(push(123));
+          }
+        })
+      );
     };
 
     const sink: Sink<any> = signal => {
@@ -303,11 +301,13 @@ const passesStrictEnd = (operator: Operator<any, any>) => {
     const signals: Signal<any>[] = [];
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Close) {
-          sink(push(123));
-        }
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Close) {
+            sink(push(123));
+          }
+        })
+      );
     };
 
     const sink: Sink<any> = signal => {
@@ -339,14 +339,16 @@ const passesCloseAndEnd = (closingOperator: Operator<any, any>) => {
     let ending = 0;
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        // For some operator tests we do need to send a single value
-        if (signal === TalkbackKind.Pull) {
-          sink(push(null));
-        } else {
-          closing++;
-        }
-      }));
+      sink(
+        start(signal => {
+          // For some operator tests we do need to send a single value
+          if (signal === TalkbackKind.Pull) {
+            sink(push(null));
+          } else {
+            closing++;
+          }
+        })
+      );
     };
 
     const sink: Sink<any> = signal => {
@@ -364,22 +366,21 @@ const passesCloseAndEnd = (closingOperator: Operator<any, any>) => {
   });
 };
 
-const passesAsyncSequence = (
-  operator: Operator<any, any>,
-  result: any = 0
-) => {
+const passesAsyncSequence = (operator: Operator<any, any>, result: any = 0) => {
   it('passes an async push with an async end (spec)', () => {
     let hasPushed = false;
     const signals: Signal<any>[] = [];
 
     const source: Source<any> = sink => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull && !hasPushed) {
-          hasPushed = true;
-          setTimeout(() => sink(push(0)), 10);
-          setTimeout(() => sink(SignalKind.End), 20);
-        }
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull && !hasPushed) {
+            hasPushed = true;
+            setTimeout(() => sink(push(0)), 10);
+            setTimeout(() => sink(SignalKind.End), 20);
+          }
+        })
+      );
     };
 
     const sink: Sink<any> = signal => {
@@ -402,10 +403,7 @@ const passesAsyncSequence = (
     expect(hasPushed).toBeTruthy();
     jest.runAllTimers();
 
-    expect(signals).toEqual([
-      push(result),
-      SignalKind.End
-    ]);
+    expect(signals).toEqual([push(result), SignalKind.End]);
   });
 };
 
@@ -439,10 +437,11 @@ describe('combine', () => {
 
 describe('buffer', () => {
   const valueThenNever: Source<any> = sink =>
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Pull)
-        sink(push(null));
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Pull) sink(push(null));
+      })
+    );
 
   const noop = operators.buffer(valueThenNever);
 
@@ -522,9 +521,7 @@ describe('concatMap', () => {
     })(sources.fromValue(null))(fn);
 
     expect(teardown).toHaveBeenCalled();
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function))]);
   });
 
   // This asynchronous test for concatMap will behave differently than mergeMap & switchMap
@@ -539,18 +536,10 @@ describe('concatMap', () => {
     );
 
     jest.advanceTimersByTime(14);
-    expect(fn.mock.calls).toEqual([
-      [1],
-      [2],
-    ]);
+    expect(fn.mock.calls).toEqual([[1], [2]]);
 
     jest.runAllTimers();
-    expect(fn.mock.calls).toEqual([
-      [1],
-      [2],
-      [10],
-      [20],
-    ]);
+    expect(fn.mock.calls).toEqual([[1], [2], [10], [20]]);
   });
 
   it('works for fully asynchronous sources', () => {
@@ -561,7 +550,7 @@ describe('concatMap', () => {
         return sources.make(observer => {
           setTimeout(() => observer.next(1));
           return () => {};
-        })
+        });
       })(sources.fromValue(null))
     );
 
@@ -573,13 +562,10 @@ describe('concatMap', () => {
     const values: any[] = [];
 
     sinks.forEach(x => values.push(x))(
-      operators.concat([
-        sources.fromArray([1, 2]),
-        sources.fromArray([3, 4])
-      ])
+      operators.concat([sources.fromArray([1, 2]), sources.fromArray([3, 4])])
     );
 
-    expect(values).toEqual([ 1, 2, 3, 4 ]);
+    expect(values).toEqual([1, 2, 3, 4]);
   });
 });
 
@@ -738,9 +724,7 @@ describe('mergeMap', () => {
     })(sources.fromValue(null))(fn);
 
     expect(teardown).toHaveBeenCalled();
-    expect(values).toEqual([
-      start(expect.any(Function)),
-    ]);
+    expect(values).toEqual([start(expect.any(Function))]);
   });
 
   // This asynchronous test for mergeMap will behave differently than concatMap & switchMap
@@ -755,25 +739,17 @@ describe('mergeMap', () => {
     );
 
     jest.runAllTimers();
-    expect(fn.mock.calls).toEqual([
-      [1],
-      [10],
-      [2],
-      [20],
-    ]);
+    expect(fn.mock.calls).toEqual([[1], [10], [2], [20]]);
   });
 
   it('emits synchronous values in order', () => {
     const values: any[] = [];
 
     sinks.forEach(x => values.push(x))(
-      operators.merge([
-        sources.fromArray([1, 2]),
-        sources.fromArray([3, 4])
-      ])
+      operators.merge([sources.fromArray([1, 2]), sources.fromArray([3, 4])])
     );
 
-    expect(values).toEqual([ 1, 2, 3, 4 ]);
+    expect(values).toEqual([1, 2, 3, 4]);
   });
 });
 
@@ -841,7 +817,9 @@ describe('onStart', () => {
     let sink: Sink<any>;
 
     const fn = jest.fn();
-    const source: Source<any> = _sink => { sink = _sink; };
+    const source: Source<any> = _sink => {
+      sink = _sink;
+    };
 
     sinks.forEach(() => {})(operators.onStart(fn)(source));
 
@@ -854,10 +832,11 @@ describe('onStart', () => {
 
 describe('sample', () => {
   const valueThenNever: Source<any> = sink =>
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Pull)
-        sink(push(null));
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Pull) sink(push(null));
+      })
+    );
 
   const noop = operators.sample(valueThenNever);
 
@@ -1059,9 +1038,7 @@ describe('switchMap', () => {
     })(sources.fromValue(null))(fn);
 
     expect(teardown).toHaveBeenCalled();
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function))]);
   });
 
   // This asynchronous test for switchMap will behave differently than concatMap & mergeMap
@@ -1070,17 +1047,13 @@ describe('switchMap', () => {
     const fn = jest.fn();
 
     sinks.forEach(fn)(
-      operators.switchMap((x: number) => (
+      operators.switchMap((x: number) =>
         operators.take(2)(operators.map((y: number) => x * (y + 1))(sources.interval(5)))
-      ))(source)
+      )(source)
     );
 
     jest.runAllTimers();
-    expect(fn.mock.calls).toEqual([
-      [1],
-      [10],
-      [20],
-    ]);
+    expect(fn.mock.calls).toEqual([[1], [10], [20]]);
   });
 });
 
@@ -1104,11 +1077,7 @@ describe('take', () => {
     next(1);
 
     expect(fn).toHaveBeenCalledTimes(3);
-    expect(fn.mock.calls).toEqual([
-      [start(expect.any(Function))],
-      [push(1)],
-      [SignalKind.End],
-    ]);
+    expect(fn.mock.calls).toEqual([[start(expect.any(Function))], [push(1)], [SignalKind.End]]);
   });
 });
 
@@ -1134,10 +1103,7 @@ describe('takeUntil', () => {
     next(1);
 
     expect(fn).toHaveBeenCalledTimes(2);
-    expect(fn.mock.calls).toEqual([
-      [start(expect.any(Function))],
-      [push(1)],
-    ]);
+    expect(fn.mock.calls).toEqual([[start(expect.any(Function))], [push(1)]]);
 
     notify(null);
     expect(fn).toHaveBeenCalledTimes(3);
@@ -1165,11 +1131,7 @@ describe('takeWhile', () => {
     next(1);
     next(2);
 
-    expect(fn.mock.calls).toEqual([
-      [start(expect.any(Function))],
-      [push(1)],
-      [SignalKind.End],
-    ]);
+    expect(fn.mock.calls).toEqual([[start(expect.any(Function))], [push(1)], [SignalKind.End]]);
   });
 });
 
@@ -1199,11 +1161,7 @@ describe('takeLast', () => {
     expect(signals.length).toBe(0);
     complete();
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(2),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(2), SignalKind.End]);
   });
 });
 

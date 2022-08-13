@@ -5,7 +5,7 @@ import { compiler, beautify } from 'flowgen';
 
 function flowTypings() {
   return {
-    name: "flow-typings",
+    name: 'flow-typings',
     async writeBundle() {
       const cwd = process.cwd();
       for (const file of glob('dist/types/**/*.d.ts')) {
@@ -17,7 +17,7 @@ function flowTypings() {
         const definition = flowdef.replace(/import/g, 'import type');
         writeFileSync(newpath, '// @flow\n\n' + definition);
       }
-    }
+    },
   };
 }
 

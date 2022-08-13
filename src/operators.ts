@@ -1,17 +1,17 @@
-import { Source, Sink, Operator, SignalKind, TalkbackKind, TalkbackFn } from './types'
-import { push, start, talkbackPlaceholder } from './helpers'
-import { fromArray } from './sources'
+import { Source, Sink, Operator, SignalKind, TalkbackKind, TalkbackFn } from './types';
+import { push, start, talkbackPlaceholder } from './helpers';
+import { fromArray } from './sources';
 
 const identity = <T>(x: T): T => x;
 
 export function buffer<S, T>(notifier: Source<S>): Operator<T, T[]> {
-  return (source) => (sink) => {
+  return source => sink => {
     let buffer: T[] = [];
     let sourceTalkback = talkbackPlaceholder;
     let notifierTalkback = talkbackPlaceholder;
     let pulled = false;
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -21,7 +21,7 @@ export function buffer<S, T>(notifier: Source<S>): Operator<T, T[]> {
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         sourceTalkback = signal[0];
-        notifier((signal) => {
+        notifier(signal => {
           if (ended) {
             /*noop*/
           } else if (signal === SignalKind.End) {
@@ -48,22 +48,24 @@ export function buffer<S, T>(notifier: Source<S>): Operator<T, T[]> {
         }
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close && !ended) {
-        ended = true;
-        sourceTalkback(TalkbackKind.Close);
-        notifierTalkback(TalkbackKind.Close);
-      } else if (!ended && !pulled) {
-        pulled = true;
-        sourceTalkback(TalkbackKind.Pull);
-        notifierTalkback(TalkbackKind.Pull);
-      }
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close && !ended) {
+          ended = true;
+          sourceTalkback(TalkbackKind.Close);
+          notifierTalkback(TalkbackKind.Close);
+        } else if (!ended && !pulled) {
+          pulled = true;
+          sourceTalkback(TalkbackKind.Pull);
+          notifierTalkback(TalkbackKind.Pull);
+        }
+      })
+    );
   };
 }
 
 export function combine<A, B>(sourceA: Source<A>, sourceB: Source<B>): Source<[A, B]> {
-  return (sink) => {
+  return sink => {
     let lastValA: A | void;
     let lastValB: B | void;
     let talkbackA = talkbackPlaceholder;
@@ -71,7 +73,7 @@ export function combine<A, B>(sourceA: Source<A>, sourceB: Source<B>): Source<[A
     let gotSignal = false;
     let gotEnd = false;
     let ended = false;
-    sourceA((signal) => {
+    sourceA(signal => {
       if (signal === SignalKind.End) {
         if (!gotEnd) {
           gotEnd = true;
@@ -94,7 +96,7 @@ export function combine<A, B>(sourceA: Source<A>, sourceB: Source<B>): Source<[A
         sink(push([lastValA, lastValB] as [A, B]));
       }
     });
-    sourceB((signal) => {
+    sourceB(signal => {
       if (signal === SignalKind.End) {
         if (!gotEnd) {
           gotEnd = true;
@@ -117,24 +119,26 @@ export function combine<A, B>(sourceA: Source<A>, sourceB: Source<B>): Source<[A
         sink(push([lastValA, lastValB] as [A, B]));
       }
     });
-    sink(start((signal) => {
-      if (ended) {
-        /*noop*/
-      } else if (signal === TalkbackKind.Close) {
-        ended = true;
-        talkbackA(TalkbackKind.Close);
-        talkbackB(TalkbackKind.Close);
-      } else if (!gotSignal) {
-        gotSignal = true;
-        talkbackA(TalkbackKind.Pull);
-        talkbackB(TalkbackKind.Pull);
-      }
-    }));
+    sink(
+      start(signal => {
+        if (ended) {
+          /*noop*/
+        } else if (signal === TalkbackKind.Close) {
+          ended = true;
+          talkbackA(TalkbackKind.Close);
+          talkbackB(TalkbackKind.Close);
+        } else if (!gotSignal) {
+          gotSignal = true;
+          talkbackA(TalkbackKind.Pull);
+          talkbackB(TalkbackKind.Pull);
+        }
+      })
+    );
   };
 }
 
 export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> {
-  return (source) => (sink) => {
+  return source => sink => {
     const inputQueue: In[] = [];
     let outerTalkback = talkbackPlaceholder;
     let innerTalkback = talkbackPlaceholder;
@@ -144,12 +148,12 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
     let ended = false;
     function applyInnerSource(innerSource: Source<Out>): void {
       innerActive = true;
-      innerSource((signal) => {
+      innerSource(signal => {
         if (signal === SignalKind.End) {
           if (innerActive) {
             innerActive = false;
             if (inputQueue.length) {
-              applyInnerSource(map(inputQueue.shift()!))
+              applyInnerSource(map(inputQueue.shift()!));
             } else if (ended) {
               sink(SignalKind.End);
             } else if (!outerPulled) {
@@ -170,13 +174,12 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
         }
       });
     }
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
         ended = true;
-        if (!innerActive && !inputQueue.length)
-          sink(SignalKind.End);
+        if (!innerActive && !inputQueue.length) sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         outerTalkback = signal[0];
       } else {
@@ -188,27 +191,29 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
         }
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close) {
-        if (!ended) {
-          ended = true;
-          outerTalkback(TalkbackKind.Close);
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) {
+          if (!ended) {
+            ended = true;
+            outerTalkback(TalkbackKind.Close);
+          }
+          if (innerActive) {
+            innerActive = false;
+            innerTalkback(TalkbackKind.Close);
+          }
+        } else {
+          if (!ended && !outerPulled) {
+            outerPulled = true;
+            outerTalkback(TalkbackKind.Pull);
+          }
+          if (innerActive && !innerPulled) {
+            innerPulled = true;
+            innerTalkback(TalkbackKind.Pull);
+          }
         }
-        if (innerActive) {
-          innerActive = false;
-          innerTalkback(TalkbackKind.Close);
-        }
-      } else {
-        if (!ended && !outerPulled) {
-          outerPulled = true;
-          outerTalkback(TalkbackKind.Pull);
-        }
-        if (innerActive && !innerPulled) {
-          innerPulled = true;
-          innerTalkback(TalkbackKind.Pull);
-        }
-      }
-    }));
+      })
+    );
   };
 }
 
@@ -221,9 +226,9 @@ export function concat<T>(sources: Source<T>[]): Source<T> {
 }
 
 export function filter<T>(predicate: (value: T) => boolean): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let talkback = talkbackPlaceholder;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         sink(signal);
       } else if (signal.tag === SignalKind.Start) {
@@ -239,24 +244,25 @@ export function filter<T>(predicate: (value: T) => boolean): Operator<T, T> {
 }
 
 export function map<In, Out>(map: (value: In) => Out): Operator<In, Out> {
-  return (source) => (sink) => source((signal) => {
-    if (signal === SignalKind.End || signal.tag === SignalKind.Start) {
-      sink(signal);
-    } else {
-      sink(push(map(signal[0])));
-    }
-  });
+  return source => sink =>
+    source(signal => {
+      if (signal === SignalKind.End || signal.tag === SignalKind.Start) {
+        sink(signal);
+      } else {
+        sink(push(map(signal[0])));
+      }
+    });
 }
 
 export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> {
-  return (source) => (sink) => {
+  return source => sink => {
     const innerTalkbacks: TalkbackFn[] = [];
     let outerTalkback = talkbackPlaceholder;
     let outerPulled = false;
     let ended = false;
     function applyInnerSource(innerSource: Source<Out>): void {
       let talkback = talkbackPlaceholder;
-      innerSource((signal) => {
+      innerSource(signal => {
         if (signal === SignalKind.End) {
           if (innerTalkbacks.length) {
             const index = innerTalkbacks.indexOf(talkback);
@@ -271,7 +277,7 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
             }
           }
         } else if (signal.tag === SignalKind.Start) {
-          innerTalkbacks.push(talkback = signal[0]);
+          innerTalkbacks.push((talkback = signal[0]));
           talkback(TalkbackKind.Pull);
         } else if (innerTalkbacks.length) {
           sink(signal);
@@ -279,13 +285,12 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
         }
       });
     }
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
         ended = true;
-        if (!innerTalkbacks.length)
-          sink(SignalKind.End);
+        if (!innerTalkbacks.length) sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         outerTalkback = signal[0];
       } else {
@@ -297,25 +302,25 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
         }
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close) {
-        if (!ended) {
-          ended = true;
-          outerTalkback(TalkbackKind.Close);
-        }
-        while (innerTalkbacks.length)
-          innerTalkbacks.pop()!(TalkbackKind.Close);
-      } else {
-        if (!ended && !outerPulled) {
-          outerPulled = true;
-          outerTalkback(TalkbackKind.Pull);
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) {
+          if (!ended) {
+            ended = true;
+            outerTalkback(TalkbackKind.Close);
+          }
+          while (innerTalkbacks.length) innerTalkbacks.pop()!(TalkbackKind.Close);
         } else {
-          outerPulled = false;
+          if (!ended && !outerPulled) {
+            outerPulled = true;
+            outerTalkback(TalkbackKind.Pull);
+          } else {
+            outerPulled = false;
+          }
+          for (let i = 0; i < innerTalkbacks.length; i++) innerTalkbacks[i](TalkbackKind.Pull);
         }
-        for (let i = 0; i < innerTalkbacks.length; i++)
-          innerTalkbacks[i](TalkbackKind.Pull);
-      }
-    }));
+      })
+    );
   };
 }
 
@@ -328,9 +333,9 @@ export function merge<T>(sources: Source<T>[]): Source<T> {
 }
 
 export function onEnd<T>(callback: () => void): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -339,15 +344,17 @@ export function onEnd<T>(callback: () => void): Operator<T, T> {
         callback();
       } else if (signal.tag === SignalKind.Start) {
         const talkback = signal[0];
-        sink(start((signal) => {
-          if (signal === TalkbackKind.Close) {
-            ended = true;
-            talkback(TalkbackKind.Close);
-            callback();
-          } else {
-            talkback(signal);
-          }
-        }));
+        sink(
+          start(signal => {
+            if (signal === TalkbackKind.Close) {
+              ended = true;
+              talkback(TalkbackKind.Close);
+              callback();
+            } else {
+              talkback(signal);
+            }
+          })
+        );
       } else {
         sink(signal);
       }
@@ -356,9 +363,9 @@ export function onEnd<T>(callback: () => void): Operator<T, T> {
 }
 
 export function onPush<T>(callback: (value: T) => void): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -366,10 +373,12 @@ export function onPush<T>(callback: (value: T) => void): Operator<T, T> {
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         const talkback = signal[0];
-        sink(start((signal) => {
-          if (signal === TalkbackKind.Close) ended = true;
-          talkback(signal);
-        }));
+        sink(
+          start(signal => {
+            if (signal === TalkbackKind.Close) ended = true;
+            talkback(signal);
+          })
+        );
       } else {
         callback(signal[0]);
         sink(signal);
@@ -379,26 +388,27 @@ export function onPush<T>(callback: (value: T) => void): Operator<T, T> {
 }
 
 export function onStart<T>(callback: () => void): Operator<T, T> {
-  return (source) => (sink) => source((signal) => {
-    if (signal === SignalKind.End) {
-      sink(SignalKind.End);
-    } else if (signal.tag === SignalKind.Start) {
-      sink(signal);
-      callback();
-    } else {
-      sink(signal);
-    }
-  });
+  return source => sink =>
+    source(signal => {
+      if (signal === SignalKind.End) {
+        sink(SignalKind.End);
+      } else if (signal.tag === SignalKind.Start) {
+        sink(signal);
+        callback();
+      } else {
+        sink(signal);
+      }
+    });
 }
 
 export function sample<S, T>(notifier: Source<S>): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let sourceTalkback = talkbackPlaceholder;
     let notifierTalkback = talkbackPlaceholder;
     let value: T | void;
     let pulled = false;
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -418,7 +428,7 @@ export function sample<S, T>(notifier: Source<S>): Operator<T, T> {
         }
       }
     });
-    notifier((signal) => {
+    notifier(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -433,30 +443,32 @@ export function sample<S, T>(notifier: Source<S>): Operator<T, T> {
         sink(signal);
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close && !ended) {
-        ended = true;
-        sourceTalkback(TalkbackKind.Close);
-        notifierTalkback(TalkbackKind.Close);
-      } else if (!ended && !pulled) {
-        pulled = true;
-        sourceTalkback(TalkbackKind.Pull);
-        notifierTalkback(TalkbackKind.Pull);
-      }
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close && !ended) {
+          ended = true;
+          sourceTalkback(TalkbackKind.Close);
+          notifierTalkback(TalkbackKind.Close);
+        } else if (!ended && !pulled) {
+          pulled = true;
+          sourceTalkback(TalkbackKind.Pull);
+          notifierTalkback(TalkbackKind.Pull);
+        }
+      })
+    );
   };
 }
 
 export function scan<In, Out>(reducer: (acc: Out, value: In) => Out, seed: Out): Operator<In, Out> {
-  return (source) => (sink) => {
+  return source => sink => {
     let acc = seed;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         sink(signal);
       } else {
-        sink(push(acc = reducer(acc, signal[0])));
+        sink(push((acc = reducer(acc, signal[0]))));
       }
     });
   };
@@ -466,10 +478,10 @@ export function share<T>(source: Source<T>): Source<T> {
   const sinks: Sink<T>[] = [];
   let talkback = talkbackPlaceholder;
   let gotSignal = false;
-  return (sink) => {
+  return sink => {
     sinks.push(sink);
     if (sinks.length === 1) {
-      source((signal) => {
+      source(signal => {
         if (signal === SignalKind.End) {
           while (sinks.length) sinks.pop()!(SignalKind.End);
         } else if (signal.tag === SignalKind.Start) {
@@ -480,24 +492,26 @@ export function share<T>(source: Source<T>): Source<T> {
         }
       });
     }
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close) {
-        const index = sinks.indexOf(sink);
-        if (index > -1) sinks.splice(index, 1);
-        if (!sinks.length) talkback(TalkbackKind.Close);
-      } else if (signal === TalkbackKind.Pull && !gotSignal) {
-        gotSignal = true;
-        talkback(TalkbackKind.Pull);
-      }
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) {
+          const index = sinks.indexOf(sink);
+          if (index > -1) sinks.splice(index, 1);
+          if (!sinks.length) talkback(TalkbackKind.Close);
+        } else if (signal === TalkbackKind.Pull && !gotSignal) {
+          gotSignal = true;
+          talkback(TalkbackKind.Pull);
+        }
+      })
+    );
   };
 }
 
 export function skip<T>(wait: number): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let talkback = talkbackPlaceholder;
     let rest = wait;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
@@ -513,13 +527,13 @@ export function skip<T>(wait: number): Operator<T, T> {
 }
 
 export function skipUntil<S, T>(notifier: Source<S>): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let sourceTalkback = talkbackPlaceholder;
     let notifierTalkback = talkbackPlaceholder;
     let skip = true;
     let pulled = false;
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -528,7 +542,7 @@ export function skipUntil<S, T>(notifier: Source<S>): Operator<T, T> {
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         sourceTalkback = signal[0];
-        notifier((signal) => {
+        notifier(signal => {
           if (signal === SignalKind.End) {
             if (skip) {
               ended = true;
@@ -552,25 +566,27 @@ export function skipUntil<S, T>(notifier: Source<S>): Operator<T, T> {
         pulled = false;
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close && !ended) {
-        ended = true;
-        sourceTalkback(TalkbackKind.Close);
-        if (skip) notifierTalkback(TalkbackKind.Close);
-      } else if (!ended && !pulled) {
-        pulled = true;
-        if (skip) notifierTalkback(TalkbackKind.Pull);
-        sourceTalkback(TalkbackKind.Pull);
-      }
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close && !ended) {
+          ended = true;
+          sourceTalkback(TalkbackKind.Close);
+          if (skip) notifierTalkback(TalkbackKind.Close);
+        } else if (!ended && !pulled) {
+          pulled = true;
+          if (skip) notifierTalkback(TalkbackKind.Pull);
+          sourceTalkback(TalkbackKind.Pull);
+        }
+      })
+    );
   };
 }
 
 export function skipWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let talkback = talkbackPlaceholder;
     let skip = true;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
@@ -591,7 +607,7 @@ export function skipWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
 }
 
 export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> {
-  return (source) => (sink) => {
+  return source => sink => {
     let outerTalkback = talkbackPlaceholder;
     let innerTalkback = talkbackPlaceholder;
     let outerPulled = false;
@@ -600,7 +616,7 @@ export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
     let ended = false;
     function applyInnerSource(innerSource: Source<Out>): void {
       innerActive = true;
-      innerSource((signal) => {
+      innerSource(signal => {
         if (!innerActive) {
           /*noop*/
         } else if (signal === SignalKind.End) {
@@ -624,13 +640,12 @@ export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
         }
       });
     }
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
         ended = true;
-        if (!innerActive)
-          sink(SignalKind.End);
+        if (!innerActive) sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         outerTalkback = signal[0];
       } else {
@@ -647,27 +662,29 @@ export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
         applyInnerSource(map(signal[0]));
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close) {
-        if (!ended) {
-          ended = true;
-          outerTalkback(TalkbackKind.Close);
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) {
+          if (!ended) {
+            ended = true;
+            outerTalkback(TalkbackKind.Close);
+          }
+          if (innerActive) {
+            innerActive = false;
+            innerTalkback(TalkbackKind.Close);
+          }
+        } else {
+          if (!ended && !outerPulled) {
+            outerPulled = true;
+            outerTalkback(TalkbackKind.Pull);
+          }
+          if (innerActive && !innerPulled) {
+            innerPulled = true;
+            innerTalkback(TalkbackKind.Pull);
+          }
         }
-        if (innerActive) {
-          innerActive = false;
-          innerTalkback(TalkbackKind.Close);
-        }
-      } else {
-        if (!ended && !outerPulled) {
-          outerPulled = true;
-          outerTalkback(TalkbackKind.Pull);
-        }
-        if (innerActive && !innerPulled) {
-          innerPulled = true;
-          innerTalkback(TalkbackKind.Pull);
-        }
-      }
-    }));
+      })
+    );
   };
 }
 
@@ -676,11 +693,11 @@ export function switchAll<T>(source: Source<Source<T>>): Source<T> {
 }
 
 export function take<T>(max: number): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let talkback = talkbackPlaceholder;
     let ended = false;
     let taken = 0;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -705,22 +722,24 @@ export function take<T>(max: number): Operator<T, T> {
         sink(signal);
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close && !ended) {
-        ended = true;
-        talkback(TalkbackKind.Close);
-      } else if (signal === TalkbackKind.Pull && !ended && taken < max) {
-        talkback(TalkbackKind.Pull);
-      }
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close && !ended) {
+          ended = true;
+          talkback(TalkbackKind.Close);
+        } else if (signal === TalkbackKind.Pull && !ended && taken < max) {
+          talkback(TalkbackKind.Pull);
+        }
+      })
+    );
   };
 }
 
 export function takeLast<T>(max: number): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     const queue: T[] = [];
     let talkback = talkbackPlaceholder;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         fromArray(queue)(sink);
       } else if (signal.tag === SignalKind.Start) {
@@ -740,11 +759,11 @@ export function takeLast<T>(max: number): Operator<T, T> {
 }
 
 export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let sourceTalkback = talkbackPlaceholder;
     let notifierTalkback = talkbackPlaceholder;
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -753,7 +772,7 @@ export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         sourceTalkback = signal[0];
-        notifier((signal) => {
+        notifier(signal => {
           if (signal === SignalKind.End) {
             /*noop*/
           } else if (signal.tag === SignalKind.Start) {
@@ -768,23 +787,25 @@ export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
         sink(signal);
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close && !ended) {
-        ended = true;
-        sourceTalkback(TalkbackKind.Close);
-        notifierTalkback(TalkbackKind.Close);
-      } else if (!ended) {
-        sourceTalkback(TalkbackKind.Pull);
-      }
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close && !ended) {
+          ended = true;
+          sourceTalkback(TalkbackKind.Close);
+          notifierTalkback(TalkbackKind.Close);
+        } else if (!ended) {
+          sourceTalkback(TalkbackKind.Pull);
+        }
+      })
+    );
   };
 }
 
 export function takeWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let talkback = talkbackPlaceholder;
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -805,11 +826,11 @@ export function takeWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
 }
 
 export function debounce<T>(timing: (value: T) => number): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let id: any | void;
     let deferredEnded = false;
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (ended) {
         /*noop*/
       } else if (signal === SignalKind.End) {
@@ -821,16 +842,18 @@ export function debounce<T>(timing: (value: T) => number): Operator<T, T> {
         }
       } else if (signal.tag === SignalKind.Start) {
         const talkback = signal[0];
-        sink(start((signal) => {
-          if (signal === TalkbackKind.Close && !ended) {
-            ended = true;
-            deferredEnded = false;
-            if (id) clearTimeout(id);
-            talkback(TalkbackKind.Close);
-          } else if (!ended) {
-            talkback(TalkbackKind.Pull);
-          }
-        }));
+        sink(
+          start(signal => {
+            if (signal === TalkbackKind.Close && !ended) {
+              ended = true;
+              deferredEnded = false;
+              if (id) clearTimeout(id);
+              talkback(TalkbackKind.Close);
+            } else if (!ended) {
+              talkback(TalkbackKind.Pull);
+            }
+          })
+        );
       } else {
         if (id) clearTimeout(id);
         id = setTimeout(() => {
@@ -844,9 +867,9 @@ export function debounce<T>(timing: (value: T) => number): Operator<T, T> {
 }
 
 export function delay<T>(wait: number): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let active = 0;
-    source((signal) => {
+    source(signal => {
       if (typeof signal !== 'number' && signal.tag === SignalKind.Start) {
         sink(signal);
       } else {
@@ -863,23 +886,25 @@ export function delay<T>(wait: number): Operator<T, T> {
 }
 
 export function throttle<T>(timing: (value: T) => number): Operator<T, T> {
-  return (source) => (sink) => {
+  return source => sink => {
     let skip = false;
     let id: any | void;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         if (id) clearTimeout(id);
         sink(SignalKind.End);
       } else if (signal.tag === SignalKind.Start) {
         const talkback = signal[0];
-        sink(start((signal) => {
-          if (signal === TalkbackKind.Close) {
-            if (id) clearTimeout(id);
-            talkback(TalkbackKind.Close);
-          } else {
-            talkback(TalkbackKind.Pull);
-          }
-        }));
+        sink(
+          start(signal => {
+            if (signal === TalkbackKind.Close) {
+              if (id) clearTimeout(id);
+              talkback(TalkbackKind.Close);
+            } else {
+              talkback(TalkbackKind.Pull);
+            }
+          })
+        );
       } else if (!skip) {
         skip = true;
         if (id) clearTimeout(id);
@@ -893,7 +918,4 @@ export function throttle<T>(timing: (value: T) => number): Operator<T, T> {
   };
 }
 
-export {
-  mergeAll as flatten,
-  onPush as tap,
-}
+export { mergeAll as flatten, onPush as tap };

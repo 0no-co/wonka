@@ -9,7 +9,7 @@ const typography = new Typography({
   headerFontFamily: theme.fonts.header,
   headerWeight: '500',
   bodyFontFamily: theme.fonts.body,
-  bodyWeight: '400'
+  bodyWeight: '400',
 });
 
 export default typography;

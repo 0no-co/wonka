@@ -13,6 +13,7 @@ module.exports = {
     'sort-keys': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'prefer-arrow/prefer-arrow-functions': 'off',
+    'prefer-rest-params': 'off',
 
     'prettier/prettier': [
       'error',
@@ -55,12 +56,9 @@ module.exports = {
         '@typescript-eslint/no-misused-new': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/array-type': 'off',
-        '@typescript-eslint/no-unused-vars': [
-          'error',
-          {
-            argsIgnorePattern: '^_',
-          },
-        ],
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        'prefer-rest-params': 'off',
       },
     },
   ],

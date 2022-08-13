@@ -1,52 +1,56 @@
-import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn } from './types'
-import { push, start, talkbackPlaceholder } from './helpers'
+import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn } from './types';
+import { push, start, talkbackPlaceholder } from './helpers';
 
 export function fromArray<T>(array: T[]): Source<T> {
-  return (sink) => {
+  return sink => {
     let ended = false;
     let looping = false;
     let pulled = false;
     let current = 0;
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close) {
-        ended = true;
-      } else if (looping) {
-        pulled = true;
-      } else {
-        pulled = true;
-        looping = true;
-        for (pulled = looping = true; pulled && !ended; current++) {
-          if (current < array.length) {
-            pulled = false;
-            sink(push(array[current]));
-          } else {
-            ended = true;
-            sink(SignalKind.End);
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) {
+          ended = true;
+        } else if (looping) {
+          pulled = true;
+        } else {
+          pulled = true;
+          looping = true;
+          for (pulled = looping = true; pulled && !ended; current++) {
+            if (current < array.length) {
+              pulled = false;
+              sink(push(array[current]));
+            } else {
+              ended = true;
+              sink(SignalKind.End);
+            }
           }
+          looping = false;
         }
-        looping = false;
-      }
-    }))
-  }
+      })
+    );
+  };
 }
 
 export function fromValue<T>(value: T): Source<T> {
-  return (sink) => {
+  return sink => {
     let ended = false;
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close) {
-        ended = true;
-      } else if (!ended) {
-        ended = true;
-        sink(push(value));
-        sink(SignalKind.End);
-      }
-    }))
-  }
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) {
+          ended = true;
+        } else if (!ended) {
+          ended = true;
+          sink(push(value));
+          sink(SignalKind.End);
+        }
+      })
+    );
+  };
 }
 
 export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<T> {
-  return (sink) => {
+  return sink => {
     let ended = false;
     const teardown = produce({
       next(value: T) {
@@ -59,13 +63,15 @@ export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<
         }
       },
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close && !ended) {
-        ended = true;
-        teardown();
-      }
-    }));
-  }
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close && !ended) {
+          ended = true;
+          teardown();
+        }
+      })
+    );
+  };
 }
 
 export function makeSubject<T>(): Subject<T> {
@@ -74,12 +80,14 @@ export function makeSubject<T>(): Subject<T> {
   return {
     source(sink: Sink<T>) {
       sinks.push(sink);
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Close) {
-          const index = sinks.indexOf(sink);
-          if (index > -1) sinks.splice(index, 1);
-        }
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Close) {
+            const index = sinks.indexOf(sink);
+            if (index > -1) sinks.splice(index, 1);
+          }
+        })
+      );
     },
     next(value: T) {
       if (!ended) {
@@ -98,14 +106,16 @@ export function makeSubject<T>(): Subject<T> {
 
 export const empty: Source<any> = (sink: Sink<any>): void => {
   let ended = false;
-  sink(start((signal) => {
-    if (signal === TalkbackKind.Close) {
-      ended = true;
-    } else if (!ended) {
-      ended = true;
-      sink(SignalKind.End);
-    }
-  }));
+  sink(
+    start(signal => {
+      if (signal === TalkbackKind.Close) {
+        ended = true;
+      } else if (!ended) {
+        ended = true;
+        sink(SignalKind.End);
+      }
+    })
+  );
 };
 
 export const never: Source<any> = (sink: Sink<any>): void => {
@@ -113,42 +123,46 @@ export const never: Source<any> = (sink: Sink<any>): void => {
 };
 
 export function interval(ms: number): Source<number> {
-  return (sink) => {
+  return sink => {
     let i = 0;
     const id = setInterval(() => {
       sink(push(i++));
     }, ms);
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close)
-        clearInterval(id);
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) clearInterval(id);
+      })
+    );
   };
 }
 
 export function fromDomEvent(element: HTMLElement, event: string): Source<Event> {
-  return (sink) => {
+  return sink => {
     const handler = (payload: Event) => {
       sink(push(payload));
     };
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close)
-        element.removeEventListener(event, handler);
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) element.removeEventListener(event, handler);
+      })
+    );
     element.addEventListener(event, handler);
   };
 }
 
 export function fromPromise<T>(promise: Promise<T>): Source<T> {
-  return (sink) => {
+  return sink => {
     let ended = false;
-    promise.then((value) => {
+    promise.then(value => {
       if (!ended) {
         sink(push(value));
         sink(SignalKind.End);
       }
     });
-    sink(start((signal) => {
-      if (signal === TalkbackKind.Close) ended = true;
-    }));
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) ended = true;
+      })
+    );
   };
 }

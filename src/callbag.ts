@@ -1,5 +1,5 @@
-import { Source, SignalKind, TalkbackKind } from './types'
-import { push, start } from './helpers'
+import { Source, SignalKind, TalkbackKind } from './types';
+import { push, start } from './helpers';
 
 interface Callbag<I, O> {
   (t: 0, d: Callbag<O, I>): void;
@@ -8,16 +8,18 @@ interface Callbag<I, O> {
 }
 
 export function fromCallbag<T>(callbag: Callbag<any, T>): Source<T> {
-  return (sink) => {
+  return sink => {
     callbag(0, (signal: number, data: any) => {
       if (signal === 0) {
-        sink(start((signal) => {
-          if (signal === TalkbackKind.Pull) {
-            data(1);
-          } else {
-            data(2);
-          }
-        }));
+        sink(
+          start(signal => {
+            if (signal === TalkbackKind.Pull) {
+              data(1);
+            } else {
+              data(2);
+            }
+          })
+        );
       } else if (signal === 1) {
         sink(push(data));
       } else if (signal === 2) {
@@ -30,7 +32,7 @@ export function fromCallbag<T>(callbag: Callbag<any, T>): Source<T> {
 export function toCallbag<T>(source: Source<T>): Callbag<any, T> {
   return (signal: number, sink: any) => {
     if (signal === 0) {
-      source((signal) => {
+      source(signal => {
         if (signal === SignalKind.End) {
           sink(2);
         } else if (signal.tag === SignalKind.Start) {

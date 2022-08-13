@@ -9,10 +9,7 @@ import * as observable from '../observable';
 import callbagFromArray from 'callbag-from-iter';
 import Observable from 'zen-observable';
 
-const collectSignals = (
-  source: Source<any>,
-  onStart?: (talkbackCb: TalkbackFn) => void
-) => {
+const collectSignals = (source: Source<any>, onStart?: (talkbackCb: TalkbackFn) => void) => {
   let talkback = talkbackPlaceholder;
   const signals: Signal<any>[] = [];
   source(signal => {
@@ -26,7 +23,7 @@ const collectSignals = (
     } else {
       talkback(TalkbackKind.Pull);
     }
-  })
+  });
 
   return signals;
 };
@@ -103,11 +100,7 @@ const passesTrampoline = (source: Source<any>) => {
     };
 
     source(sink);
-    expect(signals).toEqual([
-      push(1),
-      push(2),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([push(1), push(2), SignalKind.End]);
   });
 };
 
@@ -135,25 +128,15 @@ describe('fromValue', () => {
 });
 
 describe('merge', () => {
-  const source = operators.merge<any>([
-    sources.fromValue(0),
-    sources.empty
-  ]);
+  const source = operators.merge<any>([sources.fromValue(0), sources.empty]);
 
   passesColdPull(source);
   passesActiveClose(source);
 
   it('correctly merges two sources where the second is empty', () => {
-    const source = operators.merge<any>([
-      sources.fromValue(0),
-      sources.empty
-    ]);
+    const source = operators.merge<any>([sources.fromValue(0), sources.empty]);
 
-    expect(collectSignals(source)).toEqual([
-      start(expect.any(Function)),
-      push(0),
-      SignalKind.End,
-    ]);
+    expect(collectSignals(source)).toEqual([start(expect.any(Function)), push(0), SignalKind.End]);
   });
 
   it('correctly merges hot sources', () => {
@@ -166,11 +149,7 @@ describe('merge', () => {
     const signals = collectSignals(source);
     expect(onStart).toHaveBeenCalledTimes(2);
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(1),
-      push(2),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(1), push(2)]);
   });
 
   it('correctly merges asynchronous sources', () => {
@@ -179,9 +158,7 @@ describe('merge', () => {
     const onStart = jest.fn();
     const source = operators.merge<any>([
       operators.onStart(onStart)(sources.fromValue(-1)),
-      operators.onStart(onStart)(
-        operators.take(2)(sources.interval(50))
-      ),
+      operators.onStart(onStart)(operators.take(2)(sources.interval(50))),
     ]);
 
     const signals = collectSignals(source);
@@ -199,25 +176,15 @@ describe('merge', () => {
 });
 
 describe('concat', () => {
-  const source = operators.concat<any>([
-    sources.fromValue(0),
-    sources.empty
-  ]);
+  const source = operators.concat<any>([sources.fromValue(0), sources.empty]);
 
   passesColdPull(source);
   passesActiveClose(source);
 
   it('correctly concats two sources where the second is empty', () => {
-    const source = operators.concat<any>([
-      sources.fromValue(0),
-      sources.empty
-    ]);
+    const source = operators.concat<any>([sources.fromValue(0), sources.empty]);
 
-    expect(collectSignals(source)).toEqual([
-      start(expect.any(Function)),
-      push(0),
-      SignalKind.End,
-    ]);
+    expect(collectSignals(source)).toEqual([start(expect.any(Function)), push(0), SignalKind.End]);
   });
 });
 
@@ -234,11 +201,7 @@ describe('make', () => {
     expect(signals).toEqual([start(expect.any(Function))]);
     jest.runAllTimers();
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(1),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(1), SignalKind.End]);
   });
 
   it('supports active cancellation', () => {
@@ -263,24 +226,15 @@ describe('makeSubject', () => {
     const { source, next, complete } = sources.makeSubject();
     const signals = collectSignals(source);
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function))]);
 
     next(1);
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(1),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(1)]);
 
     complete();
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(1),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(1), SignalKind.End]);
   });
 
   it('ignores signals after complete has been called', () => {
@@ -288,10 +242,7 @@ describe('makeSubject', () => {
     const signals = collectSignals(source);
     complete();
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), SignalKind.End]);
 
     next(1);
     complete();
@@ -302,7 +253,7 @@ describe('makeSubject', () => {
 describe('never', () => {
   it('emits nothing and ends immediately', () => {
     const signals = collectSignals(sources.never);
-    expect(signals).toEqual([start(expect.any(Function)) ]);
+    expect(signals).toEqual([start(expect.any(Function))]);
   });
 });
 
@@ -310,10 +261,7 @@ describe('empty', () => {
   it('emits nothing and ends immediately', () => {
     const signals = collectSignals(sources.empty);
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), SignalKind.End]);
   });
 });
 
@@ -324,17 +272,11 @@ describe('fromPromise', () => {
     const promise = Promise.resolve(1);
     const signals = collectSignals(sources.fromPromise(promise));
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function))]);
 
     await promise;
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(1),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(1), SignalKind.End]);
   });
 });
 
@@ -349,12 +291,7 @@ describe('fromObservable', () => {
 
     await new Promise(resolve => setTimeout(resolve));
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(1),
-      push(2),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(1), push(2), SignalKind.End]);
   });
 
   it('supports cancellation on converted Observables', async () => {
@@ -365,9 +302,7 @@ describe('fromObservable', () => {
 
     await new Promise(resolve => setTimeout(resolve));
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function))]);
   });
 });
 
@@ -376,12 +311,7 @@ describe('fromCallbag', () => {
     const source = callbag.fromCallbag(callbagFromArray([1, 2]) as any);
     const signals = collectSignals(source);
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-      push(1),
-      push(2),
-      SignalKind.End,
-    ]);
+    expect(signals).toEqual([start(expect.any(Function)), push(1), push(2), SignalKind.End]);
   });
 
   it('supports cancellation on converted Observables', () => {
@@ -390,9 +320,7 @@ describe('fromCallbag', () => {
       talkback(TalkbackKind.Close);
     });
 
-    expect(signals).toEqual([
-      start(expect.any(Function)),
-    ]);
+    expect(signals).toEqual([start(expect.any(Function))]);
   });
 });
 
@@ -437,8 +365,7 @@ describe('fromDomEvent', () => {
 
     const sink: Sink<any> = signal => {
       expect(signal).not.toBe(SignalKind.End);
-      if ((signal as any).tag === SignalKind.Start)
-        talkback = signal[0];
+      if ((signal as any).tag === SignalKind.Start) talkback = signal[0];
     };
 
     sources.fromDomEvent(element as any, 'click')(sink);

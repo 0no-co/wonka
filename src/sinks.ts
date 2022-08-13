@@ -1,11 +1,11 @@
-import { Source, Subscription, TalkbackKind, SignalKind } from './types'
-import { talkbackPlaceholder } from './helpers'
+import { Source, Subscription, TalkbackKind, SignalKind } from './types';
+import { talkbackPlaceholder } from './helpers';
 
 export function subscribe<T>(subscriber: (value: T) => void) {
   return (source: Source<T>): Subscription => {
     let talkback = talkbackPlaceholder;
     let ended = false;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         ended = true;
       } else if (signal.tag === SignalKind.Start) {
@@ -22,8 +22,8 @@ export function subscribe<T>(subscriber: (value: T) => void) {
           talkback(TalkbackKind.Close);
         }
       },
-    }
-  }
+    };
+  };
 }
 
 export function forEach<T>(subscriber: (value: T) => void) {
@@ -33,14 +33,16 @@ export function forEach<T>(subscriber: (value: T) => void) {
 }
 
 export function publish<T>(source: Source<T>): void {
-  subscribe((_value) => {/*noop*/})(source);
+  subscribe(_value => {
+    /*noop*/
+  })(source);
 }
 
 export function toArray<T>(source: Source<T>): T[] {
   const values: T[] = [];
   let talkback = talkbackPlaceholder;
   let ended = false;
-  source((signal) => {
+  source(signal => {
     if (signal === SignalKind.End) {
       ended = true;
     } else if (signal.tag === SignalKind.Start) {
@@ -58,7 +60,7 @@ export function toPromise<T>(source: Source<T>): Promise<T> {
   return new Promise(resolve => {
     let talkback = talkbackPlaceholder;
     let value: T | void;
-    source((signal) => {
+    source(signal => {
       if (signal === SignalKind.End) {
         resolve(value!);
       } else if (signal.tag === SignalKind.Start) {
@@ -68,5 +70,5 @@ export function toPromise<T>(source: Source<T>): Promise<T> {
         talkback(TalkbackKind.Pull);
       }
     });
-  })
+  });
 }

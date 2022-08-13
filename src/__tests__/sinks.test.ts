@@ -15,18 +15,20 @@ describe('subscribe', () => {
     let pulls = 0;
     const fn = jest.fn();
 
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          if (pulls < 3) {
-            pulls++;
-            sink(push(0));
-          } else {
-            sink(SignalKind.End);
-            expect(pulls).toBe(3);
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            if (pulls < 3) {
+              pulls++;
+              sink(push(0));
+            } else {
+              sink(SignalKind.End);
+              expect(pulls).toBe(3);
+            }
           }
-        }
-      }));
+        })
+      );
     };
 
     sinks.subscribe(fn)(source);
@@ -38,17 +40,19 @@ describe('subscribe', () => {
     let pulls = 0;
     let closing = 0;
 
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          if (!pulls) {
-            pulls++;
-            sink(push(0));
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            if (!pulls) {
+              pulls++;
+              sink(push(0));
+            }
+          } else {
+            closing++;
           }
-        } else {
-          closing++;
-        }
-      }));
+        })
+      );
     };
 
     const sub = sinks.subscribe(() => {})(source);
@@ -62,15 +66,17 @@ describe('subscribe', () => {
     let pulls = 0;
     let closing = 0;
 
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          pulls++;
-          sink(SignalKind.End);
-        } else {
-          closing++;
-        }
-      }));
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            pulls++;
+            sink(SignalKind.End);
+          } else {
+            closing++;
+          }
+        })
+      );
     };
 
     const sub = sinks.subscribe(() => {})(source);
@@ -81,13 +87,15 @@ describe('subscribe', () => {
 
   it('ignores Push signals after the source has ended', () => {
     const fn = jest.fn();
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          sink(SignalKind.End);
-          sink(push(0));
-        }
-      }));
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            sink(SignalKind.End);
+            sink(push(0));
+          }
+        })
+      );
     };
 
     sinks.subscribe(fn)(source);
@@ -96,12 +104,14 @@ describe('subscribe', () => {
 
   it('ignores Push signals after cancellation', () => {
     const fn = jest.fn();
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Close) {
-          sink(push(0));
-        }
-      }));
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Close) {
+            sink(push(0));
+          }
+        })
+      );
     };
 
     sinks.subscribe(fn)(source).unsubscribe();
@@ -112,18 +122,20 @@ describe('subscribe', () => {
 describe('publish', () => {
   it('sends Pull talkback signals every Push signal', () => {
     let pulls = 0;
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          if (pulls < 3) {
-            pulls++;
-            sink(push(0));
-          } else {
-            sink(SignalKind.End);
-            expect(pulls).toBe(3);
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            if (pulls < 3) {
+              pulls++;
+              sink(push(0));
+            } else {
+              sink(SignalKind.End);
+              expect(pulls).toBe(3);
+            }
           }
-        }
-      }));
+        })
+      );
     };
 
     sinks.publish(source);
@@ -134,18 +146,20 @@ describe('publish', () => {
 describe('toArray', () => {
   it('sends Pull talkback signals every Push signal', () => {
     let pulls = 0;
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          if (pulls < 3) {
-            pulls++;
-            sink(push(0));
-          } else {
-            sink(SignalKind.End);
-            expect(pulls).toBe(3);
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            if (pulls < 3) {
+              pulls++;
+              sink(push(0));
+            } else {
+              sink(SignalKind.End);
+              expect(pulls).toBe(3);
+            }
           }
-        }
-      }));
+        })
+      );
     };
 
     const array = sinks.toArray(source);
@@ -157,17 +171,19 @@ describe('toArray', () => {
     let pulls = 0;
     let ending = 0;
 
-    const source: Source<any> = (sink) => {
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          if (!pulls) {
-            pulls++;
-            sink(push(0));
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            if (!pulls) {
+              pulls++;
+              sink(push(0));
+            }
+          } else {
+            ending++;
           }
-        } else {
-          ending++;
-        }
-      }));
+        })
+      );
     };
 
     const array = sinks.toArray(source);
@@ -181,12 +197,13 @@ describe('toPromise', () => {
     let pulls = 0;
     let sink: Sink<any> | null = null;
 
-    const source: Source<any> = (_sink) => {
+    const source: Source<any> = _sink => {
       sink = _sink;
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull)
-          pulls++;
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
     };
 
     const fn = jest.fn();
@@ -219,10 +236,11 @@ describe('toObservable', () => {
 
     const source: Source<any> = _sink => {
       sink = _sink;
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull)
-          pulls++;
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
     };
 
     Observable.from(observable.toObservable(source) as any).subscribe({
@@ -242,10 +260,11 @@ describe('toObservable', () => {
   it('forwards cancellations from the Observable as a talkback', () => {
     let ending = 0;
     const source: Source<T> = sink =>
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Close)
-          ending++;
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Close) ending++;
+        })
+      );
 
     const sub = Observable.from(observable.toObservable(source) as any).subscribe({});
 
@@ -263,10 +282,11 @@ describe('toCallbag', () => {
 
     const source: Source<any> = _sink => {
       sink = _sink;
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull)
-          pulls++;
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
     };
 
     callbagIterate(fn)(callbag.toCallbag(source));
@@ -284,13 +304,15 @@ describe('toCallbag', () => {
     const fn = jest.fn();
 
     const source: Source<any> = sink =>
-      sink(start((signal) => {
-        if (signal === TalkbackKind.Pull) {
-          sink(push(0));
-        } else {
-          ending++;
-        }
-      }));
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            sink(push(0));
+          } else {
+            ending++;
+          }
+        })
+      );
 
     callbagIterate(fn)(callbagTake(1)(callbag.toCallbag(source) as any));
 

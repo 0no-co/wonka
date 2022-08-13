@@ -153,8 +153,7 @@ function pipe<T, A, B, C, D, E, F, G, H, R>(
 
 function pipe() {
   let x = arguments[0];
-  for (let i = 1, l = arguments.length; i < l; i++)
-    x = arguments[i](x);
+  for (let i = 1, l = arguments.length; i < l; i++) x = arguments[i](x);
   return x;
 }
 
