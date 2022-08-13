@@ -1,8 +1,8 @@
 {
   "name": "wonka",
-  "description": "A tiny but capable push & pull stream library for TypeScript and TypeScript",
+  "description": "A tiny but capable push & pull stream library for TypeScript and Flow",
   "version": "6.0.0",
-  "author": "Phil Pluckthun <phil@kitten.sh>",
+  "author": "0no.co <hi@0no.co>",
   "source": "./src/index.ts",
   "main": "./dist/wonka",
   "module": "./dist/wonka.mjs",
@@ -27,6 +27,8 @@
   ],
   "keywords": [
     "wonka",
+    "typescript",
+    "events",
     "callbag",
     "callback",
     "observable",
@@ -42,7 +44,6 @@
     "prepublishOnly": "run-s clean build check test"
   },
   "repository": "https://github.com/0no-co/wonka",
-  "homepage": "https://wonka.kitten.sh",
   "bugs": {
     "url": "https://github.com/0no-co/wonka/issues"
   },
