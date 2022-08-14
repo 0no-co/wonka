@@ -2,7 +2,7 @@ import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn }
 import { push, start, talkbackPlaceholder, teardownPlaceholder } from './helpers';
 import { share } from './operators';
 
-export function factory<T>(make: () => Source<T>): Source<T> {
+export function lazy<T>(make: () => Source<T>): Source<T> {
   return sink => make()(sink);
 }
 
