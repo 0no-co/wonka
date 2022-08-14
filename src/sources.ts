@@ -2,26 +2,37 @@ import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn }
 import { push, start, talkbackPlaceholder, teardownPlaceholder } from './helpers';
 import { share } from './operators';
 
-export function fromArray<T>(array: T[]): Source<T> {
+export function fromIterable<T>(iterable: Iterable<T>): Source<T> {
   return sink => {
+    const iterator = iterable[Symbol.iterator]();
     let ended = false;
     let looping = false;
     let pulled = false;
-    let current = 0;
+    let next: IteratorResult<T>;
     sink(
       start(signal => {
         if (signal === TalkbackKind.Close) {
           ended = true;
+          if (iterator.return) iterator.return();
         } else if (looping) {
           pulled = true;
         } else {
-          for (pulled = looping = true; pulled && !ended; current++) {
-            if (current < array.length) {
-              pulled = false;
-              sink(push(array[current]));
-            } else {
+          for (pulled = looping = true; pulled && !ended; ) {
+            if ((next = iterator.next()).done) {
               ended = true;
               sink(SignalKind.End);
+              if (iterator.return) iterator.return();
+            } else {
+              pulled = false;
+              try {
+                sink(push(next.value));
+              } catch (error) {
+                if (iterator.throw) {
+                  iterator.throw(error);
+                } else {
+                  throw error;
+                }
+              }
             }
           }
           looping = false;
@@ -30,6 +41,8 @@ export function fromArray<T>(array: T[]): Source<T> {
     );
   };
 }
+
+export const fromArray: <T>(array: T[]) => Source<T> = fromIterable;
 
 export function fromValue<T>(value: T): Source<T> {
   return sink => {
