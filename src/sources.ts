@@ -2,6 +2,50 @@ import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn }
 import { push, start, talkbackPlaceholder, teardownPlaceholder } from './helpers';
 import { share } from './operators';
 
+export function factory<T>(make: () => Source<T>): Source<T> {
+  return sink => make()(sink);
+}
+
+export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
+  return sink => {
+    const iterator = iterable[Symbol.asyncIterator]();
+    let ended = false;
+    let looping = false;
+    let pulled = false;
+    let next: IteratorResult<T>;
+    sink(
+      start(async signal => {
+        if (signal === TalkbackKind.Close) {
+          ended = true;
+          if (iterator.return) iterator.return();
+        } else if (looping) {
+          pulled = true;
+        } else {
+          for (pulled = looping = true; pulled && !ended; ) {
+            if ((next = await iterator.next()).done) {
+              ended = true;
+              if (iterator.return) await iterator.return();
+              sink(SignalKind.End);
+            } else {
+              pulled = false;
+              try {
+                sink(push(next.value));
+              } catch (error) {
+                if (iterator.throw) {
+                  await iterator.throw(error);
+                } else {
+                  throw error;
+                }
+              }
+            }
+          }
+          looping = false;
+        }
+      })
+    );
+  };
+}
+
 export function fromIterable<T>(iterable: Iterable<T>): Source<T> {
   return sink => {
     const iterator = iterable[Symbol.iterator]();
@@ -20,8 +64,8 @@ export function fromIterable<T>(iterable: Iterable<T>): Source<T> {
           for (pulled = looping = true; pulled && !ended; ) {
             if ((next = iterator.next()).done) {
               ended = true;
-              sink(SignalKind.End);
               if (iterator.return) iterator.return();
+              sink(SignalKind.End);
             } else {
               pulled = false;
               try {
