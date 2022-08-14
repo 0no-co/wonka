@@ -1,5 +1,6 @@
 import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn } from './types';
-import { push, start, talkbackPlaceholder } from './helpers';
+import { push, start, talkbackPlaceholder, teardownPlaceholder } from './helpers';
+import { share } from './operators';
 
 export function fromArray<T>(array: T[]): Source<T> {
   return sink => {
@@ -73,31 +74,21 @@ export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<
 }
 
 export function makeSubject<T>(): Subject<T> {
-  let sinks: Sink<T>[] = [];
-  let ended = false;
+  let next: Subject<T>['next'] | void;
+  let complete: Subject<T>['complete'] | void;
   return {
-    source(sink: Sink<T>) {
-      sinks.push(sink);
-      sink(
-        start(signal => {
-          if (signal === TalkbackKind.Close) {
-            const index = sinks.indexOf(sink);
-            if (index > -1) (sinks = sinks.slice()).splice(index, 1);
-          }
-        })
-      );
-    },
+    source: share(
+      make(observer => {
+        next = observer.next;
+        complete = observer.complete;
+        return teardownPlaceholder;
+      })
+    ),
     next(value: T) {
-      if (!ended) {
-        const signal = push(value);
-        for (let i = 0, a = sinks, l = sinks.length; i < l; i++) a[i](signal);
-      }
+      if (next) next(value);
     },
     complete() {
-      if (!ended) {
-        ended = true;
-        for (let i = 0, a = sinks, l = sinks.length; i < l; i++) a[i](SignalKind.End);
-      }
+      if (complete) complete();
     },
   };
 }
