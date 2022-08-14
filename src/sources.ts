@@ -1,7 +1,7 @@
 import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn } from './types';
 import { push, start, talkbackPlaceholder } from './helpers';
 
-export function factory<T>(make: () => Source<T>): Source<T> {
+export function lazy<T>(make: () => Source<T>): Source<T> {
   return sink => make()(sink);
 }
 
