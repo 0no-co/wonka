@@ -5,13 +5,15 @@ export function lazy<T>(make: () => Source<T>): Source<T> {
   return sink => make()(sink);
 }
 
-export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
+export function fromIterable<T>(iterable: Iterable<T> | AsyncIterable<T>): Source<T> {
   return sink => {
-    const iterator = iterable[Symbol.asyncIterator]();
+    const iterator: Iterator<T> | AsyncIterator<T> = (
+      iterable[Symbol.asyncIterator] || iterable[Symbol.iterator]
+    ).call(iterable);
     let ended = false;
     let looping = false;
     let pulled = false;
-    let next: IteratorResult<T>;
+    let next: IteratorResult<T> | Promise<IteratorResult<T>>;
     sink(
       start(async signal => {
         if (signal === TalkbackKind.Close) {
@@ -21,49 +23,14 @@ export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
           pulled = true;
         } else {
           for (pulled = looping = true; pulled && !ended; ) {
-            if ((next = await iterator.next()).done) {
+            next = iterator.next();
+            if ('then' in next) next = await next;
+            if (next.done) {
               ended = true;
-              if (iterator.return) await iterator.return();
-              sink(SignalKind.End);
-            } else {
-              pulled = false;
-              try {
-                sink(push(next.value));
-              } catch (error) {
-                if (iterator.throw) {
-                  await iterator.throw(error);
-                } else {
-                  throw error;
-                }
+              if (iterator.return) {
+                next = iterator.return();
+                if ('then' in next) await next;
               }
-            }
-          }
-          looping = false;
-        }
-      })
-    );
-  };
-}
-
-export function fromIterable<T>(iterable: Iterable<T>): Source<T> {
-  return sink => {
-    const iterator = iterable[Symbol.iterator]();
-    let ended = false;
-    let looping = false;
-    let pulled = false;
-    let next: IteratorResult<T>;
-    sink(
-      start(signal => {
-        if (signal === TalkbackKind.Close) {
-          ended = true;
-          if (iterator.return) iterator.return();
-        } else if (looping) {
-          pulled = true;
-        } else {
-          for (pulled = looping = true; pulled && !ended; ) {
-            if ((next = iterator.next()).done) {
-              ended = true;
-              if (iterator.return) iterator.return();
               sink(SignalKind.End);
             } else {
               pulled = false;
@@ -71,7 +38,9 @@ export function fromIterable<T>(iterable: Iterable<T>): Source<T> {
                 sink(push(next.value));
               } catch (error) {
                 if (iterator.throw) {
-                  iterator.throw(error);
+                  next = iterator.throw(error);
+                  if ('then' in next) next = await next;
+                  if ((ended = !!next.done)) sink(SignalKind.End);
                 } else {
                   throw error;
                 }
