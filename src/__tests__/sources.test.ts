@@ -274,6 +274,7 @@ describe('fromPromise', () => {
 
     expect(signals).toEqual([start(expect.any(Function))]);
 
+    await Promise.resolve();
     await promise;
 
     expect(signals).toEqual([start(expect.any(Function)), push(1), SignalKind.End]);
