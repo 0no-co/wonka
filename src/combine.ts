@@ -81,6 +81,7 @@ export function zip<T>(sources: Source<T>[]): Source<T[]> {
   };
 }
 
+export function combine<T>(...sources: Source<T>[]): Source<T[]>;
 export function combine<A, B>(a: Source<A>, b: Source<B>): Source<[A, B]>;
 export function combine<A, B, C>(a: Source<A>, b: Source<B>, c: Source<C>): Source<[A, B, C]>;
 
