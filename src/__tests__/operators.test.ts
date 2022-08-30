@@ -1,5 +1,6 @@
 import { Source, Sink, Signal, SignalKind, TalkbackKind, TalkbackFn } from '../types';
 import { push, start } from '../helpers';
+import { combine } from '../combine';
 
 import {
   passesPassivePull,
@@ -22,7 +23,7 @@ beforeEach(() => {
 });
 
 describe('combine', () => {
-  const noop = (source: Source<any>) => operators.combine(sources.fromValue(0), source);
+  const noop = (source: Source<any>) => combine(sources.fromValue(0), source);
 
   passesPassivePull(noop, [0, 0]);
   passesActivePush(noop, [0, 0]);
@@ -36,7 +37,7 @@ describe('combine', () => {
     const { source: sourceB, next: nextB } = sources.makeSubject();
     const fn = jest.fn();
 
-    sinks.forEach(fn)(operators.combine(sourceA, sourceB));
+    sinks.forEach(fn)(combine(sourceA, sourceB));
 
     nextA(1);
     expect(fn).not.toHaveBeenCalled();
