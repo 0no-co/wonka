@@ -70,6 +70,7 @@
     ]
   },
   "jest": {
+    "testRegex": "(src/.*(\\.|/)(test|spec))\\.ts$",
     "transform": {
       "^.+\\.tsx?$": "@sucrase/jest-plugin"
     }
