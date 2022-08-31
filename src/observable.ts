@@ -16,17 +16,13 @@ interface Observable<T> {
   subscribe(observer: ObservableObserver<T>): ObservableSubscription;
 }
 
-const observableSymbol: unique symbol =
-  typeof Symbol === 'function'
-    ? (Symbol as any).observable || ((Symbol as any).observable = Symbol('observable'))
-    : '@@observable';
+const observableSymbol = (): symbol =>
+  (Symbol as any).observable || ((Symbol as any).observable = Symbol('observable'));
 
 export function fromObservable<T>(input: Observable<T>): Source<T> {
-  const observable: Observable<T> = input[observableSymbol]
-    ? (input as any)[observableSymbol]()
-    : input;
+  input = input[observableSymbol()] ? (input as any)[observableSymbol()]() : input;
   return sink => {
-    const subscription = observable.subscribe({
+    const subscription = input.subscribe({
       next(value: T) {
         sink(push(value));
       },
@@ -46,7 +42,7 @@ export function fromObservable<T>(input: Observable<T>): Source<T> {
 }
 
 export function toObservable<T>(source: Source<T>): Observable<T> {
-  const observable: Observable<T> = {
+  return {
     subscribe(observer: ObservableObserver<T>) {
       let talkback = talkbackPlaceholder;
       let ended = false;
@@ -73,7 +69,8 @@ export function toObservable<T>(source: Source<T>): Observable<T> {
       };
       return subscription;
     },
+    [observableSymbol()]() {
+      return this;
+    },
   };
-  observable[observableSymbol] = () => observable;
-  return observable;
 }

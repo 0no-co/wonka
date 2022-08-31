@@ -151,9 +151,9 @@ function pipe<T, A, B, C, D, E, F, G, H, R>(
   consumer: UnaryFn<Source<H>, R>
 ): R;
 
-function pipe() {
-  let x = arguments[0];
-  for (let i = 1, l = arguments.length; i < l; i++) x = arguments[i](x);
+function pipe(...args: any[]) {
+  let x = args[0];
+  for (let i = 1, l = args.length; i < l; i++) x = args[i](x);
   return x;
 }
 
