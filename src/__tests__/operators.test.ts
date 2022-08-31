@@ -37,12 +37,30 @@ describe('combine', () => {
     const { source: sourceB, next: nextB } = sources.makeSubject();
     const fn = jest.fn();
 
-    sinks.forEach(fn)(combine(sourceA, sourceB));
+    const combined = combine(sourceA, sourceB);
+    sinks.forEach(fn)(combined);
 
     nextA(1);
     expect(fn).not.toHaveBeenCalled();
     nextB(2);
     expect(fn).toHaveBeenCalledWith([1, 2]);
+  });
+
+  it('emits the zipped values of three sources', () => {
+    const { source: sourceA, next: nextA } = sources.makeSubject<number>();
+    const { source: sourceB, next: nextB } = sources.makeSubject<number>();
+    const { source: sourceC, next: nextC } = sources.makeSubject<number>();
+    const fn = jest.fn();
+
+    const combined = combine(sourceA, sourceB, sourceC);
+    sinks.forEach(fn)(combined);
+
+    nextA(1);
+    expect(fn).not.toHaveBeenCalled();
+    nextB(2);
+    expect(fn).not.toHaveBeenCalled();
+    nextC(3);
+    expect(fn).toHaveBeenCalledWith([1, 2, 3]);
   });
 });
 
