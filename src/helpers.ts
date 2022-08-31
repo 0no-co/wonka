@@ -1,11 +1,9 @@
 import { TalkbackFn, TeardownFn, Start, Push, SignalKind } from './types';
 
-export const talkbackPlaceholder: TalkbackFn = _signal => {
-  /*noop*/
-};
 export const teardownPlaceholder: TeardownFn = () => {
   /*noop*/
 };
+export const talkbackPlaceholder: TalkbackFn = teardownPlaceholder;
 
 export function start<T>(talkback: TalkbackFn): Start<T> {
   const box: any = [talkback];
