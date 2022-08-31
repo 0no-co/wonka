@@ -21,30 +21,6 @@ beforeEach(() => {
   jest.useFakeTimers();
 });
 
-describe('combine', () => {
-  const noop = (source: Source<any>) => operators.combine(sources.fromValue(0), source);
-
-  passesPassivePull(noop, [0, 0]);
-  passesActivePush(noop, [0, 0]);
-  passesSinkClose(noop);
-  passesSourceEnd(noop, [0, 0]);
-  passesSingleStart(noop);
-  passesStrictEnd(noop);
-
-  it('emits the zipped values of two sources', () => {
-    const { source: sourceA, next: nextA } = sources.makeSubject();
-    const { source: sourceB, next: nextB } = sources.makeSubject();
-    const fn = jest.fn();
-
-    sinks.forEach(fn)(operators.combine(sourceA, sourceB));
-
-    nextA(1);
-    expect(fn).not.toHaveBeenCalled();
-    nextB(2);
-    expect(fn).toHaveBeenCalledWith([1, 2]);
-  });
-});
-
 describe('buffer', () => {
   const valueThenNever: Source<any> = sink =>
     sink(
