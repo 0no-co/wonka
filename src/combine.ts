@@ -78,5 +78,5 @@ export function zip<T>(
 export function combine<Sources extends Source<any>[]>(
   ...sources: Sources
 ): Source<TypeOfSourceArray<Sources>> {
-  return zip(sources);
+  return zip(sources) as Source<any>;
 }
