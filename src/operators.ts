@@ -801,7 +801,7 @@ export function delay<T>(wait: number): Operator<T, T> {
   return source => sink => {
     let active = 0;
     source(signal => {
-      if (typeof signal !== 'number' && signal.tag === SignalKind.Start) {
+      if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
         sink(signal);
       } else {
         active++;
