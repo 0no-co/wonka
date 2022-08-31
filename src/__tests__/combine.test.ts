@@ -11,7 +11,7 @@ import {
   passesStrictEnd,
 } from './compliance';
 
-import { zip } from '../combine';
+import { combine, zip } from '../combine';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -28,11 +28,11 @@ describe('zip', () => {
   passesStrictEnd(noop);
 
   it('emits the zipped values of two sources', () => {
-    const { source: sourceA, next: nextA } = makeSubject();
-    const { source: sourceB, next: nextB } = makeSubject();
+    const { source: sourceA, next: nextA } = makeSubject<number>();
+    const { source: sourceB, next: nextB } = makeSubject<number>();
     const fn = jest.fn();
 
-    const combined = zip([sourceA, sourceB]);
+    const combined = combine(sourceA, sourceB);
     forEach(fn)(combined);
 
     nextA(1);

@@ -1,6 +1,5 @@
 import { Source, Sink, Signal, SignalKind, TalkbackKind, TalkbackFn } from '../types';
 import { push, start } from '../helpers';
-import { combine } from '../combine';
 
 import {
   passesPassivePull,
@@ -20,48 +19,6 @@ import * as operators from '../operators';
 
 beforeEach(() => {
   jest.useFakeTimers();
-});
-
-describe('combine', () => {
-  const noop = (source: Source<any>) => combine(sources.fromValue(0), source);
-
-  passesPassivePull(noop, [0, 0]);
-  passesActivePush(noop, [0, 0]);
-  passesSinkClose(noop);
-  passesSourceEnd(noop, [0, 0]);
-  passesSingleStart(noop);
-  passesStrictEnd(noop);
-
-  it('emits the zipped values of two sources', () => {
-    const { source: sourceA, next: nextA } = sources.makeSubject();
-    const { source: sourceB, next: nextB } = sources.makeSubject();
-    const fn = jest.fn();
-
-    const combined = combine(sourceA, sourceB);
-    sinks.forEach(fn)(combined);
-
-    nextA(1);
-    expect(fn).not.toHaveBeenCalled();
-    nextB(2);
-    expect(fn).toHaveBeenCalledWith([1, 2]);
-  });
-
-  it('emits the zipped values of three sources', () => {
-    const { source: sourceA, next: nextA } = sources.makeSubject<number>();
-    const { source: sourceB, next: nextB } = sources.makeSubject<number>();
-    const { source: sourceC, next: nextC } = sources.makeSubject<number>();
-    const fn = jest.fn();
-
-    const combined = combine(sourceA, sourceB, sourceC);
-    sinks.forEach(fn)(combined);
-
-    nextA(1);
-    expect(fn).not.toHaveBeenCalled();
-    nextB(2);
-    expect(fn).not.toHaveBeenCalled();
-    nextC(3);
-    expect(fn).toHaveBeenCalledWith([1, 2, 3]);
-  });
 });
 
 describe('buffer', () => {

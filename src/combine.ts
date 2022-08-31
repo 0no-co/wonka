@@ -1,17 +1,17 @@
 import { Source, TypeOfSource, SignalKind, TalkbackKind, TalkbackFn } from './types';
 import { push, start, talkbackPlaceholder } from './helpers';
 
-type TypeOfSourceArray<T extends [...any[]]> = T extends [infer Head, ...infer Tail]
+type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, ...infer Tail]
   ? [TypeOfSource<Head>, ...TypeOfSourceArray<Tail>]
   : [];
+
+export function zip<Sources extends readonly [...Source<any>[]]>(
+  sources: [...Sources]
+): Source<TypeOfSourceArray<Sources>>;
 
 export function zip<Sources extends { [prop: string]: Source<any> }>(
   sources: Sources
 ): Source<{ [Property in keyof Sources]: TypeOfSource<Sources[Property]> }>;
-
-export function zip<Sources extends Source<any>[]>(
-  sources: Sources
-): Source<TypeOfSourceArray<Sources>>;
 
 export function zip<T>(
   sources: Source<T>[] | Record<string, Source<T>>
@@ -74,10 +74,6 @@ export function zip<T>(
     );
   };
 }
-
-export function combine<Sources extends Source<any>[]>(
-  ...sources: Sources
-): Source<TypeOfSourceArray<Sources>>;
 
 export function combine<Sources extends Source<any>[]>(
   ...sources: Sources

@@ -34,7 +34,7 @@ export type Source<T> = (sink: Sink<T>) => void;
 export type Operator<In, Out> = (a: Source<In>) => Source<Out>;
 
 /** Extracts the type of a given Source */
-export type TypeOfSource<T> = T extends Source<infer U> ? U : unknown;
+export type TypeOfSource<T> = T extends Source<infer U> ? U : never;
 
 export interface Subscription {
   unsubscribe(): void;
