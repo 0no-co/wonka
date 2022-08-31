@@ -2,26 +2,41 @@ import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn }
 import { push, start, talkbackPlaceholder, teardownPlaceholder } from './helpers';
 import { share } from './operators';
 
-export function fromArray<T>(array: T[]): Source<T> {
+export function lazy<T>(make: () => Source<T>): Source<T> {
+  return sink => make()(sink);
+}
+
+export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
   return sink => {
+    const iterator = iterable[Symbol.asyncIterator]();
     let ended = false;
     let looping = false;
     let pulled = false;
-    let current = 0;
+    let next: IteratorResult<T>;
     sink(
-      start(signal => {
+      start(async signal => {
         if (signal === TalkbackKind.Close) {
           ended = true;
+          if (iterator.return) iterator.return();
         } else if (looping) {
           pulled = true;
         } else {
-          for (pulled = looping = true; pulled && !ended; current++) {
-            if (current < array.length) {
-              pulled = false;
-              sink(push(array[current]));
-            } else {
+          for (pulled = looping = true; pulled && !ended; ) {
+            if ((next = await iterator.next()).done) {
               ended = true;
+              if (iterator.return) await iterator.return();
               sink(SignalKind.End);
+            } else {
+              try {
+                pulled = false;
+                sink(push(next.value));
+              } catch (error) {
+                if (iterator.throw) {
+                  if ((ended = !!(await iterator.throw(error)).done)) sink(SignalKind.End);
+                } else {
+                  throw error;
+                }
+              }
             }
           }
           looping = false;
@@ -30,6 +45,49 @@ export function fromArray<T>(array: T[]): Source<T> {
     );
   };
 }
+
+export function fromIterable<T>(iterable: Iterable<T> | AsyncIterable<T>): Source<T> {
+  if (iterable[Symbol.asyncIterator]) return fromAsyncIterable(iterable as AsyncIterable<T>);
+  return sink => {
+    const iterator = iterable[Symbol.iterator]();
+    let ended = false;
+    let looping = false;
+    let pulled = false;
+    let next: IteratorResult<T>;
+    sink(
+      start(signal => {
+        if (signal === TalkbackKind.Close) {
+          ended = true;
+          if (iterator.return) iterator.return();
+        } else if (looping) {
+          pulled = true;
+        } else {
+          for (pulled = looping = true; pulled && !ended; ) {
+            if ((next = iterator.next()).done) {
+              ended = true;
+              if (iterator.return) iterator.return();
+              sink(SignalKind.End);
+            } else {
+              try {
+                pulled = false;
+                sink(push(next.value));
+              } catch (error) {
+                if (iterator.throw) {
+                  if ((ended = !!iterator.throw(error).done)) sink(SignalKind.End);
+                } else {
+                  throw error;
+                }
+              }
+            }
+          }
+          looping = false;
+        }
+      })
+    );
+  };
+}
+
+export const fromArray: <T>(array: T[]) => Source<T> = fromIterable;
 
 export function fromValue<T>(value: T): Source<T> {
   return sink => {

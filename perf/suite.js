@@ -1,4 +1,5 @@
 const Wonka = require('..');
+const Wonka4 = require('wonka-v4');
 const Rx = require('rxjs');
 const RxOperators = require('rxjs/operators');
 const most = require('most');
@@ -13,6 +14,16 @@ suite('Promisified map, filter, scan, last', () => {
       Wonka.filter(x => x > 4),
       Wonka.scan((acc, x) => acc + x, 0),
       Wonka.toPromise
+    );
+  });
+
+  benchmark('Wonka v4', () => {
+    return Wonka4.pipe(
+      Wonka4.fromArray(input),
+      Wonka4.map(x => x * 2),
+      Wonka4.filter(x => x > 4),
+      Wonka4.scan((acc, x) => acc + x, 0),
+      Wonka4.toPromise
     );
   });
 

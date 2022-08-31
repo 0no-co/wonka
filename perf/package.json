@@ -11,6 +11,7 @@
     "benchr": "^4.3.0"
   },
   "dependencies": {
+    "wonka-v4": "npm:wonka@^4.0.0",
     "most": "^1.7.3",
     "rxjs": "^6.3.3"
   }
