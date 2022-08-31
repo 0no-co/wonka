@@ -16,8 +16,8 @@ export function zip<Sources extends Source<any>[]>(
 export function zip<T>(
   sources: Source<T>[] | Record<string, Source<T>>
 ): Source<T[] | Record<string, T>> {
+  const size = Object.keys(sources).length;
   return sink => {
-    const size = Object.keys(sources).length;
     const filled: Set<string | number> = new Set();
 
     const talkbacks: TalkbackFn[] | Record<string, TalkbackFn | void> = Array.isArray(sources)
