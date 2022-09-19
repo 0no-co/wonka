@@ -25,6 +25,7 @@ const plugins = [
     exclude: ['src/**/*.test.ts', '**/__tests__/*'],
     compilerOptions: {
       sourceMap: true,
+      sourceRoot: './',
       noEmit: false,
       declaration: true,
       declarationDir: './dist/types/',
