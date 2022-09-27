@@ -7,7 +7,6 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "outDir": "dist/cjs",
-    "types": ["node", "jest"],
     "lib": ["dom", "esnext"],
     "jsx": "react",
     "declaration": false,

@@ -7,7 +7,7 @@ module.exports = {
     },
   },
   extends: ['prettier'],
-  plugins: ['prettier', 'jest'],
+  plugins: ['prettier'],
   ignorePatterns: ['node_modules/', 'dist/', 'coverage/', 'perf/'],
   rules: {
     'sort-keys': 'off',
@@ -24,18 +24,6 @@ module.exports = {
       },
     ],
   },
-
-  overrides: [
-    {
-      files: ['*.test.ts', '*.test.tsx', '*.spec.ts', '*.spec.tsx'],
-      rules: {
-        'jest/no-disabled-tests': 'error',
-        'jest/no-focused-tests': 'error',
-        'jest/no-identical-title': 'warn',
-        'jest/consistent-test-it': ['warn', { fn: 'it' }],
-      },
-    },
-  ],
 
   overrides: [
     {

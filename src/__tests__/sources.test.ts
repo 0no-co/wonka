@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { Source, Sink, Signal, SignalKind, TalkbackKind, TalkbackFn } from '../types';
 import { push, start, talkbackPlaceholder } from '../helpers';
 
@@ -70,7 +72,7 @@ const passesColdPull = (source: Source<any>) => {
       talkback!(TalkbackKind.Pull);
     }, 10);
 
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(pushes).toBe(1);
   });
 };
@@ -105,7 +107,7 @@ const passesTrampoline = (source: Source<any>) => {
 };
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 describe('fromArray', () => {
@@ -140,7 +142,7 @@ describe('merge', () => {
   });
 
   it('correctly merges hot sources', () => {
-    const onStart = jest.fn();
+    const onStart = vi.fn();
     const source = operators.merge<any>([
       operators.onStart(onStart)(sources.never),
       operators.onStart(onStart)(sources.fromArray([1, 2])),
@@ -153,16 +155,16 @@ describe('merge', () => {
   });
 
   it('correctly merges asynchronous sources', () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
-    const onStart = jest.fn();
+    const onStart = vi.fn();
     const source = operators.merge<any>([
       operators.onStart(onStart)(sources.fromValue(-1)),
       operators.onStart(onStart)(operators.take(2)(sources.interval(50))),
     ]);
 
     const signals = collectSignals(source);
-    jest.advanceTimersByTime(100);
+    vi.advanceTimersByTime(100);
     expect(onStart).toHaveBeenCalledTimes(2);
 
     expect(signals).toEqual([
@@ -190,7 +192,7 @@ describe('concat', () => {
 
 describe('make', () => {
   it('may be used to create async sources', () => {
-    const teardown = jest.fn();
+    const teardown = vi.fn();
     const source = sources.make(observer => {
       setTimeout(() => observer.next(1), 10);
       setTimeout(() => observer.complete(), 20);
@@ -199,13 +201,13 @@ describe('make', () => {
 
     const signals = collectSignals(source);
     expect(signals).toEqual([start(expect.any(Function))]);
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(signals).toEqual([start(expect.any(Function)), push(1), SignalKind.End]);
   });
 
   it('supports active cancellation', () => {
-    const teardown = jest.fn();
+    const teardown = vi.fn();
     const source = sources.make(() => teardown);
 
     const sink: Sink<any> = signal => {
@@ -216,7 +218,7 @@ describe('make', () => {
 
     source(sink);
     expect(teardown).not.toHaveBeenCalled();
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(teardown).toHaveBeenCalled();
   });
 });
@@ -284,7 +286,7 @@ describe('fromPromise', () => {
 
 describe('fromObservable', () => {
   beforeEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('converts an Observable to a Wonka source', async () => {
@@ -345,13 +347,13 @@ describe('interval', () => {
     expect(talkback).not.toBe(null);
     expect(pushes).toBe(0);
 
-    jest.advanceTimersByTime(100);
+    vi.advanceTimersByTime(100);
     expect(pushes).toBe(1);
-    jest.advanceTimersByTime(100);
+    vi.advanceTimersByTime(100);
     expect(pushes).toBe(2);
 
     talkback!(TalkbackKind.Close);
-    jest.advanceTimersByTime(100);
+    vi.advanceTimersByTime(100);
     expect(pushes).toBe(2);
   });
 });
@@ -361,8 +363,8 @@ describe('fromDomEvent', () => {
     let talkback: TalkbackFn | null = null;
 
     const element = {
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
     };
 
     const sink: Sink<any> = signal => {

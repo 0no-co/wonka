@@ -1,3 +1,5 @@
+import { it, expect, vi } from 'vitest';
+
 import { Source, Sink, Operator, Signal, SignalKind, TalkbackKind, TalkbackFn } from '../types';
 import { push, start } from '../helpers';
 
@@ -41,7 +43,7 @@ export const passesPassivePull = (operator: Operator<any, any>, output: any = 0)
 
     // When pulling a value we expect an immediate response
     talkback!(TalkbackKind.Pull);
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(values).toEqual([output]);
   });
 };
@@ -82,7 +84,7 @@ export const passesActivePush = (operator: Operator<any, any>, result: any = 0) 
 
     // When pushing a value we expect an immediate response
     sink!(push(0));
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(values).toEqual([result]);
     // Subsequently the Pull signal should have travelled upwards
     expect(pulls).toBe(1);
@@ -124,7 +126,7 @@ export const passesSinkClose = (operator: Operator<any, any>) => {
 
     // When pushing a value we expect an immediate close signal
     talkback!(TalkbackKind.Pull);
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(closing).toBe(1);
   });
 };
@@ -170,7 +172,7 @@ export const passesSourceEnd = (operator: Operator<any, any>, result: any = 0) =
 
     // When pushing a value we expect an immediate Push then End signal
     talkback!(TalkbackKind.Pull);
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(ending).toBe(1);
     expect(signals).toEqual([push(result), SignalKind.End]);
     // Also no additional pull event should be created by the operator
@@ -221,7 +223,7 @@ export const passesSourcePushThenEnd = (operator: Operator<any, any>, result: an
 
     // When pushing a value we expect an immediate Push then End signal
     talkback!(TalkbackKind.Pull);
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(ending).toBe(1);
     expect(pulls).toBe(3);
     expect(signals).toEqual([push(result), push(result), SignalKind.End]);
@@ -288,7 +290,7 @@ export const passesStrictEnd = (operator: Operator<any, any>) => {
     operator(source)(sink);
 
     // The Push signal should've been dropped
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(signals).toEqual([SignalKind.End]);
     expect(pulls).toBe(1);
   });
@@ -319,7 +321,7 @@ export const passesStrictEnd = (operator: Operator<any, any>) => {
     operator(source)(sink);
 
     // The Push signal should've been dropped
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(signals).toEqual([]);
   });
 };
@@ -395,9 +397,9 @@ export const passesAsyncSequence = (operator: Operator<any, any>, result: any = 
     // Afterwards after all timers all other signals come in
     operator(source)(sink);
     expect(signals.length).toBe(0);
-    jest.advanceTimersByTime(5);
+    vi.advanceTimersByTime(5);
     expect(hasPushed).toBeTruthy();
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(signals).toEqual([push(result), SignalKind.End]);
   });

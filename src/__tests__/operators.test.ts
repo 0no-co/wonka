@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { Source, Sink, Signal, SignalKind, TalkbackKind, TalkbackFn } from '../types';
 import { push, start } from '../helpers';
 
@@ -18,7 +20,7 @@ import * as sinks from '../sinks';
 import * as operators from '../operators';
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 describe('buffer', () => {
@@ -41,7 +43,7 @@ describe('buffer', () => {
   it('emits batches of input values when a notifier emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
     const { source: input$, next } = sources.makeSubject();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.buffer(notifier$)(input$));
 
@@ -71,7 +73,7 @@ describe('concatMap', () => {
   // This synchronous test for concatMap will behave the same as mergeMap & switchMap
   it('emits values from each flattened synchronous source', () => {
     const { source, next, complete } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     operators.concatMap((x: number) => sources.fromArray([x, x + 1]))(source)(fn);
 
@@ -93,7 +95,7 @@ describe('concatMap', () => {
   // This synchronous test for concatMap will behave the same as mergeMap & switchMap
   it('lets inner sources finish when outer source ends', () => {
     const signals: Signal<any>[] = [];
-    const teardown = jest.fn();
+    const teardown = vi.fn();
     const fn = (signal: Signal<any>) => {
       signals.push(signal);
       if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
@@ -113,7 +115,7 @@ describe('concatMap', () => {
   // This asynchronous test for concatMap will behave differently than mergeMap & switchMap
   it('emits values from each flattened asynchronous source, one at a time', () => {
     const source = operators.delay<number>(4)(sources.fromArray([1, 10]));
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(
       operators.concatMap((x: number) => {
@@ -121,15 +123,15 @@ describe('concatMap', () => {
       })(source)
     );
 
-    jest.advanceTimersByTime(14);
+    vi.advanceTimersByTime(14);
     expect(fn.mock.calls).toEqual([[1], [2]]);
 
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(fn.mock.calls).toEqual([[1], [2], [10], [20]]);
   });
 
   it('works for fully asynchronous sources', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(
       operators.concatMap(() => {
@@ -140,7 +142,7 @@ describe('concatMap', () => {
       })(sources.fromValue(null))
     );
 
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(fn).toHaveBeenCalledWith(1);
   });
 
@@ -167,31 +169,31 @@ describe('debounce', () => {
 
   it('waits for a specified amount of silence before emitting the last value', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.debounce(() => 100)(source));
 
     next(1);
-    jest.advanceTimersByTime(50);
+    vi.advanceTimersByTime(50);
     expect(fn).not.toHaveBeenCalled();
 
     next(2);
-    jest.advanceTimersByTime(99);
+    vi.advanceTimersByTime(99);
     expect(fn).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(1);
+    vi.advanceTimersByTime(1);
     expect(fn).toHaveBeenCalledWith(2);
   });
 
   it('emits debounced value with delayed End signal', () => {
     const { source, next, complete } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.debounce(() => 100)(source));
 
     next(1);
     complete();
-    jest.advanceTimersByTime(100);
+    vi.advanceTimersByTime(100);
     expect(fn).toHaveBeenCalled();
   });
 });
@@ -207,14 +209,14 @@ describe('delay', () => {
 
   it('delays outputs by a specified delay timeout value', () => {
     const { source, next } = sources.makeSubject();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.delay(100)(source));
 
     next(1);
     expect(fn).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(100);
+    vi.advanceTimersByTime(100);
     expect(fn).toHaveBeenCalledWith(1);
   });
 });
@@ -230,7 +232,7 @@ describe('filter', () => {
 
   it('prevents emissions for which a predicate fails', () => {
     const { source, next } = sources.makeSubject();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.filter(x => !!x)(source));
 
@@ -253,7 +255,7 @@ describe('map', () => {
 
   it('maps over values given a transform function', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.map((x: number) => x + 1)(source));
 
@@ -275,7 +277,7 @@ describe('mergeMap', () => {
   // This synchronous test for mergeMap will behave the same as concatMap & switchMap
   it('emits values from each flattened synchronous source', () => {
     const { source, next, complete } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     operators.mergeMap((x: number) => sources.fromArray([x, x + 1]))(source)(fn);
 
@@ -296,7 +298,7 @@ describe('mergeMap', () => {
   // This synchronous test for mergeMap will behave the same as concatMap & switchMap
   it('lets inner sources finish when outer source ends', () => {
     const values: Signal<any>[] = [];
-    const teardown = jest.fn();
+    const teardown = vi.fn();
     const fn = (signal: Signal<any>) => {
       values.push(signal);
       if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
@@ -316,7 +318,7 @@ describe('mergeMap', () => {
   // This asynchronous test for mergeMap will behave differently than concatMap & switchMap
   it('emits values from each flattened asynchronous source simultaneously', () => {
     const source = operators.delay<number>(4)(sources.fromArray([1, 10]));
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(
       operators.mergeMap((x: number) => {
@@ -324,7 +326,7 @@ describe('mergeMap', () => {
       })(source)
     );
 
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(fn.mock.calls).toEqual([[1], [10], [2], [20]]);
   });
 
@@ -351,7 +353,7 @@ describe('onEnd', () => {
 
   it('calls a callback when the source ends', () => {
     const { source, next, complete } = sources.makeSubject<any>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(() => {})(operators.onEnd(fn)(source));
 
@@ -375,7 +377,7 @@ describe('onPush', () => {
 
   it('calls a callback when the source emits', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(() => {})(operators.onPush(fn)(source));
 
@@ -402,7 +404,7 @@ describe('onStart', () => {
   it('is called when the source starts', () => {
     let sink: Sink<any>;
 
-    const fn = jest.fn();
+    const fn = vi.fn();
     const source: Source<any> = _sink => {
       sink = _sink;
     };
@@ -436,7 +438,7 @@ describe('sample', () => {
   it('emits the latest value when a notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
     const { source: input$, next } = sources.makeSubject();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.sample(notifier$)(input$));
 
@@ -460,7 +462,7 @@ describe('scan', () => {
 
   it('folds values continuously with a reducer and initial value', () => {
     const { source: input$, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const reducer = (acc: number, x: number) => acc + x;
     sinks.forEach(fn)(operators.scan(reducer, 0)(input$));
@@ -493,8 +495,8 @@ describe('share', () => {
       };
     });
 
-    const fnA = jest.fn();
-    const fnB = jest.fn();
+    const fnA = vi.fn();
+    const fnB = vi.fn();
 
     sinks.forEach(fnA)(source);
     sinks.forEach(fnB)(source);
@@ -517,7 +519,7 @@ describe('skip', () => {
 
   it('skips a number of values before emitting normally', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.skip(1)(source));
 
@@ -541,7 +543,7 @@ describe('skipUntil', () => {
   it('skips values until the notifier source emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject();
     const { source: input$, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.skipUntil(notifier$)(input$));
 
@@ -564,7 +566,7 @@ describe('skipWhile', () => {
 
   it('skips values until one fails a predicate', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.skipWhile((x: any) => x <= 1)(source));
 
@@ -588,7 +590,7 @@ describe('switchMap', () => {
   // This synchronous test for switchMap will behave the same as concatMap & mergeMap
   it('emits values from each flattened synchronous source', () => {
     const { source, next, complete } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     operators.switchMap((x: number) => sources.fromArray([x, x + 1]))(source)(fn);
 
@@ -610,7 +612,7 @@ describe('switchMap', () => {
   // This synchronous test for switchMap will behave the same as concatMap & mergeMap
   it('lets inner sources finish when outer source ends', () => {
     const signals: Signal<any>[] = [];
-    const teardown = jest.fn();
+    const teardown = vi.fn();
     const fn = (signal: Signal<any>) => {
       signals.push(signal);
       if (signal !== SignalKind.End && signal.tag === SignalKind.Start) {
@@ -630,7 +632,7 @@ describe('switchMap', () => {
   // This asynchronous test for switchMap will behave differently than concatMap & mergeMap
   it('emits values from each flattened asynchronous source, one at a time', () => {
     const source = operators.delay<number>(4)(sources.fromArray([1, 10]));
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(
       operators.switchMap((x: number) =>
@@ -638,7 +640,7 @@ describe('switchMap', () => {
       )(source)
     );
 
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(fn.mock.calls).toEqual([[1], [10], [20]]);
   });
 });
@@ -657,7 +659,7 @@ describe('take', () => {
 
   it('emits values until a maximum is reached', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     operators.take(1)(source)(fn);
     next(1);
@@ -683,7 +685,7 @@ describe('takeUntil', () => {
   it('emits values until a notifier emits', () => {
     const { source: notifier$, next: notify } = sources.makeSubject<any>();
     const { source: input$, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     operators.takeUntil(notifier$)(input$)(fn);
     next(1);
@@ -711,7 +713,7 @@ describe('takeWhile', () => {
 
   it('emits values while a predicate passes for all values', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     operators.takeWhile((x: any) => x < 2)(source)(fn);
     next(1);
@@ -762,17 +764,17 @@ describe('throttle', () => {
 
   it('should ignore emissions for a period of time after a value', () => {
     const { source, next } = sources.makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     sinks.forEach(fn)(operators.throttle(() => 100)(source));
 
     next(1);
     expect(fn).toHaveBeenCalledWith(1);
-    jest.advanceTimersByTime(50);
+    vi.advanceTimersByTime(50);
 
     next(2);
     expect(fn).toHaveBeenCalledTimes(1);
-    jest.advanceTimersByTime(50);
+    vi.advanceTimersByTime(50);
 
     next(3);
     expect(fn).toHaveBeenCalledWith(3);

@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { Source } from '../types';
 import { fromValue, makeSubject } from '../sources';
 import { forEach } from '../sinks';
@@ -14,7 +16,7 @@ import {
 import { combine, zip } from '../combine';
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 describe('zip', () => {
@@ -30,7 +32,7 @@ describe('zip', () => {
   it('emits the zipped values of two sources', () => {
     const { source: sourceA, next: nextA } = makeSubject<number>();
     const { source: sourceB, next: nextB } = makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const combined = combine(sourceA, sourceB);
     forEach(fn)(combined);
@@ -45,7 +47,7 @@ describe('zip', () => {
     const { source: sourceA, next: nextA } = makeSubject<number>();
     const { source: sourceB, next: nextB } = makeSubject<number>();
     const { source: sourceC, next: nextC } = makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const combined = zip([sourceA, sourceB, sourceC]);
     forEach(fn)(combined);
@@ -61,7 +63,7 @@ describe('zip', () => {
   it('emits the zipped values of a dictionary of two sources', () => {
     const { source: sourceA, next: nextA } = makeSubject<number>();
     const { source: sourceB, next: nextB } = makeSubject<number>();
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const combined = zip({ a: sourceA, b: sourceB });
     forEach(fn)(combined);

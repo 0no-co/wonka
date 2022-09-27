@@ -1,3 +1,5 @@
+import { describe, it, expect, vi } from 'vitest';
+
 import { Source, Sink, SignalKind, TalkbackKind } from '../types';
 import { push, start } from '../helpers';
 
@@ -13,7 +15,7 @@ import callbagTake from 'callbag-take';
 describe('subscribe', () => {
   it('sends Pull talkback signals every Push signal', () => {
     let pulls = 0;
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const source: Source<any> = sink => {
       sink(
@@ -86,7 +88,7 @@ describe('subscribe', () => {
   });
 
   it('ignores Push signals after the source has ended', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const source: Source<any> = sink => {
       sink(
         start(signal => {
@@ -103,7 +105,7 @@ describe('subscribe', () => {
   });
 
   it('ignores Push signals after cancellation', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const source: Source<any> = sink => {
       sink(
         start(signal => {
@@ -206,7 +208,7 @@ describe('toPromise', () => {
       );
     };
 
-    const fn = jest.fn();
+    const fn = vi.fn();
     const promise = sinks.toPromise(source).then(fn);
 
     expect(pulls).toBe(1);
@@ -221,7 +223,7 @@ describe('toPromise', () => {
   });
 
   it('creates a Promise for synchronous sources', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     await sinks.toPromise(sources.fromArray([1, 2, 3])).then(fn);
     expect(fn).toHaveBeenCalledWith(3);
   });
@@ -229,8 +231,8 @@ describe('toPromise', () => {
 
 describe('toObservable', () => {
   it('creates an Observable mirroring the Wonka source', () => {
-    const next = jest.fn();
-    const complete = jest.fn();
+    const next = vi.fn();
+    const complete = vi.fn();
     let pulls = 0;
     let sink: Sink<any> | null = null;
 
@@ -276,7 +278,7 @@ describe('toObservable', () => {
 
 describe('toCallbag', () => {
   it('creates a Callbag mirroring the Wonka source', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     let pulls = 0;
     let sink: Sink<any> | null = null;
 
@@ -301,7 +303,7 @@ describe('toCallbag', () => {
 
   it('forwards cancellations from the Callbag as a talkback', () => {
     let ending = 0;
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const source: Source<any> = sink =>
       sink(
