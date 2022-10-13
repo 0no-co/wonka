@@ -5,14 +5,14 @@ export const teardownPlaceholder: TeardownFn = () => {
 };
 export const talkbackPlaceholder: TalkbackFn = teardownPlaceholder;
 
-export function start<T>(talkback: TalkbackFn): Start<T> {
+export const start = <T>(talkback: TalkbackFn): Start<T> => {
   const box: any = [talkback];
   box.tag = SignalKind.Start;
   return box;
-}
+};
 
-export function push<T>(value: T): Push<T> {
+export const push = <T>(value: T): Push<T> => {
   const box: any = [value];
   box.tag = SignalKind.Push;
   return box;
-}
+};

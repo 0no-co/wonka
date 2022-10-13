@@ -4,7 +4,7 @@ import { fromArray } from './sources';
 
 const identity = <T>(x: T): T => x;
 
-export function buffer<S, T>(notifier: Source<S>): Operator<T, T[]> {
+export const buffer = <S, T>(notifier: Source<S>): Operator<T, T[]> => {
   return source => sink => {
     let buffer: T[] = [];
     let sourceTalkback = talkbackPlaceholder;
@@ -62,9 +62,9 @@ export function buffer<S, T>(notifier: Source<S>): Operator<T, T[]> {
       })
     );
   };
-}
+};
 
-export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> {
+export const concatMap = <In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> => {
   return source => sink => {
     const inputQueue: In[] = [];
     let outerTalkback = talkbackPlaceholder;
@@ -73,7 +73,7 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
     let innerPulled = false;
     let innerActive = false;
     let ended = false;
-    function applyInnerSource(innerSource: Source<Out>): void {
+    const applyInnerSource = (innerSource: Source<Out>): void => {
       innerActive = true;
       innerSource(signal => {
         if (signal === SignalKind.End) {
@@ -100,7 +100,7 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
           }
         }
       });
-    }
+    };
     source(signal => {
       if (ended) {
         /*noop*/
@@ -142,17 +142,17 @@ export function concatMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
       })
     );
   };
-}
+};
 
-export function concatAll<T>(source: Source<Source<T>>): Source<T> {
+export const concatAll = <T>(source: Source<Source<T>>): Source<T> => {
   return concatMap<Source<T>, T>(identity)(source);
-}
+};
 
-export function concat<T>(sources: Source<T>[]): Source<T> {
+export const concat = <T>(sources: Source<T>[]): Source<T> => {
   return concatAll(fromArray(sources));
-}
+};
 
-export function filter<T>(predicate: (value: T) => boolean): Operator<T, T> {
+export const filter = <T>(predicate: (value: T) => boolean): Operator<T, T> => {
   return source => sink => {
     let talkback = talkbackPlaceholder;
     source(signal => {
@@ -168,9 +168,9 @@ export function filter<T>(predicate: (value: T) => boolean): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function map<In, Out>(map: (value: In) => Out): Operator<In, Out> {
+export const map = <In, Out>(map: (value: In) => Out): Operator<In, Out> => {
   return source => sink =>
     source(signal => {
       if (signal === SignalKind.End || signal.tag === SignalKind.Start) {
@@ -179,15 +179,15 @@ export function map<In, Out>(map: (value: In) => Out): Operator<In, Out> {
         sink(push(map(signal[0])));
       }
     });
-}
+};
 
-export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> {
+export const mergeMap = <In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> => {
   return source => sink => {
     let innerTalkbacks: TalkbackFn[] = [];
     let outerTalkback = talkbackPlaceholder;
     let outerPulled = false;
     let ended = false;
-    function applyInnerSource(innerSource: Source<Out>): void {
+    const applyInnerSource = (innerSource: Source<Out>): void => {
       let talkback = talkbackPlaceholder;
       innerSource(signal => {
         if (signal === SignalKind.End) {
@@ -211,7 +211,7 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
           talkback(TalkbackKind.Pull);
         }
       });
-    }
+    };
     source(signal => {
       if (ended) {
         /*noop*/
@@ -252,17 +252,17 @@ export function mergeMap<In, Out>(map: (value: In) => Source<Out>): Operator<In,
       })
     );
   };
-}
+};
 
-export function mergeAll<T>(source: Source<Source<T>>): Source<T> {
+export const mergeAll = <T>(source: Source<Source<T>>): Source<T> => {
   return mergeMap<Source<T>, T>(identity)(source);
-}
+};
 
-export function merge<T>(sources: Source<T>[]): Source<T> {
+export const merge = <T>(sources: Source<T>[]): Source<T> => {
   return mergeAll(fromArray(sources));
-}
+};
 
-export function onEnd<T>(callback: () => void): Operator<T, T> {
+export const onEnd = <T>(callback: () => void): Operator<T, T> => {
   return source => sink => {
     let ended = false;
     source(signal => {
@@ -290,9 +290,9 @@ export function onEnd<T>(callback: () => void): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function onPush<T>(callback: (value: T) => void): Operator<T, T> {
+export const onPush = <T>(callback: (value: T) => void): Operator<T, T> => {
   return source => sink => {
     let ended = false;
     source(signal => {
@@ -315,9 +315,9 @@ export function onPush<T>(callback: (value: T) => void): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function onStart<T>(callback: () => void): Operator<T, T> {
+export const onStart = <T>(callback: () => void): Operator<T, T> => {
   return source => sink =>
     source(signal => {
       if (signal === SignalKind.End) {
@@ -329,9 +329,9 @@ export function onStart<T>(callback: () => void): Operator<T, T> {
         sink(signal);
       }
     });
-}
+};
 
-export function sample<S, T>(notifier: Source<S>): Operator<T, T> {
+export const sample = <S, T>(notifier: Source<S>): Operator<T, T> => {
   return source => sink => {
     let sourceTalkback = talkbackPlaceholder;
     let notifierTalkback = talkbackPlaceholder;
@@ -387,9 +387,12 @@ export function sample<S, T>(notifier: Source<S>): Operator<T, T> {
       })
     );
   };
-}
+};
 
-export function scan<In, Out>(reducer: (acc: Out, value: In) => Out, seed: Out): Operator<In, Out> {
+export const scan = <In, Out>(
+  reducer: (acc: Out, value: In) => Out,
+  seed: Out
+): Operator<In, Out> => {
   return source => sink => {
     let acc = seed;
     source(signal => {
@@ -402,9 +405,9 @@ export function scan<In, Out>(reducer: (acc: Out, value: In) => Out, seed: Out):
       }
     });
   };
-}
+};
 
-export function share<T>(source: Source<T>): Source<T> {
+export const share = <T>(source: Source<T>): Source<T> => {
   let sinks: Sink<T>[] = [];
   let talkback = talkbackPlaceholder;
   let gotSignal = false;
@@ -436,9 +439,9 @@ export function share<T>(source: Source<T>): Source<T> {
       })
     );
   };
-}
+};
 
-export function skip<T>(wait: number): Operator<T, T> {
+export const skip = <T>(wait: number): Operator<T, T> => {
   return source => sink => {
     let talkback = talkbackPlaceholder;
     let rest = wait;
@@ -455,9 +458,9 @@ export function skip<T>(wait: number): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function skipUntil<S, T>(notifier: Source<S>): Operator<T, T> {
+export const skipUntil = <S, T>(notifier: Source<S>): Operator<T, T> => {
   return source => sink => {
     let sourceTalkback = talkbackPlaceholder;
     let notifierTalkback = talkbackPlaceholder;
@@ -511,9 +514,9 @@ export function skipUntil<S, T>(notifier: Source<S>): Operator<T, T> {
       })
     );
   };
-}
+};
 
-export function skipWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
+export const skipWhile = <T>(predicate: (value: T) => boolean): Operator<T, T> => {
   return source => sink => {
     let talkback = talkbackPlaceholder;
     let skip = true;
@@ -535,9 +538,9 @@ export function skipWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> {
+export const switchMap = <In, Out>(map: (value: In) => Source<Out>): Operator<In, Out> => {
   return source => sink => {
     let outerTalkback = talkbackPlaceholder;
     let innerTalkback = talkbackPlaceholder;
@@ -545,7 +548,7 @@ export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
     let innerPulled = false;
     let innerActive = false;
     let ended = false;
-    function applyInnerSource(innerSource: Source<Out>): void {
+    const applyInnerSource = (innerSource: Source<Out>): void => {
       innerActive = true;
       innerSource(signal => {
         if (!innerActive) {
@@ -570,7 +573,7 @@ export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
           }
         }
       });
-    }
+    };
     source(signal => {
       if (ended) {
         /*noop*/
@@ -617,13 +620,13 @@ export function switchMap<In, Out>(map: (value: In) => Source<Out>): Operator<In
       })
     );
   };
-}
+};
 
-export function switchAll<T>(source: Source<Source<T>>): Source<T> {
+export const switchAll = <T>(source: Source<Source<T>>): Source<T> => {
   return switchMap<Source<T>, T>(identity)(source);
-}
+};
 
-export function take<T>(max: number): Operator<T, T> {
+export const take = <T>(max: number): Operator<T, T> => {
   return source => sink => {
     let talkback = talkbackPlaceholder;
     let ended = false;
@@ -664,9 +667,9 @@ export function take<T>(max: number): Operator<T, T> {
       })
     );
   };
-}
+};
 
-export function takeLast<T>(max: number): Operator<T, T> {
+export const takeLast = <T>(max: number): Operator<T, T> => {
   return source => sink => {
     const queue: T[] = [];
     let talkback = talkbackPlaceholder;
@@ -687,9 +690,9 @@ export function takeLast<T>(max: number): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
+export const takeUntil = <S, T>(notifier: Source<S>): Operator<T, T> => {
   return source => sink => {
     let sourceTalkback = talkbackPlaceholder;
     let notifierTalkback = talkbackPlaceholder;
@@ -730,9 +733,9 @@ export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
       })
     );
   };
-}
+};
 
-export function takeWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
+export const takeWhile = <T>(predicate: (value: T) => boolean): Operator<T, T> => {
   return source => sink => {
     let talkback = talkbackPlaceholder;
     let ended = false;
@@ -754,9 +757,9 @@ export function takeWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function debounce<T>(timing: (value: T) => number): Operator<T, T> {
+export const debounce = <T>(timing: (value: T) => number): Operator<T, T> => {
   return source => sink => {
     let id: any | void;
     let deferredEnded = false;
@@ -795,9 +798,9 @@ export function debounce<T>(timing: (value: T) => number): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function delay<T>(wait: number): Operator<T, T> {
+export const delay = <T>(wait: number): Operator<T, T> => {
   return source => sink => {
     let active = 0;
     source(signal => {
@@ -814,9 +817,9 @@ export function delay<T>(wait: number): Operator<T, T> {
       }
     });
   };
-}
+};
 
-export function throttle<T>(timing: (value: T) => number): Operator<T, T> {
+export const throttle = <T>(timing: (value: T) => number): Operator<T, T> => {
   return source => sink => {
     let skip = false;
     let id: any | void;
@@ -847,6 +850,6 @@ export function throttle<T>(timing: (value: T) => number): Operator<T, T> {
       }
     });
   };
-}
+};
 
 export { mergeAll as flatten, onPush as tap };

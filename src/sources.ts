@@ -2,11 +2,11 @@ import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn }
 import { push, start, talkbackPlaceholder, teardownPlaceholder } from './helpers';
 import { share } from './operators';
 
-export function lazy<T>(make: () => Source<T>): Source<T> {
+export const lazy = <T>(make: () => Source<T>): Source<T> => {
   return sink => make()(sink);
-}
+};
 
-export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
+export const fromAsyncIterable = <T>(iterable: AsyncIterable<T>): Source<T> => {
   return sink => {
     const iterator = iterable[Symbol.asyncIterator]();
     let ended = false;
@@ -44,9 +44,9 @@ export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
       })
     );
   };
-}
+};
 
-export function fromIterable<T>(iterable: Iterable<T> | AsyncIterable<T>): Source<T> {
+export const fromIterable = <T>(iterable: Iterable<T> | AsyncIterable<T>): Source<T> => {
   if (iterable[Symbol.asyncIterator]) return fromAsyncIterable(iterable as AsyncIterable<T>);
   return sink => {
     const iterator = iterable[Symbol.iterator]();
@@ -85,11 +85,11 @@ export function fromIterable<T>(iterable: Iterable<T> | AsyncIterable<T>): Sourc
       })
     );
   };
-}
+};
 
 export const fromArray: <T>(array: T[]) => Source<T> = fromIterable;
 
-export function fromValue<T>(value: T): Source<T> {
+export const fromValue = <T>(value: T): Source<T> => {
   return sink => {
     let ended = false;
     sink(
@@ -104,9 +104,9 @@ export function fromValue<T>(value: T): Source<T> {
       })
     );
   };
-}
+};
 
-export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<T> {
+export const make = <T>(produce: (observer: Observer<T>) => TeardownFn): Source<T> => {
   return sink => {
     let ended = false;
     const teardown = produce({
@@ -129,9 +129,9 @@ export function make<T>(produce: (observer: Observer<T>) => TeardownFn): Source<
       })
     );
   };
-}
+};
 
-export function makeSubject<T>(): Subject<T> {
+export const makeSubject = <T>(): Subject<T> => {
   let next: Subject<T>['next'] | void;
   let complete: Subject<T>['complete'] | void;
   return {
@@ -149,7 +149,7 @@ export function makeSubject<T>(): Subject<T> {
       if (complete) complete();
     },
   };
-}
+};
 
 export const empty: Source<any> = (sink: Sink<any>): void => {
   let ended = false;
@@ -169,22 +169,22 @@ export const never: Source<any> = (sink: Sink<any>): void => {
   sink(start(talkbackPlaceholder));
 };
 
-export function interval(ms: number): Source<number> {
+export const interval = (ms: number): Source<number> => {
   return make(observer => {
     let i = 0;
     const id = setInterval(() => observer.next(i++), ms);
     return () => clearInterval(id);
   });
-}
+};
 
-export function fromDomEvent(element: HTMLElement, event: string): Source<Event> {
+export const fromDomEvent = (element: HTMLElement, event: string): Source<Event> => {
   return make(observer => {
     element.addEventListener(event, observer.next);
     return () => element.removeEventListener(event, observer.next);
   });
-}
+};
 
-export function fromPromise<T>(promise: Promise<T>): Source<T> {
+export const fromPromise = <T>(promise: Promise<T>): Source<T> => {
   return make(observer => {
     promise.then(value => {
       Promise.resolve(value).then(() => {
@@ -194,4 +194,4 @@ export function fromPromise<T>(promise: Promise<T>): Source<T> {
     });
     return teardownPlaceholder;
   });
-}
+};

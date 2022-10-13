@@ -19,7 +19,7 @@ interface Observable<T> {
 const observableSymbol = (): symbol =>
   (Symbol as any).observable || ((Symbol as any).observable = Symbol('observable'));
 
-export function fromObservable<T>(input: Observable<T>): Source<T> {
+export const fromObservable = <T>(input: Observable<T>): Source<T> => {
   input = input[observableSymbol()] ? (input as any)[observableSymbol()]() : input;
   return sink => {
     const subscription = input.subscribe({
@@ -39,9 +39,9 @@ export function fromObservable<T>(input: Observable<T>): Source<T> {
       })
     );
   };
-}
+};
 
-export function toObservable<T>(source: Source<T>): Observable<T> {
+export const toObservable = <T>(source: Source<T>): Observable<T> => {
   return {
     subscribe(observer: ObservableObserver<T>) {
       let talkback = talkbackPlaceholder;
@@ -73,4 +73,4 @@ export function toObservable<T>(source: Source<T>): Observable<T> {
       return this;
     },
   };
-}
+};

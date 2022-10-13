@@ -5,17 +5,9 @@ type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, .
   ? [TypeOfSource<Head>, ...TypeOfSourceArray<Tail>]
   : [];
 
-export function zip<Sources extends readonly [...Source<any>[]]>(
-  sources: [...Sources]
-): Source<TypeOfSourceArray<Sources>>;
-
-export function zip<Sources extends { [prop: string]: Source<any> }>(
-  sources: Sources
-): Source<{ [Property in keyof Sources]: TypeOfSource<Sources[Property]> }>;
-
-export function zip<T>(
+export const zip = (<T>(
   sources: Source<T>[] | Record<string, Source<T>>
-): Source<T[] | Record<string, T>> {
+): Source<T[] | Record<string, T>> => {
   const size = Object.keys(sources).length;
   return sink => {
     const filled: Set<string | number> = new Set();
@@ -73,10 +65,18 @@ export function zip<T>(
       })
     );
   };
-}
+}) as {
+  <Sources extends readonly [...Source<any>[]]>(sources: [...Sources]): Source<
+    TypeOfSourceArray<Sources>
+  >;
 
-export function combine<Sources extends Source<any>[]>(
+  <Sources extends { [prop: string]: Source<any> }>(sources: Sources): Source<{
+    [Property in keyof Sources]: TypeOfSource<Sources[Property]>;
+  }>;
+};
+
+export const combine = <Sources extends Source<any>[]>(
   ...sources: Sources
-): Source<TypeOfSourceArray<Sources>> {
+): Source<TypeOfSourceArray<Sources>> => {
   return zip(sources) as Source<any>;
-}
+};

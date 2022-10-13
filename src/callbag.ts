@@ -7,7 +7,7 @@ interface Callbag<I, O> {
   (t: 2, d?: any): void;
 }
 
-export function fromCallbag<T>(callbag: Callbag<any, T>): Source<T> {
+export const fromCallbag = <T>(callbag: Callbag<any, T>): Source<T> => {
   return sink => {
     callbag(0, (signal: number, data: any) => {
       if (signal === 0) {
@@ -23,9 +23,9 @@ export function fromCallbag<T>(callbag: Callbag<any, T>): Source<T> {
       }
     });
   };
-}
+};
 
-export function toCallbag<T>(source: Source<T>): Callbag<any, T> {
+export const toCallbag = <T>(source: Source<T>): Callbag<any, T> => {
   return (signal: number, sink: any) => {
     if (signal === 0) {
       source(signal => {
@@ -41,4 +41,4 @@ export function toCallbag<T>(source: Source<T>): Callbag<any, T> {
       });
     }
   };
-}
+};
