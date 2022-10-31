@@ -16,8 +16,7 @@ interface Observable<T> {
   subscribe(observer: ObservableObserver<T>): ObservableSubscription;
 }
 
-const observableSymbol = (): symbol | string =>
-  Symbol.observable || '@@observable';
+const observableSymbol = (): symbol | string => Symbol.observable || '@@observable';
 
 export function fromObservable<T>(input: Observable<T>): Source<T> {
   input = input[observableSymbol()] ? (input as any)[observableSymbol()]() : input;
