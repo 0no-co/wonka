@@ -14,8 +14,7 @@
       "types": "./dist/types/index.d.ts",
       "source": "./src/index.ts"
     },
-    "./package.json": "./package.json",
-    "./": "./"
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "files": [
