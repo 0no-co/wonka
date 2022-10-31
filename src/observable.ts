@@ -17,7 +17,7 @@ interface Observable<T> {
 }
 
 const observableSymbol = (): symbol | string =>
-  (typeof Symbol === 'function' && Symbol.observable) || '@@observable';
+  Symbol.observable || '@@observable';
 
 export function fromObservable<T>(input: Observable<T>): Source<T> {
   input = input[observableSymbol()] ? (input as any)[observableSymbol()]() : input;
