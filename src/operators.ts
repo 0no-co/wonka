@@ -710,6 +710,7 @@ export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
             (notifierTalkback = signal[0])(TalkbackKind.Pull);
           } else {
             ended = true;
+            notifierTalkback(TalkbackKind.Close);
             sourceTalkback(TalkbackKind.Close);
             sink(SignalKind.End);
           }
