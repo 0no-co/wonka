@@ -33,7 +33,7 @@ jobs:
         uses: actions/cache@v3
         id: pnpm-cache
         with:
-          path: ${{ steps.pnpm-store.outputs.dir }}
+          path: ${{ steps.pnpm-store.outputs.pnpm_cache_dir }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
