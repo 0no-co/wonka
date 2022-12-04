@@ -3,8 +3,5 @@
   "changelog": "../scripts/changelog.js",
   "commit": false,
   "access": "public",
-  "baseBranch": "main",
-  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
-    "onlyUpdatePeerDependentsWhenOutOfRange": true
-  }
+  "baseBranch": "main"
 }
