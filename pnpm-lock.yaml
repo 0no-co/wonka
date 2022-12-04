@@ -26,6 +26,7 @@ specifiers:
   prettier: ^2.8.0
   rimraf: ^3.0.2
   rollup: ^3.5.1
+  rollup-plugin-cjs-check: ^1.0.1
   tslib: ^2.4.1
   typescript: ^4.9.3
   vitest: ^0.25.3
@@ -57,6 +58,7 @@ devDependencies:
   prettier: 2.8.0
   rimraf: 3.0.2
   rollup: 3.5.1
+  rollup-plugin-cjs-check: 1.0.1_rollup@3.5.1
   tslib: 2.4.1
   typescript: 4.9.3
   vitest: 0.25.3
@@ -1000,6 +1002,10 @@ packages:
   /ci-info/3.7.0:
     resolution: {integrity: sha512-2CpRNYmImPx+RXKLq6jko/L07phmS9I02TyqkcNU20GCF/GgaWvc58hPtjxDX8lPpkdwc9sNh72V9k00S7ezog==}
     engines: {node: '>=8'}
+    dev: true
+
+  /cjs-module-lexer/1.2.2:
+    resolution: {integrity: sha512-cOU9usZw8/dXIXKtwa8pM0OTJQuJkxMN6w30csNRUerHfeQ5R6U3kkU/FtJeIf3M202OHfY2U8ccInBG7/xogA==}
     dev: true
 
   /clean-stack/2.2.0:
@@ -3088,6 +3094,17 @@ packages:
     hasBin: true
     dependencies:
       glob: 7.2.3
+    dev: true
+
+  /rollup-plugin-cjs-check/1.0.1_rollup@3.5.1:
+    resolution: {integrity: sha512-RIkRyb1ScFngz57FufFm19vixy6RddiMit84Cmy9fgS9gPhMDAw3GsssQ6uj1OI/y0uDRmh9fF4o9lEHBlvTgg==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0 || ^2.0.0 || ^3.0.0
+    dependencies:
+      '@rollup/pluginutils': 5.0.2_rollup@3.5.1
+      cjs-module-lexer: 1.2.2
+      rollup: 3.5.1
     dev: true
 
   /rollup/2.79.1:
