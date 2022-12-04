@@ -40,7 +40,8 @@
     "lint": "eslint --ext=js,ts .",
     "build": "rollup -c rollup.config.js",
     "clean": "rimraf dist node_modules/.cache",
-    "prepublishOnly": "run-s clean build check test"
+    "prepublishOnly": "run-s clean build check test",
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "repository": "https://github.com/0no-co/wonka",
   "bugs": {
@@ -68,7 +69,6 @@
       "./scripts/eslint-preset.js"
     ]
   },
-  "dependencies": {},
   "devDependencies": {
     "@rollup/plugin-buble": "^0.21.3",
     "@rollup/plugin-commonjs": "^22.0.2",
