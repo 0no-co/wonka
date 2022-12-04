@@ -70,6 +70,8 @@
     ]
   },
   "devDependencies": {
+    "@changesets/cli": "^2.25.2",
+    "@changesets/get-github-info": "^0.5.1",
     "@rollup/plugin-buble": "^0.21.3",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",

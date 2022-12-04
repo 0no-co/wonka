@@ -1,23 +1,21 @@
-name: CI
-
+name: Release
 on:
-  pull_request:
   push:
-    branches: main
-
+    branches:
+      - main
 jobs:
-  check:
-    name: Checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  release:
+    name: Release
+    runs-on: ubuntu-20.04
+    timeout-minutes: 20
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
@@ -44,14 +42,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: TypeScript
-        run: pnpm run check
-
-      - name: Linting
-        run: pnpm run lint
-
-      - name: Unit Tests
-        run: pnpm run test
-
-      - name: Build
-        run: pnpm run build
+      - name: PR or Publish
+        id: changesets
+        uses: changesets/action@b3300fad33b6ab794313da28d27424c0e2f78991
+        with:
+          publish: pnpm changeset publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

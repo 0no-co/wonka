@@ -15,8 +15,4 @@ config = config.replace(/\s*hooksPath\s*=\s*\.husky\n?/g, '\n');
 fs.writeFileSync(hook, script);
 fs.writeFileSync(gitConfig, config);
 
-fs.writeFileSync(
-  localHook,
-  'packageManager=pnpm\n' +
-    'cd "."\n'
-);
+fs.writeFileSync(localHook, 'packageManager=yarn\n' + 'cd "."\n');
