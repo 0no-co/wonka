@@ -38,7 +38,7 @@
     "test": "vitest run",
     "check": "tsc",
     "lint": "eslint --ext=js,ts .",
-    "build": "rollup -c rollup.config.js",
+    "build": "rollup -c scripts/rollup.config.mjs",
     "clean": "rimraf dist node_modules/.cache",
     "prepublishOnly": "run-s clean build check test",
     "postinstall": "node ./scripts/postinstall.js"
@@ -72,11 +72,12 @@
   "devDependencies": {
     "@changesets/cli": "^2.25.2",
     "@changesets/get-github-info": "^0.5.1",
-    "@rollup/plugin-buble": "^0.21.3",
-    "@rollup/plugin-commonjs": "^22.0.2",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-typescript": "^8.3.4",
-    "@rollup/pluginutils": "^4.2.1",
+    "@rollup/plugin-buble": "^1.0.1",
+    "@rollup/plugin-commonjs": "^23.0.3",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-typescript": "^10.0.1",
+    "@rollup/pluginutils": "^5.0.2",
     "@types/zen-observable": "^0.8.3",
     "@typescript-eslint/eslint-plugin": "^5.33.0",
     "@typescript-eslint/parser": "^5.33.0",
@@ -93,11 +94,10 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
-    "rollup": "^2.77.3",
-    "rollup-plugin-terser": "^7.0.2",
+    "rollup": "^3.5.1",
     "tslib": "^2.4.0",
     "typescript": "^4.8.2",
-    "vitest": "^0.23.4",
-    "zen-observable": "^0.8.15"
+    "vitest": "^0.25.3",
+    "zen-observable": "^0.10.0"
   }
 }

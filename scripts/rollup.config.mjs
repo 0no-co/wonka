@@ -2,9 +2,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import buble from '@rollup/plugin-buble';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 
-import flowTypings from './scripts/flow-typings-plugin';
+import flowTypings from './flow-typings-plugin.mjs';
 
 const plugins = [
   resolve({
@@ -21,7 +21,6 @@ const plugins = [
   }),
 
   typescript({
-    typescript: require('typescript'),
     exclude: ['src/**/*.test.ts', '**/__tests__/*'],
     compilerOptions: {
       sourceMap: true,

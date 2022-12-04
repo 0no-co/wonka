@@ -1,14 +1,15 @@
 import { resolve, basename, dirname, join } from 'path';
 import { writeFileSync } from 'fs';
-import { sync as glob } from 'glob';
 import { compiler, beautify } from 'flowgen';
+
+import glob from 'glob';
 
 function flowTypings() {
   return {
     name: 'flow-typings',
     async writeBundle() {
       const cwd = process.cwd();
-      for (const file of glob('dist/types/**/*.d.ts')) {
+      for (const file of glob.sync('dist/types/**/*.d.ts')) {
         const fullpath = resolve(cwd, file);
         const flowdef = beautify(compiler.compileDefinitionFile(fullpath));
         const name = basename(fullpath, '.d.ts');
