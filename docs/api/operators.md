@@ -547,7 +547,7 @@ import { pipe, interval, throttle, take, subscribe } from 'wonka';
 pipe(
   interval(10),
   throttle(() => 50)
-  takew(2),
+  take(2),
   subscribe(val => console.log(val))
 ); // Outputs 0 6 to the console.
 ```
