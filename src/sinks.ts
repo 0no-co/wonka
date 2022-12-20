@@ -69,9 +69,9 @@ export function toAsyncIterable<T>(source: Source<T>): AsyncIterable<T> {
 
       return {
         async next(): Promise<IteratorResult<T>> {
-          if (ended) {
+          if (ended && !buffer.length) {
             return doneResult;
-          } else if (!buffer.length) {
+          } else if (!ended && buffer.length <= 1) {
             talkback(TalkbackKind.Pull);
           }
 
