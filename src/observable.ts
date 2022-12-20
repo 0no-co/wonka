@@ -8,12 +8,18 @@ interface ObservableSubscription {
 
 interface ObservableObserver<T> {
   next(value: T): void;
-  error(error: any): void;
-  complete(): void;
+  error?(error: any): void;
+  complete?(): void;
 }
 
 interface Observable<T> {
   subscribe(observer: ObservableObserver<T>): ObservableSubscription;
+
+  subscribe(
+    onNext: (value: T) => any,
+    onError?: (error: any) => any,
+    onComplete?: () => any
+  ): ObservableSubscription;
 }
 
 const observableSymbol = (): symbol | string => Symbol.observable || '@@observable';
@@ -28,8 +34,8 @@ export function fromObservable<T>(input: Observable<T>): Source<T> {
       complete() {
         sink(SignalKind.End);
       },
-      error() {
-        /*noop*/
+      error(error) {
+        throw error;
       },
     });
     sink(
@@ -42,7 +48,13 @@ export function fromObservable<T>(input: Observable<T>): Source<T> {
 
 export function toObservable<T>(source: Source<T>): Observable<T> {
   return {
-    subscribe(observer: ObservableObserver<T>) {
+    subscribe(
+      next: ObservableObserver<T> | ((value: T) => any),
+      error?: (error: any) => any | undefined,
+      complete?: () => any | undefined
+    ) {
+      const observer: ObservableObserver<T> =
+        typeof next == 'object' ? next : { next, error, complete };
       let talkback = talkbackPlaceholder;
       let ended = false;
       source(signal => {
@@ -50,7 +62,7 @@ export function toObservable<T>(source: Source<T>): Observable<T> {
           /*noop*/
         } else if (signal === SignalKind.End) {
           ended = true;
-          observer.complete();
+          if (observer.complete) observer.complete();
         } else if (signal.tag === SignalKind.Start) {
           (talkback = signal[0])(TalkbackKind.Pull);
         } else {
