@@ -229,6 +229,94 @@ describe('toPromise', () => {
   });
 });
 
+describe('toAsyncIterable', () => {
+  it('creates an async iterable mirroring the Wonka source', async () => {
+    let pulls = 0;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+
+    expect(pulls).toBe(1);
+    sink!(push(0));
+    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(pulls).toBe(2);
+
+    sink!(push(1));
+    expect(await asyncIterator.next()).toEqual({ value: 1, done: false });
+    expect(pulls).toBe(3);
+
+    sink!(SignalKind.End);
+    expect(await asyncIterator.next()).toEqual({ done: true });
+    expect(pulls).toBe(3);
+  });
+
+  it('buffers actively pushed values', async () => {
+    let pulls = 0;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+
+    sink!(push(0));
+    sink!(push(1));
+    sink!(SignalKind.End);
+
+    expect(pulls).toBe(1);
+    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await asyncIterator.next()).toEqual({ value: 1, done: false });
+    expect(await asyncIterator.next()).toEqual({ done: true });
+  });
+
+  it('asynchronously waits for pulled values', async () => {
+    let pulls = 0;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    expect(pulls).toBe(1);
+
+    let resolved = false;
+
+    const promise = asyncIterator.next().then(value => {
+      resolved = true;
+      return value;
+    });
+
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    sink!(push(0));
+    sink!(SignalKind.End);
+    expect(await promise).toEqual({ value: 0, done: false });
+    expect(await asyncIterator.next()).toEqual({ done: true });
+  });
+});
+
 describe('toObservable', () => {
   it('creates an Observable mirroring the Wonka source', () => {
     const next = vi.fn();
