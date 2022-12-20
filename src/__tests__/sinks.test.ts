@@ -340,6 +340,53 @@ describe('toAsyncIterable', () => {
 
     expect(ended).toBeTruthy();
   });
+
+  it('supports for-await-of', async () => {
+    let pulls = 0;
+
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            sink(pulls < 3 ? push(pulls++) : SignalKind.End);
+          }
+        })
+      );
+    };
+
+    const iterable = sinks.toAsyncIterable(source);
+    const values: any[] = [];
+    for await (const value of iterable) {
+      values.push(value);
+    }
+
+    expect(values).toEqual([0, 1, 2]);
+  });
+
+  it('supports for-await-of with early break', async () => {
+    let pulls = 0;
+    let closed = false;
+
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            sink(pulls < 3 ? push(pulls++) : SignalKind.End);
+          } else {
+            closed = true;
+          }
+        })
+      );
+    };
+
+    const iterable = sinks.toAsyncIterable(source);
+    for await (const value of iterable) {
+      expect(value).toBe(0);
+      break;
+    }
+
+    expect(closed).toBe(true);
+  });
 });
 
 describe('toObservable', () => {
