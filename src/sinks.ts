@@ -59,8 +59,7 @@ export function toAsyncIterable<T>(source: Source<T>): AsyncIterable<T> {
           }
           ended = true;
         } else if (signal.tag === SignalKind.Start) {
-          talkback = signal[0];
-          if (!buffer.length) talkback(TalkbackKind.Pull);
+          (talkback = signal[0])(TalkbackKind.Pull);
         } else if (next) {
           next({ value: signal[0], done: false });
           next = undefined;
