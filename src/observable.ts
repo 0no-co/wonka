@@ -12,6 +12,11 @@ interface ObservableObserver<T> {
   complete?(): void;
 }
 
+interface ObservableLike<T> {
+  subscribe(observer: ObservableObserver<T>): ObservableSubscription;
+  [Symbol.observable]?(): Observable<T>;
+}
+
 interface Observable<T> {
   subscribe(observer: ObservableObserver<T>): ObservableSubscription;
 
@@ -20,11 +25,13 @@ interface Observable<T> {
     onError?: (error: any) => any,
     onComplete?: () => any
   ): ObservableSubscription;
+
+  [Symbol.observable](): Observable<T>;
 }
 
-const observableSymbol = (): symbol | string => Symbol.observable || '@@observable';
+const observableSymbol = (): typeof Symbol.observable => Symbol.observable || '@@observable';
 
-export function fromObservable<T>(input: Observable<T>): Source<T> {
+export function fromObservable<T>(input: ObservableLike<T>): Source<T> {
   input = input[observableSymbol()] ? (input as any)[observableSymbol()]() : input;
   return sink => {
     const subscription = input.subscribe({
