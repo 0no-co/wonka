@@ -315,6 +315,31 @@ describe('toAsyncIterable', () => {
     expect(await promise).toEqual({ value: 0, done: false });
     expect(await asyncIterator.next()).toEqual({ done: true });
   });
+
+  it('supports cancellation via return', async () => {
+    let ended = false;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Close) ended = true;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+
+    sink!(push(0));
+    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await asyncIterator.return!()).toEqual({ done: true });
+
+    sink!(push(1));
+    expect(await asyncIterator.next()).toEqual({ done: true });
+
+    expect(ended).toBeTruthy();
+  });
 });
 
 describe('toObservable', () => {

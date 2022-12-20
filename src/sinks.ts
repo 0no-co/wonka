@@ -50,7 +50,9 @@ export function toAsyncIterable<T>(source: Source<T>): AsyncIterable<T> {
       let next: ((value: IteratorResult<T>) => void) | undefined;
 
       source(signal => {
-        if (signal === SignalKind.End) {
+        if (ended) {
+          /*noop*/
+        } else if (signal === SignalKind.End) {
           if (next) {
             next(doneResult);
             next = undefined;
