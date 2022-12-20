@@ -38,6 +38,59 @@ export function publish<T>(source: Source<T>): void {
   })(source);
 }
 
+const doneResult = { done: true } as IteratorReturnResult<void>;
+
+export function toAsyncIterable<T>(source: Source<T>): AsyncIterable<T> {
+  return {
+    [Symbol.asyncIterator](): AsyncIterator<T> {
+      const buffer: T[] = [];
+
+      let ended = false;
+      let talkback = talkbackPlaceholder;
+      let next: ((value: IteratorResult<T>) => void) | undefined;
+
+      source(signal => {
+        if (signal === SignalKind.End) {
+          if (next) {
+            next(doneResult);
+            next = undefined;
+          }
+          ended = true;
+        } else if (signal.tag === SignalKind.Start) {
+          talkback = signal[0];
+          if (!buffer.length) talkback(TalkbackKind.Pull);
+        } else if (next) {
+          next({ value: signal[0], done: false });
+          next = undefined;
+        } else {
+          buffer.push(signal[0]);
+        }
+      });
+
+      return {
+        async next(): Promise<IteratorResult<T>> {
+          if (ended) {
+            return doneResult;
+          } else if (!buffer.length) {
+            talkback(TalkbackKind.Pull);
+          }
+
+          return buffer.length
+            ? { value: buffer.shift()!, done: false }
+            : new Promise(resolve => {
+                next = resolve;
+              });
+        },
+        async return(): Promise<IteratorReturnResult<void>> {
+          if (!ended) talkback(TalkbackKind.Close);
+          ended = true;
+          return doneResult;
+        },
+      };
+    },
+  };
+}
+
 export function toArray<T>(source: Source<T>): T[] {
   const values: T[] = [];
   let talkback = talkbackPlaceholder;
