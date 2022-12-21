@@ -4,8 +4,8 @@ interface UnaryFn<T, R> {
   (source: T): R;
 }
 
-/**
- * Chain calls operators on a given source and returns the last result.
+/** Chain calls operators on a given source and returns the last result.
+ * @param args - A source, then a variable number of transform functions
  *
  * @remarks
  * The `pipe` utility can be called with a {@link Source} then one or more unary transform functions.
@@ -14,6 +14,7 @@ interface UnaryFn<T, R> {
  *
  * It's used to transform a source with a list of {@link Operator | Operators}. The last argument may
  * also be a {@link Sink} that returns something else than a Source.
+ *
  * @example
  *
  * ```ts
@@ -24,7 +25,6 @@ interface UnaryFn<T, R> {
  * );
  * ```
  *
- * @param args - A source, then a variable number of transform functions
  * @see {@link https://github.com/tc39/proposal-pipeline-operator} for the JS Pipeline Operator spec, for which this is a replacement utility for.
  */
 interface pipe {

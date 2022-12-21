@@ -127,27 +127,25 @@ export type Signal<T> = Start<T> | Push<T> | SignalKind.End;
  */
 export type Sink<T> = (signal: Signal<T>) => void;
 
-/**
- * Factory function that calls {@link Sink | Sinks} with {@link Signal | Signals} when invoked.
- *
+/** Factory function that calls {@link Sink | Sinks} with {@link Signal | Signals} when invoked.
  * @remarks
  * A Source is a factory function that when invoked with a {@link Sink}, calls it with
  * {@link Signal | Signals} to create a stream of events, informing it of new values and the
  * potential end of the stream of values. The first signal a Source sends is always a
  * {@link Start | Start signal} that sends a talkback function to the {@link Sink}, so it may request
  * new values or cancel the source.
+ *
  * @see {@link Signal} for the data structure of signals.
  * @see {@link Sink} for the data structure of sinks.
  */
 export type Source<T> = (sink: Sink<T>) => void;
 
-/**
- * Transform function that accepts a {@link Source} and returns a new one.
- *
+/** Transform function that accepts a {@link Source} and returns a new one.
  * @remarks
  * Wonka comes with several helper operators that transform a given {@link Source} into a new one,
  * potentially changing its outputs, or the outputs' timing. An "operator" in Wonka typically
  * accepts arguments and then returns this kind of function, so they can be chained and composed.
+ *
  * @see {@link pipe | `pipe`} for the helper used to compose operators.
  */
 export type Operator<In, Out> = (a: Source<In>) => Source<Out>;
@@ -155,9 +153,7 @@ export type Operator<In, Out> = (a: Source<In>) => Source<Out>;
 /** Type utility to determine the type of a {@link Source}. */
 export type TypeOfSource<T> = T extends Source<infer U> ? U : never;
 
-/**
- * Subscription object that can be used to cancel a {@link Source}.
- *
+/** Subscription object that can be used to cancel a {@link Source}.
  * @see {@link subscribe | subscribe sink} for a helper that returns this structure.
  */
 export interface Subscription {
@@ -171,25 +167,20 @@ export interface Subscription {
   unsubscribe(): void;
 }
 
-/**
- * An Observer represents sending signals manually to a {@link Sink}.
- *
+/** An Observer represents sending signals manually to a {@link Sink}.
  * @remarks
  * The Observer is used whenever a utility allows for signals to be sent manually as a {@link Source}
  * would send them.
+ *
  * @see {@link make | `make` source} for a helper that uses this structure.
  */
 export interface Observer<T> {
-  /**
-   * Sends a new value to the receiving Sink.
-   *
+  /** Sends a new value to the receiving Sink.
    * @remarks
    * This creates a {@link Push | Push signal} that is sent to a {@link Sink}.
    */
   next(value: T): void;
-  /**
-   * Indicates to the receiving Sink that no more values will be sent.
-   *
+  /** Indicates to the receiving Sink that no more values will be sent.
    * @remarks
    * This creates an {@link SignalKind.End | End signal} that is sent to a {@link Sink}. The Observer
    * will accept no more values via {@link Observer.next | `next` calls} once this method has been
@@ -198,13 +189,11 @@ export interface Observer<T> {
   complete(): void;
 }
 
-/**
- * Subjects combine a {@link Source} with the {@link Observer} that is used to send values on said
- * Source.
- *
+/** Subjects combine a {@link Source} with the {@link Observer} that is used to send values on said Source.
  * @remarks
  * A Subject is used whenever an event hub-like structure is needed, as it both provides the
  * {@link Observer}'s methods to send signals, as well as the `source` to receive said signals.
+ *
  * @see {@link makeSubject | `makeSubject` source} for a helper that creates this structure.
  */
 export interface Subject<T> extends Observer<T> {

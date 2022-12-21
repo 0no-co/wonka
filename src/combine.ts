@@ -5,9 +5,11 @@ type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, .
   ? [TypeOfSource<Head>, ...TypeOfSourceArray<Tail>]
   : [];
 
-/**
- * Combines the latest values of several sources into a Source issuing either tuple or dictionary
+/** Combines the latest values of several sources into a Source issuing either tuple or dictionary
  * values.
+ *
+ * @param sources - Either an array or dictionary object of Sources.
+ * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
  *
  * @remarks
  * `zip` combines several {@link Source | Sources}. The resulting Source will issue its first value
@@ -16,7 +18,9 @@ type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, .
  *
  * Depending on whether an array or dictionary object of Sources is passed to `zip`, its emitted
  * values will be arrays or dictionary objects of the Sources' values.
- * @example An example of passing a dictionary object to `zip`. If an array is passed, the resulting
+ *
+ * @example
+ * An example of passing a dictionary object to `zip`. If an array is passed, the resulting
  * values will output arrays of the sources' values instead.
  *
  * ```ts
@@ -31,9 +35,6 @@ type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, .
  *   })
  * );
  * ```
- *
- * @param sources - Either an array or dictionary object of Sources.
- * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
  */
 interface zip {
   <Sources extends readonly [...Source<any>[]]>(sources: [...Sources]): Source<
@@ -107,13 +108,17 @@ function zip<T>(sources: Source<T>[] | Record<string, Source<T>>): Source<T[] | 
 
 export { zip };
 
-/**
- * Combines the latest values of all passed sources into a Source issuing tuple values.
+/** Combines the latest values of all passed sources into a Source issuing tuple values.
+ *
+ * @see {@link zip | `zip`} which this helper wraps and uses.
+ * @param sources - A variadic list of {@link Source} parameters.
+ * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
  *
  * @remarks
  * `combine` takes one or more {@link Source | Sources} as arguments. Once all input Sources have at
  * least issued one value it will issue an array of all of the Sources' values. Subsequently, it
  * will issue a new array value whenever any of the Sources update.
+ *
  * @example
  *
  * ```ts
@@ -124,10 +129,6 @@ export { zip };
  *   })
  * );
  * ```
- *
- * @param sources - A variadic list of {@link Source} parameters.
- * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
- * @see {@link zip | `zip`} which this helper wraps and uses.
  */
 export function combine<Sources extends Source<any>[]>(
   ...sources: Sources

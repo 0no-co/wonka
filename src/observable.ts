@@ -1,8 +1,7 @@
 import { Source, SignalKind, TalkbackKind } from './types';
 import { push, start, talkbackPlaceholder } from './helpers';
 
-/**
- * A definition of the ES Observable Subscription type that is returned by
+/** A definition of the ES Observable Subscription type that is returned by
  * {@link Observable.subscribe}
  *
  * @remarks
@@ -10,21 +9,19 @@ import { push, start, talkbackPlaceholder } from './helpers';
  * streaming values. As such, it's used to indicate with {@link ObservableSubscription.closed}
  * whether it's active, and {@link ObservableSubscription.unsubscribe} may be used to cancel the
  * ongoing subscription and end the {@link Observable} early.
+ *
  * @see {@link https://github.com/tc39/proposal-observable} for the ES Observable specification.
  */
 interface ObservableSubscription {
-  /**
-   * A boolean flag indicating whether the subscription is closed.
-   *
+  /** A boolean flag indicating whether the subscription is closed.
    * @remarks
    * When `true`, the subscription will not issue new values to the {@link ObservableObserver} and
    * has terminated. No new values are expected.
+   *
    * @readonly
    */
   closed?: boolean;
-  /**
-   * Cancels the subscription.
-   *
+  /** Cancels the subscription.
    * @remarks
    * This cancels the ongoing subscription and the {@link ObservableObserver}'s callbacks will
    * subsequently not be called at all. The subscription will be terminated and become inactive.
@@ -32,25 +29,22 @@ interface ObservableSubscription {
   unsubscribe(): void;
 }
 
-/**
- * A definition of the ES Observable Observer type that is used to receive data from an
+/** A definition of the ES Observable Observer type that is used to receive data from an
  * {@link Observable}.
  *
  * @remarks
  * The Observer in ES Observables is supplied to {@link Observable.subscribe} to receive events from
  * an {@link Observable} as it issues them.
- * @see {@link https://github.com/tc39/proposal-observable#observer} for the ES Observable specification of an Observer.
+ *
+ * @see {@link https://github.com/tc39/proposal-observable#observer} for the ES Observable
+ * specification of an Observer.
  */
 interface ObservableObserver<T> {
-  /**
-   * Callback for the Observable issuing new values.
-   *
+  /** Callback for the Observable issuing new values.
    * @param value - The value that the {@link Observable} is sending.
    */
   next(value: T): void;
-  /**
-   * Callback for the Observable encountering an error, terminating it.
-   *
+  /** Callback for the Observable encountering an error, terminating it.
    * @param error - The error that the {@link Observable} has encountered.
    */
   error?(error: any): void;
@@ -58,23 +52,23 @@ interface ObservableObserver<T> {
   complete?(): void;
 }
 
-/**
- * An looser definition of ES Observable-like types that is used for interoperability.
- *
+/** A looser definition of ES Observable-like types that is used for interoperability.
  * @remarks
  * The Observable is often used by multiple libraries supporting or creating streams to provide
  * interoperability for push-based streams. When converting from an Observable to a {@link Source},
  * this looser type is accepted as an input.
+ *
  * @see {@link https://github.com/tc39/proposal-observable} for the ES Observable specification.
  * @see {@link Observable} for the full ES Observable type.
  */
 interface ObservableLike<T> {
   /**
    * Subscribes to new signals from an {@link Observable} via callbacks.
-   *
    * @param observer - An object containing callbacks for the various events of an Observable.
    * @returns Subscription handle of type {@link ObservableSubscription}.
-   * @see {@link ObservableObserver} for the callbacks in an object that are called as Observables issue events.
+   *
+   * @see {@link ObservableObserver} for the callbacks in an object that are called as Observables
+   * issue events.
    */
   subscribe(observer: ObservableObserver<T>): ObservableSubscription;
 
@@ -82,29 +76,27 @@ interface ObservableLike<T> {
   [Symbol.observable]?(): Observable<T>;
 }
 
-/**
- * An ES Observable type that is a de-facto standard for push-based data sources across the JS
+/** An ES Observable type that is a de-facto standard for push-based data sources across the JS
  * ecosystem.
  *
  * @remarks
  * The Observable is often used by multiple libraries supporting or creating streams to provide
  * interoperability for push-based streams. As Wonka's {@link Source | Sources} are similar in
  * functionality to Observables, it provides utilities to cleanly convert to and from Observables.
+ *
  * @see {@link https://github.com/tc39/proposal-observable} for the ES Observable specification.
  */
 interface Observable<T> {
-  /**
-   * Subscribes to new signals from an {@link Observable} via callbacks.
-   *
+  /** Subscribes to new signals from an {@link Observable} via callbacks.
    * @param observer - An object containing callbacks for the various events of an Observable.
    * @returns Subscription handle of type {@link ObservableSubscription}.
-   * @see {@link ObservableObserver} for the callbacks in an object that are called as Observables issue events.
+   *
+   * @see {@link ObservableObserver} for the callbacks in an object that are called as Observables
+   * issue events.
    */
   subscribe(observer: ObservableObserver<T>): ObservableSubscription;
 
-  /**
-   * Subscribes to new signals from an {@link Observable} via callbacks.
-   *
+  /** Subscribes to new signals from an {@link Observable} via callbacks.
    * @param onNext - Callback for the Observable issuing new values.
    * @param onError - Callback for the Observable encountering an error, terminating it.
    * @param onComplete - Callback for the Observable ending, after all values have been issued.
@@ -120,31 +112,33 @@ interface Observable<T> {
   [Symbol.observable](): Observable<T>;
 }
 
-/**
- * Returns the well-known symbol specifying the default ES Observable.
- *
+/** Returns the well-known symbol specifying the default ES Observable.
  * @privateRemarks
  * This symbol is used to mark an object as a default ES Observable. By the specification, an object
  * that abides by the default Observable implementation must carry a method set to this well-known
  * symbol that returns the Observable implementation. It's common for this object to be an
  * Observable itself and return itself on this method.
+ *
+ * @see {@link https://github.com/0no-co/wonka/issues/122} for notes on the intercompatibility
+ * between Observable implementations.
+ *
  * @internal
- * @see {@link https://github.com/0no-co/wonka/issues/122} for notes on the intercompatibility between Observable implementations.
  */
 const observableSymbol = (): typeof Symbol.observable => Symbol.observable || '@@observable';
 
-/**
- * Converts an ES Observable to a {@link Source}.
+/** Converts an ES Observable to a {@link Source}.
+ * @param input - The {@link ObservableLike} object that will be converted.
+ * @returns A {@link Source} wrapping the passed Observable.
  *
  * @remarks
  * This converts an ES Observable to a {@link Source}. When this Source receives a {@link Sink} and
  * the subscription starts, internally, it'll subscribe to the passed Observable, passing through
  * all of the Observable's values. As such, this utility provides intercompatibility converting from
  * standard Observables to Wonka Sources.
- * @param input - The {@link ObservableLike} object that will be converted.
- * @returns A {@link Source} wrapping the passed Observable.
- * @throws When the passed ES Observable throws, the error is simply re-thrown as {@link Source} does
- *   not support or expect errors to be handled by streams.
+ *
+ * @throws
+ * When the passed ES Observable throws, the error is simply re-thrown as {@link Source} does
+ * not support or expect errors to be handled by streams.
  */
 export function fromObservable<T>(input: ObservableLike<T>): Source<T> {
   return sink => {
@@ -169,15 +163,14 @@ export function fromObservable<T>(input: ObservableLike<T>): Source<T> {
   };
 }
 
-/**
- * Converts a {@link Source} to an ES Observable.
+/** Converts a {@link Source} to an ES Observable.
+ * @param source - The {@link Source} that will be converted.
+ * @returns An {@link Observable} wrapping the passed Source.
  *
  * @remarks
  * This converts a {@link Source} to an {@link Observable}. When this Observable is subscribed to, it
  * internally subscribes to the Wonka Source and pulls new values. As such, this utility provides
  * intercompatibility converting from Wonka Sources to standard ES Observables.
- * @param source - The {@link Source} that will be converted.
- * @returns An {@link Observable} wrapping the passed Source.
  */
 export function toObservable<T>(source: Source<T>): Observable<T> {
   return {
