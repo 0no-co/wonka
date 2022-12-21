@@ -6,7 +6,8 @@ type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, .
   : [];
 
 /**
- * Combines the latest values of several sources into either tuple or dictionary values.
+ * Combines the latest values of several sources into a Source issuing either tuple or dictionary
+ * values.
  *
  * @remarks
  * `zip` combines several {@link Source | Sources}. The resulting Source will issue its first value
@@ -32,7 +33,7 @@ type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, .
  * ```
  *
  * @param sources - Either an array or dictionary object of Sources.
- * @returns A {@link Source} issuing new values whenever any input Source updates with zipped values.
+ * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
  */
 interface zip {
   <Sources extends readonly [...Source<any>[]]>(sources: [...Sources]): Source<
@@ -44,9 +45,7 @@ interface zip {
   }>;
 }
 
-export function zip<T>(
-  sources: Source<T>[] | Record<string, Source<T>>
-): Source<T[] | Record<string, T>> {
+function zip<T>(sources: Source<T>[] | Record<string, Source<T>>): Source<T[] | Record<string, T>> {
   const size = Object.keys(sources).length;
   return sink => {
     const filled: Set<string | number> = new Set();
@@ -106,6 +105,30 @@ export function zip<T>(
   };
 }
 
+export { zip };
+
+/**
+ * Combines the latest values of all passed sources into a Source issuing tuple values.
+ *
+ * @remarks
+ * `combine` takes one or more {@link Source | Sources} as arguments. Once all input Sources have at
+ * least issued one value it will issue an array of all of the Sources' values. Subsequently, it
+ * will issue a new array value whenever any of the Sources update.
+ * @example
+ *
+ * ```ts
+ * pipe(
+ *   combine(fromValue(1), fromValue(2)),
+ *   subscribe(result => {
+ *     console.log(result); // logs [1, 2]
+ *   })
+ * );
+ * ```
+ *
+ * @param sources - A variadic list of {@link Source} parameters.
+ * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
+ * @see {@link zip | `zip`} which this helper wraps and uses.
+ */
 export function combine<Sources extends Source<any>[]>(
   ...sources: Sources
 ): Source<TypeOfSourceArray<Sources>> {
