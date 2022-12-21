@@ -34,6 +34,9 @@ export function lazy<T>(produce: () => Source<T>): Source<T> {
  * `fromAsyncIterable` will create a {@link Source} that pulls and issues values from a given
  * {@link AsyncIterable}. This can be used in many interoperability situations, including to consume
  * an async generator function.
+ *
+ * When the {@link Sink} throws an exception when a new value is pushed, this helper will rethrow it
+ * using {@link AsyncIterator.throw}, which allows an async generator to recover from the exception.
  * @param iterable - An {@link AsyncIterable | `AsyncIterable`}.
  * @returns A {@link Source} issuing values sourced from the Iterable.
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_async_iterator_and_async_iterable_protocols} for the JS Iterable protocol.
@@ -86,11 +89,17 @@ export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
  * `fromIterable` will create a {@link Source} that pulls and issues values from a given
  * {@link Iterable | JS Iterable}. As iterables are the common standard for any lazily iterated list
  * of values in JS it can be applied to many different JS data types, including a JS Generator
- * function. This Source will only call {@link Iterator.next} on the iterator when the subscribing
- * {@link Sink} has pulled a new value with the {@link TalkbackKind.Pull | Pull signal}.
- * `fromIterable` can therefore also be applied to "infinite" iterables, without a predefined end.
+ * function.
+ *
+ * This Source will only call {@link Iterator.next} on the iterator when the subscribing {@link Sink}
+ * has pulled a new value with the {@link TalkbackKind.Pull | Pull signal}. `fromIterable` can
+ * therefore also be applied to "infinite" iterables, without a predefined end.
+ *
  * This helper will call {@link fromAsyncIterable | `fromAsyncIterable`} automatically when the
  * passed object also implements the async iterator protocol.
+ *
+ * When the {@link Sink} throws an exception when a new value is pushed, this helper will rethrow it
+ * using {@link Iterator.throw}, which allows a generator to recover from the exception.
  * @param iterable - An {@link Iterable | `Iterable`} or an `AsyncIterable`
  * @returns A {@link Source} issuing values sourced from the Iterable.
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol} for the JS Iterable protocol.
@@ -190,12 +199,15 @@ export function fromValue<T>(value: T): Source<T> {
  *
  * @remarks
  * `make` is used to create a new, arbitrary {@link Source} from scratch. It calls the passed
- * `subscriber` function when it's subscribed to. This function receives an {@link Observer}. You may
- * call {@link Observer.next} to issue values on the Source, and {@link Observer.complete} to end the
- * Source. Your `subscribr` function must return a {@link TeardownFn | teardown function} which is
- * only called when your source is cancelled — not when you invoke `complete` yourself. As this
- * creates a "cold" source, every time this source is subscribed to, it will invoke the `subscriber`
- * function again and create a new source.
+ * `subscriber` function when it's subscribed to.
+ *
+ * The `subscriber` function receives an {@link Observer}. You may call {@link Observer.next} to issue
+ * values on the Source, and {@link Observer.complete} to end the Source.
+ *
+ * Your `subscribr` function must return a {@link TeardownFn | teardown function} which is only
+ * called when your source is cancelled — not when you invoke `complete` yourself. As this creates a
+ * "cold" source, every time this source is subscribed to, it will invoke the `subscriber` function
+ * again and create a new source.
  * @example
  *
  * ```ts
@@ -314,8 +326,9 @@ export const never: Source<any> = (sink: Sink<any>): void => {
  *
  * @remarks
  * `interval` will create a {@link Source} that issues an incrementing counter each time the `ms`
- * interval expires. It'll only stop when it's cancelled by a
- * {@link TalkbackKind.Close | Close signal}.
+ * interval expires.
+ *
+ * It'll only stop when it's cancelled by a {@link TalkbackKind.Close | Close signal}.
  * @example An example printing `0`, then `1`, and so on, in intervals of 50ms.
  *
  * ```ts
@@ -366,8 +379,10 @@ export function fromDomEvent(element: HTMLElement, event: string): Source<Event>
  *
  * @remarks
  * `fromPromise` will create a {@link Source} that issues the {@link Promise}'s resolving value
- * asynchronously and ends immediately after resolving. This will not wrap the promise's exceptions,
- * and will cause uncaught errors if the promise rejects without a value.
+ * asynchronously and ends immediately after resolving.
+ *
+ * This helper will not handle the promise's exceptions, and will cause uncaught errors if the
+ * promise rejects without a value.
  * @example An example printing `'resolved!'` when the given promise resolves after a tick.
  *
  * ```ts

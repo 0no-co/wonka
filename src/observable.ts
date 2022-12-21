@@ -140,8 +140,7 @@ const observableSymbol = (): typeof Symbol.observable => Symbol.observable || '@
  * This converts an ES Observable to a {@link Source}. When this Source receives a {@link Sink} and
  * the subscription starts, internally, it'll subscribe to the passed Observable, passing through
  * all of the Observable's values. As such, this utility provides intercompatibility converting from
- * standard Observables to Wonka Sources. When the passed Observable issues an error, the error is
- * simply rethrown.
+ * standard Observables to Wonka Sources.
  * @param input - The {@link ObservableLike} object that will be converted.
  * @returns A {@link Source} wrapping the passed Observable.
  * @throws When the passed ES Observable throws, the error is simply re-thrown as {@link Source} does

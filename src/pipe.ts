@@ -10,10 +10,10 @@ interface UnaryFn<T, R> {
  * @remarks
  * The `pipe` utility can be called with a {@link Source} then one or more unary transform functions.
  * Each transform function will be called in turn with the last function's return value, starting
- * with the source passed as the first argument to `pipe`. This is a replacement for the proposed JS
- * Pipeline Operator: {@link https://github.com/tc39/proposal-pipeline-operator} It's used to
- * transform a source with a list of {@link Operator | Operators}. The last argument may also be a
- * {@link Sink} that returns something else than a Source.
+ * with the source passed as the first argument to `pipe`.
+ *
+ * It's used to transform a source with a list of {@link Operator | Operators}. The last argument may
+ * also be a {@link Sink} that returns something else than a Source.
  * @example
  *
  * ```ts
@@ -25,6 +25,7 @@ interface UnaryFn<T, R> {
  * ```
  *
  * @param args - A source, then a variable number of transform functions
+ * @see {@link https://github.com/tc39/proposal-pipeline-operator} for the JS Pipeline Operator spec, for which this is a replacement utility for.
  */
 interface pipe {
   /* pipe definitions for source + operators composition */
