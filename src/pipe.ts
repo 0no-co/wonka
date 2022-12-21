@@ -4,154 +4,178 @@ interface UnaryFn<T, R> {
   (source: T): R;
 }
 
-/* pipe definitions for source + operators composition */
+/**
+ * Chain calls operators on a given source and returns the last result.
+ *
+ * @remarks
+ * The `pipe` utility can be called with a {@link Source} then one or more unary transform functions.
+ * Each transform function will be called in turn with the last function's return value, starting
+ * with the source passed as the first argument to `pipe`. This is a replacement for the proposed JS
+ * Pipeline Operator: {@link https://github.com/tc39/proposal-pipeline-operator} It's used to
+ * transform a source with a list of {@link Operator | Operators}. The last argument may also be a
+ * {@link Sink} that returns something else than a Source.
+ * @example
+ *
+ * ```ts
+ * pipe(
+ *   fromArray([1, 2, 3]),
+ *   map(x => x * 2),
+ *   subscribe(console.log)
+ * );
+ * ```
+ *
+ * @param args - A source, then a variable number of transform functions
+ */
+interface pipe {
+  /* pipe definitions for source + operators composition */
 
-function pipe<T, A>(source: Source<T>, op1: UnaryFn<Source<T>, Source<A>>): Source<A>;
+  <T, A>(source: Source<T>, op1: UnaryFn<Source<T>, Source<A>>): Source<A>;
 
-function pipe<T, A, B>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>
-): Source<B>;
+  <T, A, B>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>
+  ): Source<B>;
 
-function pipe<T, A, B, C>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>
-): Source<C>;
+  <T, A, B, C>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>
+  ): Source<C>;
 
-function pipe<T, A, B, C, D>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>
-): Source<D>;
+  <T, A, B, C, D>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>
+  ): Source<D>;
 
-function pipe<T, A, B, C, D, E>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>
-): Source<E>;
+  <T, A, B, C, D, E>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>
+  ): Source<E>;
 
-function pipe<T, A, B, C, D, E, F>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>,
-  op6: UnaryFn<Source<E>, Source<F>>
-): Source<F>;
+  <T, A, B, C, D, E, F>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>,
+    op6: UnaryFn<Source<E>, Source<F>>
+  ): Source<F>;
 
-function pipe<T, A, B, C, D, E, F, G>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>,
-  op6: UnaryFn<Source<E>, Source<F>>,
-  op7: UnaryFn<Source<F>, Source<G>>
-): Source<G>;
+  <T, A, B, C, D, E, F, G>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>,
+    op6: UnaryFn<Source<E>, Source<F>>,
+    op7: UnaryFn<Source<F>, Source<G>>
+  ): Source<G>;
 
-function pipe<T, A, B, C, D, E, F, G, H>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>,
-  op6: UnaryFn<Source<E>, Source<F>>,
-  op7: UnaryFn<Source<F>, Source<G>>,
-  op8: UnaryFn<Source<G>, Source<H>>
-): Source<H>;
+  <T, A, B, C, D, E, F, G, H>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>,
+    op6: UnaryFn<Source<E>, Source<F>>,
+    op7: UnaryFn<Source<F>, Source<G>>,
+    op8: UnaryFn<Source<G>, Source<H>>
+  ): Source<H>;
 
-/* pipe definitions for source + operators + consumer composition */
+  /* pipe definitions for source + operators + consumer composition */
 
-function pipe<T, R>(source: Source<T>, consumer: UnaryFn<Source<T>, R>): R;
+  <T, R>(source: Source<T>, consumer: UnaryFn<Source<T>, R>): R;
 
-function pipe<T, A, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  consumer: UnaryFn<Source<A>, R>
-): R;
+  <T, A, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    consumer: UnaryFn<Source<A>, R>
+  ): R;
 
-function pipe<T, A, B, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  consumer: UnaryFn<Source<B>, R>
-): R;
+  <T, A, B, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    consumer: UnaryFn<Source<B>, R>
+  ): R;
 
-function pipe<T, A, B, C, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  consumer: UnaryFn<Source<C>, R>
-): R;
+  <T, A, B, C, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    consumer: UnaryFn<Source<C>, R>
+  ): R;
 
-function pipe<T, A, B, C, D, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  consumer: UnaryFn<Source<D>, R>
-): R;
+  <T, A, B, C, D, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    consumer: UnaryFn<Source<D>, R>
+  ): R;
 
-function pipe<T, A, B, C, D, E, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>,
-  consumer: UnaryFn<Source<E>, R>
-): R;
+  <T, A, B, C, D, E, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>,
+    consumer: UnaryFn<Source<E>, R>
+  ): R;
 
-function pipe<T, A, B, C, D, E, F, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>,
-  op6: UnaryFn<Source<E>, Source<F>>,
-  consumer: UnaryFn<Source<F>, R>
-): R;
+  <T, A, B, C, D, E, F, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>,
+    op6: UnaryFn<Source<E>, Source<F>>,
+    consumer: UnaryFn<Source<F>, R>
+  ): R;
 
-function pipe<T, A, B, C, D, E, F, G, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>,
-  op6: UnaryFn<Source<E>, Source<F>>,
-  op7: UnaryFn<Source<F>, Source<G>>,
-  consumer: UnaryFn<Source<G>, R>
-): R;
+  <T, A, B, C, D, E, F, G, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>,
+    op6: UnaryFn<Source<E>, Source<F>>,
+    op7: UnaryFn<Source<F>, Source<G>>,
+    consumer: UnaryFn<Source<G>, R>
+  ): R;
 
-function pipe<T, A, B, C, D, E, F, G, H, R>(
-  source: Source<T>,
-  op1: UnaryFn<Source<T>, Source<A>>,
-  op2: UnaryFn<Source<A>, Source<B>>,
-  op3: UnaryFn<Source<B>, Source<C>>,
-  op4: UnaryFn<Source<C>, Source<D>>,
-  op5: UnaryFn<Source<D>, Source<E>>,
-  op6: UnaryFn<Source<E>, Source<F>>,
-  op7: UnaryFn<Source<F>, Source<G>>,
-  op8: UnaryFn<Source<G>, Source<H>>,
-  consumer: UnaryFn<Source<H>, R>
-): R;
+  <T, A, B, C, D, E, F, G, H, R>(
+    source: Source<T>,
+    op1: UnaryFn<Source<T>, Source<A>>,
+    op2: UnaryFn<Source<A>, Source<B>>,
+    op3: UnaryFn<Source<B>, Source<C>>,
+    op4: UnaryFn<Source<C>, Source<D>>,
+    op5: UnaryFn<Source<D>, Source<E>>,
+    op6: UnaryFn<Source<E>, Source<F>>,
+    op7: UnaryFn<Source<F>, Source<G>>,
+    op8: UnaryFn<Source<G>, Source<H>>,
+    consumer: UnaryFn<Source<H>, R>
+  ): R;
+}
 
-function pipe(...args: any[]) {
+function pipe(...args: Function[]): any {
   let x = args[0];
   for (let i = 1, l = args.length; i < l; i++) x = args[i](x);
   return x;
