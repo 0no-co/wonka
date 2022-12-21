@@ -57,8 +57,7 @@ export const toAsyncIterable = <T>(source: Source<T>): AsyncIterable<T> => ({
       } else if (signal.tag === SignalKind.Start) {
         (talkback = signal[0])(TalkbackKind.Pull);
       } else if (next) {
-        next({ value: signal[0], done: false });
-        next = undefined;
+        next = next({ value: signal[0], done: false });
       } else {
         buffer.push(signal[0]);
       }
