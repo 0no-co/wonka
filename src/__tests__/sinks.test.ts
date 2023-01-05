@@ -229,6 +229,166 @@ describe('toPromise', () => {
   });
 });
 
+describe('toAsyncIterable', () => {
+  it('creates an async iterable mirroring the Wonka source', async () => {
+    let pulls = 0;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+
+    expect(pulls).toBe(1);
+    sink!(push(0));
+    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(pulls).toBe(2);
+
+    sink!(push(1));
+    expect(await asyncIterator.next()).toEqual({ value: 1, done: false });
+    expect(pulls).toBe(3);
+
+    sink!(SignalKind.End);
+    expect(await asyncIterator.next()).toEqual({ done: true });
+    expect(pulls).toBe(3);
+  });
+
+  it('buffers actively pushed values', async () => {
+    let pulls = 0;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+
+    sink!(push(0));
+    sink!(push(1));
+    sink!(SignalKind.End);
+
+    expect(pulls).toBe(1);
+    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await asyncIterator.next()).toEqual({ value: 1, done: false });
+    expect(await asyncIterator.next()).toEqual({ done: true });
+  });
+
+  it('asynchronously waits for pulled values', async () => {
+    let pulls = 0;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) pulls++;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    expect(pulls).toBe(1);
+
+    let resolved = false;
+
+    const promise = asyncIterator.next().then(value => {
+      resolved = true;
+      return value;
+    });
+
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    sink!(push(0));
+    sink!(SignalKind.End);
+    expect(await promise).toEqual({ value: 0, done: false });
+    expect(await asyncIterator.next()).toEqual({ done: true });
+  });
+
+  it('supports cancellation via return', async () => {
+    let ended = false;
+    let sink: Sink<any> | null = null;
+
+    const source: Source<any> = _sink => {
+      sink = _sink;
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Close) ended = true;
+        })
+      );
+    };
+
+    const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+
+    sink!(push(0));
+    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await asyncIterator.return!()).toEqual({ done: true });
+
+    sink!(push(1));
+    expect(await asyncIterator.next()).toEqual({ done: true });
+
+    expect(ended).toBeTruthy();
+  });
+
+  it('supports for-await-of', async () => {
+    let pulls = 0;
+
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            sink(pulls < 3 ? push(pulls++) : SignalKind.End);
+          }
+        })
+      );
+    };
+
+    const iterable = sinks.toAsyncIterable(source);
+    const values: any[] = [];
+    for await (const value of iterable) {
+      values.push(value);
+    }
+
+    expect(values).toEqual([0, 1, 2]);
+  });
+
+  it('supports for-await-of with early break', async () => {
+    let pulls = 0;
+    let closed = false;
+
+    const source: Source<any> = sink => {
+      sink(
+        start(signal => {
+          if (signal === TalkbackKind.Pull) {
+            sink(pulls < 3 ? push(pulls++) : SignalKind.End);
+          } else {
+            closed = true;
+          }
+        })
+      );
+    };
+
+    const iterable = sinks.toAsyncIterable(source);
+    for await (const value of iterable) {
+      expect(value).toBe(0);
+      break;
+    }
+
+    expect(closed).toBe(true);
+  });
+});
+
 describe('toObservable', () => {
   it('creates an Observable mirroring the Wonka source', () => {
     const next = vi.fn();
