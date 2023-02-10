@@ -75,7 +75,7 @@ export function forEach<T>(subscriber: (value: T) => void) {
 
 /** Creates a subscription to a given source and invokes a `subscriber` callback for each value.
  * @see {@link subscribe} which this helper aliases without accepting parameters or returning a
- * {@link types#Subscription | Subscription}.
+ * {@link Subscription | Subscription}.
  *
  * @param source - A {@link Source}.
  *
