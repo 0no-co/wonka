@@ -41,7 +41,7 @@
     "build": "rollup -c scripts/rollup.config.mjs",
     "clean": "rimraf dist node_modules/.cache",
     "prepublishOnly": "run-s clean build check test",
-    "postinstall": "node ./scripts/postinstall.js"
+    "prepare": "node ./scripts/prepare.js"
   },
   "repository": "https://github.com/0no-co/wonka",
   "bugs": {
