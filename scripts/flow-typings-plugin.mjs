@@ -5,6 +5,9 @@ function flowTypings() {
     name: 'flow-typings',
     async renderChunk(code, chunk) {
       if (chunk.fileName.endsWith('d.ts')) {
+        // NOTE: Computed property names will be omitted
+        code = code.replace(/\[Symbol\.\w+\][?()]*:(?:.*);\n?/g, '');
+
         let flowdef = compiler.compileDefinitionString(code);
 
         flowdef = beautify(flowdef);
