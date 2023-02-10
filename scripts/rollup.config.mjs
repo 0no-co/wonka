@@ -4,10 +4,11 @@ import typescript from '@rollup/plugin-typescript';
 import buble from '@rollup/plugin-buble';
 import terser from '@rollup/plugin-terser';
 import cjsCheck from 'rollup-plugin-cjs-check';
+import dts from 'rollup-plugin-dts';
 
 import flowTypings from './flow-typings-plugin.mjs';
 
-const plugins = [
+const commonPlugins = [
   resolve({
     extensions: ['.mjs', '.js', '.ts'],
     mainFields: ['module', 'jsnext', 'main'],
@@ -32,9 +33,11 @@ const plugins = [
       target: 'esnext',
     },
   }),
+];
 
+const jsPlugins = [
+  ...commonPlugins,
   cjsCheck(),
-  flowTypings(),
 
   buble({
     transforms: {
@@ -86,6 +89,12 @@ const plugins = [
   }),
 ];
 
+const dtsPlugins = [
+  ...commonPlugins,
+  dts(),
+  flowTypings(),
+];
+
 const output = format => {
   const extension = format === 'esm' ? '.mjs' : '.js';
   return {
@@ -111,19 +120,49 @@ const output = format => {
   };
 };
 
-const config = {
+const commonConfig = {
   input: {
     wonka: './src/index.ts',
   },
   onwarn: () => {},
   external: () => false,
-  plugins,
   treeshake: {
     unknownGlobalSideEffects: false,
     tryCatchDeoptimization: false,
     moduleSideEffects: false,
   },
-  output: [output('esm'), output('cjs')],
 };
 
-export default config;
+const jsConfig = {
+  ...commonConfig,
+  plugins: jsPlugins,
+  output: [
+    output('esm'),
+    output('cjs'),
+  ],
+};
+
+const dtsConfig = {
+  ...commonConfig,
+  input: {
+    wonka: './src/index.ts',
+  },
+  onwarn: () => {},
+  external: () => false,
+  plugins: dtsPlugins,
+  treeshake: {
+    unknownGlobalSideEffects: false,
+    tryCatchDeoptimization: false,
+    moduleSideEffects: false,
+  },
+  output: {
+    dir: './dist',
+    entryFileNames: '[name].d.ts',
+    format: 'es'
+  },
+};
+
+export default [
+  jsConfig,
+  dtsConfig,
+];
