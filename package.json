@@ -87,7 +87,7 @@
     "eslint": "^8.29.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "flowgen": "^1.20.1",
+    "flowgen": "^1.21.0",
     "glob": "^8.0.3",
     "husky-v4": "^4.3.8",
     "lint-staged": "^13.0.4",
