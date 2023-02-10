@@ -1,4 +1,4 @@
-import { Source } from './types';
+import { Source, Sink, Operator } from './types';
 
 interface UnaryFn<T, R> {
   (source: T): R;
