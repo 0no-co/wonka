@@ -6,12 +6,12 @@
   "source": "./src/index.ts",
   "main": "./dist/wonka",
   "module": "./dist/wonka.mjs",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/wonka.d.ts",
   "exports": {
     ".": {
       "import": "./dist/wonka.mjs",
       "require": "./dist/wonka.js",
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/wonka.d.ts",
       "source": "./src/index.ts"
     },
     "./package.json": "./package.json"
