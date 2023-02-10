@@ -47,7 +47,7 @@ export function subscribe<T>(subscriber: (value: T) => void) {
 }
 
 /** Creates a subscription to a given source and invokes a `subscriber` callback for each value.
- * @see {@link subscribe} which this helper aliases withotu returnin a {@link Subscription}.
+ * @see {@link subscribe} which this helper aliases without returnin a {@link Subscription}.
  * @param subscriber - A callback function called for each issued value.
  * @returns A function accepting a {@link Source}.
  *
