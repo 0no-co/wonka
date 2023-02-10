@@ -1,5 +1,11 @@
 # wonka
 
+## 6.2.1
+
+### Patch Changes
+
+- ⚠️ Fix accidental addition of `postinstall` script rather than `prepare` script, by [@kitten](https://github.com/kitten) (See [#138](https://github.com/0no-co/wonka/pull/138))
+
 ## 6.2.0
 
 ### Minor Changes
