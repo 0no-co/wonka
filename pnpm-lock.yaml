@@ -27,6 +27,7 @@ specifiers:
   rimraf: ^3.0.2
   rollup: ^3.5.1
   rollup-plugin-cjs-check: ^1.0.1
+  rollup-plugin-dts: ^5.1.1
   tslib: ^2.4.1
   typescript: ^4.9.3
   vitest: ^0.25.3
@@ -59,6 +60,7 @@ devDependencies:
   rimraf: 3.0.2
   rollup: 3.5.1
   rollup-plugin-cjs-check: 1.0.1_rollup@3.5.1
+  rollup-plugin-dts: 5.1.1_rt6svyh24sgpogwv5hms77uhpq
   tslib: 2.4.1
   typescript: 4.9.3
   vitest: 0.25.3
@@ -2480,6 +2482,13 @@ packages:
       sourcemap-codec: 1.4.8
     dev: true
 
+  /magic-string/0.27.0:
+    resolution: {integrity: sha512-8UnnX2PeRAPZuN12svgR9j7M1uWMovg/CEnIwIG0LFkXSJJe4PdfUGiTGl8V9bsBHFUtfVINcSyYxd7q+kx9fA==}
+    engines: {node: '>=12'}
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.4.14
+    dev: true
+
   /map-obj/1.0.1:
     resolution: {integrity: sha512-7N/q3lyZ+LVCp7PzuxrJr4KMbBE2hW7BT7YNia330OFxIf4d3r5zVpicP2650l7CPN6RM9zOJRl3NGpqSiw3Eg==}
     engines: {node: '>=0.10.0'}
@@ -3105,6 +3114,20 @@ packages:
       '@rollup/pluginutils': 5.0.2_rollup@3.5.1
       cjs-module-lexer: 1.2.2
       rollup: 3.5.1
+    dev: true
+
+  /rollup-plugin-dts/5.1.1_rt6svyh24sgpogwv5hms77uhpq:
+    resolution: {integrity: sha512-zpgo52XmnLg8w4k3MScinFHZK1+ro6r7uVe34fJ0Ee8AM45FvgvTuvfWWaRgIpA4pQ1BHJuu2ospncZhkcJVeA==}
+    engines: {node: '>=v14'}
+    peerDependencies:
+      rollup: ^3.0.0
+      typescript: ^4.1
+    dependencies:
+      magic-string: 0.27.0
+      rollup: 3.5.1
+      typescript: 4.9.3
+    optionalDependencies:
+      '@babel/code-frame': 7.18.6
     dev: true
 
   /rollup/2.79.1:
