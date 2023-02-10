@@ -5,17 +5,48 @@ type TypeOfSourceArray<T extends readonly [...any[]]> = T extends [infer Head, .
   ? [TypeOfSource<Head>, ...TypeOfSourceArray<Tail>]
   : [];
 
-export function zip<Sources extends readonly [...Source<any>[]]>(
-  sources: [...Sources]
-): Source<TypeOfSourceArray<Sources>>;
+/** Combines the latest values of several sources into a Source issuing either tuple or dictionary
+ * values.
+ *
+ * @param sources - Either an array or dictionary object of Sources.
+ * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
+ *
+ * @remarks
+ * `zip` combines several {@link Source | Sources}. The resulting Source will issue its first value
+ * once all input Sources have at least issued one value, and will subsequently issue a new value
+ * each time any of the Sources emits a new value.
+ *
+ * Depending on whether an array or dictionary object of Sources is passed to `zip`, its emitted
+ * values will be arrays or dictionary objects of the Sources' values.
+ *
+ * @example
+ * An example of passing a dictionary object to `zip`. If an array is passed, the resulting
+ * values will output arrays of the sources' values instead.
+ *
+ * ```ts
+ * pipe(
+ *   zip({
+ *     x: fromValue(1),
+ *     y: fromArray([2, 3]),
+ *   }),
+ *   subscribe(result => {
+ *     // logs { x: 1, y: 2 } then { x: 1, y: 3 }
+ *     console.log(result);
+ *   })
+ * );
+ * ```
+ */
+interface zip {
+  <Sources extends readonly [...Source<any>[]]>(sources: [...Sources]): Source<
+    TypeOfSourceArray<Sources>
+  >;
 
-export function zip<Sources extends { [prop: string]: Source<any> }>(
-  sources: Sources
-): Source<{ [Property in keyof Sources]: TypeOfSource<Sources[Property]> }>;
+  <Sources extends { [prop: string]: Source<any> }>(sources: Sources): Source<{
+    [Property in keyof Sources]: TypeOfSource<Sources[Property]>;
+  }>;
+}
 
-export function zip<T>(
-  sources: Source<T>[] | Record<string, Source<T>>
-): Source<T[] | Record<string, T>> {
+function zip<T>(sources: Source<T>[] | Record<string, Source<T>>): Source<T[] | Record<string, T>> {
   const size = Object.keys(sources).length;
   return sink => {
     const filled: Set<string | number> = new Set();
@@ -75,6 +106,30 @@ export function zip<T>(
   };
 }
 
+export { zip };
+
+/** Combines the latest values of all passed sources into a Source issuing tuple values.
+ *
+ * @see {@link zip | `zip`} which this helper wraps and uses.
+ * @param sources - A variadic list of {@link Source} parameters.
+ * @returns A {@link Source} issuing a zipped value whenever any input Source updates.
+ *
+ * @remarks
+ * `combine` takes one or more {@link Source | Sources} as arguments. Once all input Sources have at
+ * least issued one value it will issue an array of all of the Sources' values. Subsequently, it
+ * will issue a new array value whenever any of the Sources update.
+ *
+ * @example
+ *
+ * ```ts
+ * pipe(
+ *   combine(fromValue(1), fromValue(2)),
+ *   subscribe(result => {
+ *     console.log(result); // logs [1, 2]
+ *   })
+ * );
+ * ```
+ */
 export function combine<Sources extends Source<any>[]>(
   ...sources: Sources
 ): Source<TypeOfSourceArray<Sources>> {

@@ -8,7 +8,9 @@ function flowTypings() {
         // NOTE: Computed property names will be omitted
         code = code.replace(/\[Symbol\.\w+\][?()]*:(?:.*);\n?/g, '');
 
-        let flowdef = compiler.compileDefinitionString(code);
+        let flowdef = compiler.compileDefinitionString(code, {
+          jsdoc: false,
+        });
 
         flowdef = beautify(flowdef);
         flowdef = flowdef.replace(/import/g, 'import type');

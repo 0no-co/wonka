@@ -7,7 +7,7 @@ module.exports = {
     },
   },
   extends: ['prettier'],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'tsdoc'],
   ignorePatterns: ['node_modules/', 'dist/', 'coverage/', 'perf/'],
   rules: {
     'sort-keys': 'off',
@@ -47,6 +47,7 @@ module.exports = {
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         'prefer-rest-params': 'off',
+        'tsdoc/syntax': 'error',
       },
     },
   ],
