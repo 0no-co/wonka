@@ -1,5 +1,11 @@
 # wonka
 
+## 6.2.2
+
+### Patch Changes
+
+- ⚠️ Fix missing `Symbol.observable` typings and remove `const enum` exports, which aren't usable in isolated modules, by [@kitten](https://github.com/kitten) (See [#141](https://github.com/0no-co/wonka/pull/141))
+
 ## 6.2.1
 
 ### Patch Changes
