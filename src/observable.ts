@@ -1,6 +1,12 @@
 import { Source, SignalKind, TalkbackKind } from './types';
 import { push, start, talkbackPlaceholder } from './helpers';
 
+declare global {
+  interface SymbolConstructor {
+    readonly observable: symbol;
+  }
+}
+
 /** A definition of the ES Observable Subscription type that is returned by
  * {@link Observable.subscribe}
  *
@@ -124,7 +130,8 @@ interface Observable<T> {
  *
  * @internal
  */
-const observableSymbol = (): typeof Symbol.observable => Symbol.observable || '@@observable';
+const observableSymbol = (): typeof Symbol.observable =>
+  Symbol.observable || ('@@observable' as any);
 
 /** Converts an ES Observable to a {@link Source}.
  * @param input - The {@link ObservableLike} object that will be converted.

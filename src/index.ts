@@ -10,7 +10,18 @@
  * @packageDocumentation
  */
 
-export * from './types';
+export type {
+  TeardownFn,
+  Signal,
+  Sink,
+  Source,
+  Operator,
+  TypeOfSource,
+  Subscription,
+  Observer,
+  Subject,
+} from './types';
+
 export * from './sources';
 export * from './operators';
 export * from './sinks';
