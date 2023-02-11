@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "remove",
     "noEmit": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
@@ -16,7 +17,8 @@
     "strict": true,
     "noImplicitAny": false,
     "noUnusedParameters": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "isolatedModules": true
   },
   "include": ["src"]
 }
