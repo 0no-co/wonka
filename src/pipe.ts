@@ -176,10 +176,10 @@ interface pipe {
   ): R;
 }
 
-function pipe(...args: Function[]): any {
+const pipe: pipe = (...args: Function[]): any => {
   let x = args[0];
   for (let i = 1, l = args.length; i < l; i++) x = args[i](x);
   return x;
-}
+};
 
 export { pipe };
