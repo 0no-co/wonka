@@ -1,5 +1,11 @@
 # wonka
 
+## 6.2.3
+
+### Patch Changes
+
+- ⚠️ Fix overload of `pipe` type not being applied in bundled `d.ts` file, by [@kitten](https://github.com/kitten) (See [#144](https://github.com/0no-co/wonka/pull/144))
+
 ## 6.2.2
 
 ### Patch Changes
