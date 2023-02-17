@@ -15,7 +15,7 @@
       "source": "./src/Wonka.ts"
     },
     "./package.json": "./package.json",
-    "./": "./"
+    "./": "./*"
   },
   "sideEffects": false,
   "files": [
