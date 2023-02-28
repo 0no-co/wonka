@@ -4,7 +4,7 @@
   "version": "6.2.3",
   "author": "0no.co <hi@0no.co>",
   "source": "./src/index.ts",
-  "main": "./dist/wonka/index.js",
+  "main": "./dist/wonka.js",
   "module": "./dist/wonka.mjs",
   "types": "./dist/wonka.d.ts",
   "exports": {
@@ -37,10 +37,12 @@
     "check": "tsc",
     "lint": "eslint . --ext=js,cjs,mjs,ts --cache",
     "lint:fix": "eslint . --ext=js,cjs,mjs,ts --fix --cache",
+    "prebuild": "rimraf dist",
     "build": "rollup -c scripts/rollup.config.mjs",
     "clean": "rimraf dist node_modules/.cache",
     "prepublishOnly": "run-s clean build check test",
-    "prepare": "node ./scripts/prepare.js"
+    "prepare": "node ./scripts/prepare.js",
+    "publish-dry-run": "pnpm publish --dry-run --no-git-checks"
   },
   "repository": "https://github.com/0no-co/wonka",
   "bugs": {
@@ -79,6 +81,7 @@
     "@rollup/plugin-terser": "^0.1.0",
     "@rollup/plugin-typescript": "^10.0.1",
     "@rollup/pluginutils": "^5.0.2",
+    "@types/node": "^18.14.2",
     "@types/zen-observable": "^0.8.3",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
@@ -99,9 +102,8 @@
     "rollup": "^3.5.1",
     "rollup-plugin-cjs-check": "^1.0.1",
     "rollup-plugin-dts": "^5.1.1",
-    "tslib": "^2.4.1",
     "typescript": "^4.9.5",
-    "vitest": "^0.25.3",
+    "vitest": "^0.29.2",
     "zen-observable": "^0.10.0"
   }
 }
