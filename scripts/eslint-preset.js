@@ -1,3 +1,4 @@
+const { prettier: prettierConfig } = require('../package.json');
 module.exports = {
   parserOptions: {
     ecmaVersion: 9,
@@ -14,13 +15,10 @@ module.exports = {
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'prefer-arrow/prefer-arrow-functions': 'off',
     'prefer-rest-params': 'off',
-
     'prettier/prettier': [
       'error',
       {
-        singleQuote: true,
-        arrowParens: 'avoid',
-        trailingComma: 'es5',
+        ...prettierConfig,
       },
     ],
   },
@@ -29,6 +27,7 @@ module.exports = {
     {
       files: ['*.ts'],
       parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint'],
       extends: ['plugin:@typescript-eslint/recommended', 'prettier'],
       rules: {
         '@typescript-eslint/explicit-module-boundary-types': 'off',

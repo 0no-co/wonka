@@ -7,3 +7,6 @@
 dist/
 package-lock.json
 .DS_Store
+*.tgz
+.eslintcache
+__ignore__

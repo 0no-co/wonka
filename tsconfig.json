@@ -5,20 +5,20 @@
     "noEmit": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
-    "rootDir": "./src",
     "baseUrl": ".",
-    "outDir": "dist/cjs",
-    "lib": ["dom", "esnext"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react",
     "declaration": false,
-    "module": "es2015",
+    "module": "ESNext",
     "moduleResolution": "node",
-    "target": "esnext",
+    "checkJs": true,
+    "target": "ESNext",
     "strict": true,
     "noImplicitAny": false,
     "noUnusedParameters": true,
     "skipLibCheck": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "resolveJsonModule": true
   },
-  "include": ["src"]
+  "include": ["src", "scripts"]
 }

@@ -8,6 +8,8 @@ import dts from 'rollup-plugin-dts';
 
 import flowTypings from './flow-typings-plugin.mjs';
 
+const DEBUG_MODE = process.env.DEBUG === 'true';
+
 const commonPlugins = [
   resolve({
     extensions: ['.mjs', '.js', '.ts'],
@@ -25,7 +27,7 @@ const commonPlugins = [
   typescript({
     exclude: ['src/**/*.test.ts', '**/__tests__/*'],
     compilerOptions: {
-      sourceMap: true,
+      sourceMap: Boolean(DEBUG_MODE),
       sourceRoot: './',
       noEmit: false,
       declaration: false,
@@ -45,6 +47,7 @@ const jsPlugins = [
       dangerousForOf: true,
       dangerousTaggedTemplateString: true,
       destructuring: false,
+      // @ts-ignore
       asyncAwait: false,
       arrow: false,
       classes: false,
@@ -59,6 +62,7 @@ const jsPlugins = [
   }),
 
   terser({
+    // @ts-ignore
     warnings: true,
     ecma: 2015,
     keep_fnames: true,
@@ -88,11 +92,7 @@ const jsPlugins = [
   }),
 ];
 
-const dtsPlugins = [
-  ...commonPlugins,
-  dts(),
-  flowTypings(),
-];
+const dtsPlugins = [...commonPlugins, dts(), flowTypings()];
 
 const output = format => {
   const extension = format === 'esm' ? '.mjs' : '.js';
@@ -101,7 +101,7 @@ const output = format => {
     entryFileNames: '[name]' + extension,
     dir: './dist',
     exports: 'named',
-    sourcemap: true,
+    sourcemap: Boolean(DEBUG_MODE),
     indent: false,
     freeze: false,
     strict: false,
@@ -135,10 +135,7 @@ const commonConfig = {
 const jsConfig = {
   ...commonConfig,
   plugins: jsPlugins,
-  output: [
-    output('esm'),
-    output('cjs'),
-  ],
+  output: [output('esm'), output('cjs')],
 };
 
 const dtsConfig = {
@@ -157,11 +154,8 @@ const dtsConfig = {
   output: {
     dir: './dist',
     entryFileNames: '[name].d.ts',
-    format: 'es'
+    format: 'es',
   },
 };
 
-export default [
-  jsConfig,
-  dtsConfig,
-];
+export default [jsConfig, dtsConfig];

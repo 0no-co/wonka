@@ -4,21 +4,19 @@
   "version": "6.2.3",
   "author": "0no.co <hi@0no.co>",
   "source": "./src/index.ts",
-  "main": "./dist/wonka",
+  "main": "./dist/wonka/index.js",
   "module": "./dist/wonka.mjs",
   "types": "./dist/wonka.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/wonka.mjs",
-      "require": "./dist/wonka.js",
       "types": "./dist/wonka.d.ts",
-      "source": "./src/index.ts"
+      "import": "./dist/wonka.mjs",
+      "require": "./dist/wonka.js"
     },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
   "files": [
-    "src",
     "dist",
     "docs/*.md",
     "index.js.flow",
@@ -37,7 +35,8 @@
   "scripts": {
     "test": "vitest run",
     "check": "tsc",
-    "lint": "eslint --ext=js,ts .",
+    "lint": "eslint . --ext=js,cjs,mjs,ts --cache",
+    "lint:fix": "eslint . --ext=js,cjs,mjs,ts --fix --cache",
     "build": "rollup -c scripts/rollup.config.mjs",
     "clean": "rimraf dist node_modules/.cache",
     "prepublishOnly": "run-s clean build check test",
@@ -51,7 +50,9 @@
   "prettier": {
     "singleQuote": true,
     "tabWidth": 2,
-    "printWidth": 100
+    "printWidth": 100,
+    "arrowParens": "avoid",
+    "trailingComma": "es5"
   },
   "lint-staged": {
     "*.{ts,js}": "eslint -c scripts/eslint-preset.js --fix",
