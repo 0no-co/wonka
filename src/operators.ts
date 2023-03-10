@@ -1,4 +1,4 @@
-import { Source, Sink, Operator, SignalKind, TalkbackKind, TalkbackFn } from './types';
+import { Push, Source, Sink, Operator, SignalKind, TalkbackKind, TalkbackFn } from './types';
 import { push, start, talkbackPlaceholder } from './helpers';
 import { fromArray } from './sources';
 
@@ -268,7 +268,9 @@ export function concat<T>(sources: Source<T>[]): Source<T> {
  * );
  * ```
  */
-export function filter<T>(predicate: (value: T) => boolean): Operator<T, T> {
+function filter<In, Out extends In>(predicate: (value: In) => value is Out): Operator<In, Out>;
+function filter<T>(predicate: (value: T) => boolean): Operator<T, T>;
+function filter<In, Out>(predicate: (value: In) => boolean): Operator<In, Out> {
   return source => sink => {
     let talkback = talkbackPlaceholder;
     source(signal => {
@@ -280,11 +282,13 @@ export function filter<T>(predicate: (value: T) => boolean): Operator<T, T> {
       } else if (!predicate(signal[0])) {
         talkback(TalkbackKind.Pull);
       } else {
-        sink(signal);
+        sink(signal as Push<any>);
       }
     });
   };
 }
+
+export { filter };
 
 /** Maps emitted values using the passed mapping function.
  *

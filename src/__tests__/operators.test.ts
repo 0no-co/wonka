@@ -231,10 +231,12 @@ describe('filter', () => {
   passesAsyncSequence(noop);
 
   it('prevents emissions for which a predicate fails', () => {
-    const { source, next } = sources.makeSubject();
+    const { source, next } = sources.makeSubject<boolean>();
     const fn = vi.fn();
 
-    sinks.forEach(fn)(operators.filter(x => !!x)(source));
+    sinks.forEach((x: true) => {
+      fn(x);
+    })(operators.filter((x): x is true => !!x)(source));
 
     next(false);
     expect(fn).not.toHaveBeenCalled();
