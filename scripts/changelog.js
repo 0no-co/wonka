@@ -1,4 +1,7 @@
+const { config } = require('dotenv');
 const { getInfo } = require('@changesets/get-github-info');
+
+config();
 
 const REPO = '0no-co/wonka';
 const SEE_LINE = /^See:\s*(.*)/i;
@@ -6,16 +9,14 @@ const TRAILING_CHAR = /[.;:]$/g;
 const listFormatter = new Intl.ListFormat('en-US');
 
 const getSummaryLines = cs => {
-  const lines = cs.summary
-    .trim()
-    .split(/[\r\n]+/)
-    .map(l => l.trim())
-    .filter(Boolean);
-  const size = lines.length;
-  if (size > 0) {
-    lines[size - 1] = lines[size - 1].replace(TRAILING_CHAR, '');
+  let lines = cs.summary.trim().split(/\r?\n/);
+  if (!lines.some(line => /```/.test(line))) {
+    lines = lines.map(l => l.trim()).filter(Boolean);
+    const size = lines.length;
+    if (size > 0) {
+      lines[size - 1] = lines[size - 1].replace(TRAILING_CHAR, '');
+    }
   }
-
   return lines;
 };
 
@@ -102,8 +103,11 @@ const changelogFunctions = {
       str += `\n${futureLines.map(l => `  ${l}`).join('\n')}`;
     }
 
-    if (user) {
+    const endsWithParagraph = /(?<=(?:[!;?.]|```) *)$/g;
+    if (user && !endsWithParagraph) {
       str += `, by ${user}`;
+    } else {
+      str += `\nSubmitted by ${user}`;
     }
 
     if (pull || commit) {
