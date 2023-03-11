@@ -1,5 +1,12 @@
 # wonka
 
+## 6.2.4
+
+### Patch Changes
+
+- Add missing overload definition for `filter`, which allows types to be narrowed, e.g. by specifying a type predicate return type
+  Submitted by [@kitten](https://github.com/kitten) (See [#149](https://github.com/0no-co/wonka/pull/149))
+
 ## 6.2.3
 
 ### Patch Changes
