@@ -26,7 +26,7 @@ interface ObservableSubscription {
    *
    * @readonly
    */
-  closed?: boolean;
+  closed: boolean;
   /** Cancels the subscription.
    * @remarks
    * This cancels the ongoing subscription and the {@link ObservableObserver}'s callbacks will
