@@ -26,7 +26,7 @@ interface ObservableSubscription {
    *
    * @readonly
    */
-  closed?: boolean;
+  closed: boolean;
   /** Cancels the subscription.
    * @remarks
    * This cancels the ongoing subscription and the {@link ObservableObserver}'s callbacks will
@@ -76,7 +76,7 @@ interface ObservableLike<T> {
    * @see {@link ObservableObserver} for the callbacks in an object that are called as Observables
    * issue events.
    */
-  subscribe(observer: ObservableObserver<T>): ObservableSubscription;
+  subscribe(observer: ObservableObserver<T>): { unsubscribe(): void };
 
   /** The well-known symbol specifying the default ES Observable for an object. */
   [Symbol.observable]?(): Observable<T>;
