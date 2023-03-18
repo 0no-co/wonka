@@ -1,5 +1,12 @@
 # wonka
 
+## 6.2.5
+
+### Patch Changes
+
+- Make `closed: boolean` on `ObservableSubscription`s a required field to comply with the Observable proposal's type spec
+  Submitted by [@naporin0624](https://github.com/naporin0624) (See [#151](https://github.com/0no-co/wonka/pull/151))
+
 ## 6.2.4
 
 ### Patch Changes
