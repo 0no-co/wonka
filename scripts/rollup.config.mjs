@@ -1,6 +1,6 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import typescript from '@rollup/plugin-typescript';
+import sucrase from '@rollup/plugin-sucrase';
 import buble from '@rollup/plugin-buble';
 import terser from '@rollup/plugin-terser';
 import cjsCheck from 'rollup-plugin-cjs-check';
@@ -22,15 +22,9 @@ const commonPlugins = [
     extensions: ['.mjs', '.js', '.ts'],
   }),
 
-  typescript({
-    exclude: ['src/**/*.test.ts', '**/__tests__/*'],
-    compilerOptions: {
-      sourceMap: true,
-      sourceRoot: './',
-      noEmit: false,
-      declaration: false,
-      target: 'esnext',
-    },
+  sucrase({
+    exclude: ['node_modules/**'],
+    transforms: ['typescript']
   }),
 ];
 
@@ -102,6 +96,7 @@ const output = format => {
     dir: './dist',
     exports: 'named',
     sourcemap: true,
+    sourcemapExcludeSources: false,
     indent: false,
     freeze: false,
     strict: false,
