@@ -1,0 +1,46 @@
+name: "\U0001F41E Bug report"
+description: Report an issue with graphql.web
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: Please describe your bug clearly and concisely.
+      placeholder: Bug description
+    validations:
+      required: true
+  - type: input
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Please provide a reproduction link, e.g. to a sandbox
+      placeholder: Reproduction
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: Package version
+      description: The versions of the relevant urql packages you are using
+      placeholder: "wonka@6.2.5"
+    validations:
+      required: true
+  - type: checkboxes
+    id: checkboxes
+    attributes:
+      label: Validations
+      description: Before submitting the issue, please make sure you do the following
+      options:
+        - label: I can confirm that this is a bug report, and not a feature request, RFC, question, or discussion, for which GitHub Discussions should be used
+          required: true
+        - label: Follow our [Code of Conduct](https://github.com/0no-co/graphql.web/blob/main/CODE_OF_CONDUCT.md)
+          required: true
