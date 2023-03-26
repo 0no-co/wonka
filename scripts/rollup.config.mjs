@@ -7,6 +7,7 @@ import cjsCheck from 'rollup-plugin-cjs-check';
 import dts from 'rollup-plugin-dts';
 
 import flowTypings from './flow-typings-plugin.mjs';
+import * as types from '../src/types.mjs';
 
 const minify = terser({
   warnings: true,
@@ -113,32 +114,14 @@ const output = format => {
     },
     plugins: [
       {
-        renderChunk(code, chunk) {
-          const enumRe = /(TalkbackKind|SignalKind)\.(Start|Push|End|Pull|Close)/g;
+        renderChunk(code, _chunk) {
+          const kinds = Object.keys(types);
+          const members = Object.values(types)
+            .reduce((acc, item) => [...acc, ...Object.keys(item)], [])
+          const enumRe = new RegExp(`(${kinds.join('|')})[.](${members.join('|')})`, 'g')
           return code.replace(enumRe, (match, kind, member) => {
-            if (kind === 'TalkbackKind') {
-              switch (member) {
-                case 'Pull':
-                  return '0';
-                case 'Close':
-                  return '1';
-                default:
-                  return match;
-              }
-            } else if (kind === 'SignalKind') {
-              switch (member) {
-                case 'Start':
-                  return '0';
-                case 'Push':
-                  return '1';
-                case 'End':
-                  return '0';
-                default:
-                  return match;
-              }
-            } else {
-              return match;
-            }
+            const value = (types[kind] && types[kind][member]);
+            return value != null ? '' + value : match;
           });
         },
       },
