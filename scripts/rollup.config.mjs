@@ -7,6 +7,36 @@ import cjsCheck from 'rollup-plugin-cjs-check';
 import dts from 'rollup-plugin-dts';
 
 import flowTypings from './flow-typings-plugin.mjs';
+import * as types from '../src/types.mjs';
+
+const minify = terser({
+  warnings: true,
+  ecma: 2015,
+  keep_fnames: true,
+  ie8: false,
+  compress: {
+    pure_getters: true,
+    toplevel: true,
+    booleans_as_integers: false,
+    keep_fnames: true,
+    keep_fargs: true,
+    if_return: false,
+    ie8: false,
+    sequences: false,
+    loops: false,
+    conditionals: false,
+    join_vars: false,
+  },
+  mangle: {
+    module: true,
+    keep_fnames: true,
+  },
+  output: {
+    beautify: true,
+    braces: true,
+    indent_level: 2,
+  },
+});
 
 const commonPlugins = [
   resolve({
@@ -51,35 +81,6 @@ const jsPlugins = [
     },
     exclude: 'node_modules/**',
   }),
-
-  terser({
-    warnings: true,
-    ecma: 2015,
-    keep_fnames: true,
-    ie8: false,
-    compress: {
-      pure_getters: true,
-      toplevel: true,
-      booleans_as_integers: false,
-      keep_fnames: true,
-      keep_fargs: true,
-      if_return: false,
-      ie8: false,
-      sequences: false,
-      loops: false,
-      conditionals: false,
-      join_vars: false,
-    },
-    mangle: {
-      module: true,
-      keep_fnames: true,
-    },
-    output: {
-      beautify: true,
-      braces: true,
-      indent_level: 2,
-    },
-  }),
 ];
 
 const dtsPlugins = [
@@ -111,6 +112,22 @@ const output = format => {
       objectShorthand: false,
       constBindings: false,
     },
+    plugins: [
+      {
+        renderChunk(code, _chunk) {
+          const kinds = Object.keys(types);
+          const members = Object.values(types)
+            .reduce((acc, item) => [...acc, ...Object.keys(item)], [])
+          const enumRe = new RegExp(`(${kinds.join('|')})[.](${members.join('|')})`, 'g')
+          return code.replace(enumRe, (match, kind, member) => {
+            const value = (types[kind] && types[kind][member]);
+            return value != null ? '' + value : match;
+          });
+        },
+      },
+
+      minify,
+    ]
   };
 };
 
