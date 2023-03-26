@@ -1,5 +1,14 @@
 # wonka
 
+## 6.2.6
+
+### Patch Changes
+
+- ⚠️ Fix missing source contents in Wonka sourcemaps
+  Submitted by [@kitten](https://github.com/kitten) (See [`56d9708`](https://github.com/0no-co/wonka/commit/56d970861424fddd403262bf85d7e1e3572b15e2))
+- ⚠️ Fix internal `SignalKind` and `TalkbackKind` enums not compiling away
+  Submitted by [@kitten](https://github.com/kitten) (See [#154](https://github.com/0no-co/wonka/pull/154))
+
 ## 6.2.5
 
 ### Patch Changes
