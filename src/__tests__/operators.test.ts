@@ -772,8 +772,26 @@ describe('takeWhile', () => {
     operators.takeWhile((x: any) => x < 2)(source)(fn);
     next(1);
     next(2);
+    next(3);
 
     expect(fn.mock.calls).toEqual([[start(expect.any(Function))], [push(1)], [SignalKind.End]]);
+  });
+
+  it('emits values while a predicate passes for all values plus an additional one', () => {
+    const { source, next } = sources.makeSubject<number>();
+    const fn = vi.fn();
+
+    operators.takeWhile((x: any) => x < 2, true)(source)(fn);
+    next(1);
+    next(2);
+    next(3);
+
+    expect(fn.mock.calls).toEqual([
+      [start(expect.any(Function))],
+      [push(1)],
+      [push(2)],
+      [SignalKind.End],
+    ]);
   });
 });
 
