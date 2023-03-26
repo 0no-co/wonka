@@ -8,6 +8,35 @@ import dts from 'rollup-plugin-dts';
 
 import flowTypings from './flow-typings-plugin.mjs';
 
+const minify = terser({
+  warnings: true,
+  ecma: 2015,
+  keep_fnames: true,
+  ie8: false,
+  compress: {
+    pure_getters: true,
+    toplevel: true,
+    booleans_as_integers: false,
+    keep_fnames: true,
+    keep_fargs: true,
+    if_return: false,
+    ie8: false,
+    sequences: false,
+    loops: false,
+    conditionals: false,
+    join_vars: false,
+  },
+  mangle: {
+    module: true,
+    keep_fnames: true,
+  },
+  output: {
+    beautify: true,
+    braces: true,
+    indent_level: 2,
+  },
+});
+
 const commonPlugins = [
   resolve({
     extensions: ['.mjs', '.js', '.ts'],
@@ -51,35 +80,6 @@ const jsPlugins = [
     },
     exclude: 'node_modules/**',
   }),
-
-  terser({
-    warnings: true,
-    ecma: 2015,
-    keep_fnames: true,
-    ie8: false,
-    compress: {
-      pure_getters: true,
-      toplevel: true,
-      booleans_as_integers: false,
-      keep_fnames: true,
-      keep_fargs: true,
-      if_return: false,
-      ie8: false,
-      sequences: false,
-      loops: false,
-      conditionals: false,
-      join_vars: false,
-    },
-    mangle: {
-      module: true,
-      keep_fnames: true,
-    },
-    output: {
-      beautify: true,
-      braces: true,
-      indent_level: 2,
-    },
-  }),
 ];
 
 const dtsPlugins = [
@@ -111,6 +111,40 @@ const output = format => {
       objectShorthand: false,
       constBindings: false,
     },
+    plugins: [
+      {
+        renderChunk(code, chunk) {
+          const enumRe = /(TalkbackKind|SignalKind)\.(Start|Push|End|Pull|Close)/g;
+          return code.replace(enumRe, (match, kind, member) => {
+            if (kind === 'TalkbackKind') {
+              switch (member) {
+                case 'Pull':
+                  return '0';
+                case 'Close':
+                  return '1';
+                default:
+                  return match;
+              }
+            } else if (kind === 'SignalKind') {
+              switch (member) {
+                case 'Start':
+                  return '0';
+                case 'Push':
+                  return '1';
+                case 'End':
+                  return '0';
+                default:
+                  return match;
+              }
+            } else {
+              return match;
+            }
+          });
+        },
+      },
+
+      minify,
+    ]
   };
 };
 

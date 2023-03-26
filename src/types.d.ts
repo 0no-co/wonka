@@ -6,7 +6,7 @@
  * the {@link Start} signal, to tell a {@link Source} to either send a new value (pulling) or stop
  * sending values altogether (cancellation).
  */
-export const enum TalkbackKind {
+export enum TalkbackKind {
   /** Instructs the {@link Source} to send the next value. */
   Pull = 0,
   /** Instructs the {@link Source} to stop sending values and cancels it. */
@@ -41,7 +41,7 @@ export type TeardownFn = () => void;
  * @see {@link Start} for the data structure of the start signal.
  * @see {@link Push} for the data structure of the push signal, carrying values.
  */
-export const enum SignalKind {
+export enum SignalKind {
   /**
    * Informs the {@link Sink} that it's being called by a {@link Source}.
    *
