@@ -1254,12 +1254,16 @@ export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
 /** Takes values from an input Source until a predicate function returns `false`.
  *
  * @param predicate - A function returning a boolean per value.
+ * @param addOne - Lets an additional input value pass on.
  * @returns An {@link Operator}.
  *
  * @remarks
  * `takeWhile` will issue all values as normal from the input {@link Source} until the `predicate`
  * function returns `false`. When the `predicate` function returns `false`, the current value is
  * omitted and the {@link Source} is closed.
+ *
+ * If `addOne` is set to `true`, the value for which the `predicate` first returned `false` is
+ * issued and passed on as well instead of being omitted.
  *
  * @example
  * ```ts
@@ -1272,7 +1276,7 @@ export function takeUntil<S, T>(notifier: Source<S>): Operator<T, T> {
  * );
  * ```
  */
-export function takeWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
+export function takeWhile<T>(predicate: (value: T) => boolean, addOne?: boolean): Operator<T, T> {
   return source => sink => {
     let talkback = talkbackPlaceholder;
     let ended = false;
@@ -1287,6 +1291,7 @@ export function takeWhile<T>(predicate: (value: T) => boolean): Operator<T, T> {
         sink(signal);
       } else if (!predicate(signal[0])) {
         ended = true;
+        if (addOne) sink(signal);
         sink(SignalKind.End);
         talkback(TalkbackKind.Close);
       } else {
