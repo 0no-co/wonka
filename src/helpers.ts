@@ -24,16 +24,18 @@ export const talkbackPlaceholder: TalkbackFn = teardownPlaceholder;
  * @internal
  */
 export function start<T>(talkback: TalkbackFn): Start<T> {
-  const box: any = [talkback];
-  box.tag = SignalKind.Start;
-  return box;
+  return {
+    tag: SignalKind.Start,
+    0: talkback,
+  } as Start<T>;
 }
 
 /** Wraps the passed value in a {@link Push | Push signal}.
  * @internal
  */
 export function push<T>(value: T): Push<T> {
-  const box: any = [value];
-  box.tag = SignalKind.Push;
-  return box;
+  return {
+    tag: SignalKind.Push,
+    0: value,
+  } as Push<T>;
 }
