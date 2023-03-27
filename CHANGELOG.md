@@ -1,5 +1,17 @@
 # wonka
 
+## 6.3.0
+
+### Minor Changes
+
+- Add `addOne` argument to `takeWhile`, allowing an additional value to be issued
+  Submitted by [@kitten](https://github.com/kitten) (See [#156](https://github.com/0no-co/wonka/pull/156))
+
+### Patch Changes
+
+- Convert `Push<T>` and `Start<T>` signals to `{ tag, 0: value }` objects, which are sufficiently backwards compatible and result in slightly faster execution in v8
+  Submitted by [@kitten](https://github.com/kitten) (See [#155](https://github.com/0no-co/wonka/pull/155))
+
 ## 6.2.6
 
 ### Patch Changes
