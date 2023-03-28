@@ -1,5 +1,12 @@
 # wonka
 
+## 6.3.1
+
+### Patch Changes
+
+- ⚠️ Fix missing `declare` keyword on internal ambient enums
+  Submitted by [@kitten](https://github.com/kitten) (See [#159](https://github.com/0no-co/wonka/pull/159))
+
 ## 6.3.0
 
 ### Minor Changes
