@@ -71,6 +71,9 @@
       "./scripts/eslint-preset.js"
     ]
   },
+  "publishConfig": {
+    "provenance": true
+  },
   "devDependencies": {
     "@changesets/cli": "^2.26.0",
     "@changesets/get-github-info": "0.5.0",
