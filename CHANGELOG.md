@@ -1,5 +1,12 @@
 # wonka
 
+## 6.3.2
+
+### Patch Changes
+
+- Publish with npm provenance
+  Submitted by [@kitten](https://github.com/kitten) (See [#161](https://github.com/0no-co/wonka/pull/161))
+
 ## 6.3.1
 
 ### Patch Changes
