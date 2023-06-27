@@ -9,9 +9,9 @@
   "types": "./dist/wonka.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/wonka.d.ts",
       "import": "./dist/wonka.mjs",
       "require": "./dist/wonka.js",
-      "types": "./dist/wonka.d.ts",
       "source": "./src/index.ts"
     },
     "./package.json": "./package.json"
@@ -75,8 +75,8 @@
     "provenance": true
   },
   "devDependencies": {
-    "@changesets/cli": "^2.26.0",
-    "@changesets/get-github-info": "0.5.0",
+    "@changesets/cli": "^2.26.2",
+    "@changesets/get-github-info": "0.5.2",
     "@rollup/plugin-buble": "^1.0.1",
     "@rollup/plugin-commonjs": "^23.0.3",
     "@rollup/plugin-node-resolve": "^15.0.1",
