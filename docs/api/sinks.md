@@ -25,7 +25,7 @@ new incoming values.
 ```typescript
 import { pipe, subscribe } from 'wonka';
 
-const [unsubscribe] = pipe(
+const { unsubscribe } = pipe(
   source,
   subscribe((x) => console.log(x));
 );
