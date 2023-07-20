@@ -244,10 +244,11 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    const next$ = asyncIterator.next();
 
-    expect(pulls).toBe(1);
+    expect(pulls).toBe(2);
     sink!(push(0));
-    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await next$).toEqual({ value: 0, done: false });
     expect(pulls).toBe(2);
 
     sink!(push(1));
@@ -273,13 +274,14 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    const next$ = asyncIterator.next();
 
     sink!(push(0));
     sink!(push(1));
     sink!(SignalKind.End);
 
-    expect(pulls).toBe(1);
-    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(pulls).toBe(2);
+    expect(await next$).toEqual({ value: 0, done: false });
     expect(await asyncIterator.next()).toEqual({ value: 1, done: false });
     expect(await asyncIterator.next()).toEqual({ done: true });
   });
@@ -298,7 +300,8 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
-    expect(pulls).toBe(1);
+    asyncIterator.next();
+    expect(pulls).toBe(2);
 
     let resolved = false;
 
@@ -330,9 +333,10 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    const next$ = asyncIterator.next();
 
     sink!(push(0));
-    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await next$).toEqual({ value: 0, done: false });
     expect(await asyncIterator.return!()).toEqual({ done: true });
 
     sink!(push(1));
