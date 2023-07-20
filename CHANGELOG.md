@@ -1,5 +1,12 @@
 # wonka
 
+## 6.3.3
+
+### Patch Changes
+
+- Improve compatibility of `fromAsyncIterable` and `toAsyncIterable`. The `toAsyncIterable` will now output an object that's both an `AsyncIterator` and an `AsyncIterable`. Both helpers will now use a polyfill for `Symbol.asyncIterator` to improve compatibility with the Hermes engine and Babel transpilation
+  Submitted by [@kitten](https://github.com/kitten) (See [#165](https://github.com/0no-co/wonka/pull/165))
+
 ## 6.3.2
 
 ### Patch Changes
