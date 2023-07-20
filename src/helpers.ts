@@ -65,4 +65,4 @@ export const asyncIteratorSymbol = (): typeof Symbol.asyncIterator =>
  * @internal
  */
 export const observableSymbol = (): typeof Symbol.observable =>
-  Symbol.observable || ('@@observable' as any);
+  (typeof Symbol === 'function' && Symbol.observable) || ('@@observable' as any);
