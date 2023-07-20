@@ -129,6 +129,7 @@ export const toAsyncIterable = <T>(source: Source<T>): SourceIterable<T> => {
 
   let ended = false;
   let started = false;
+  let pulled = false;
   let talkback = talkbackPlaceholder;
   let next: ((value: IteratorResult<T>) => void) | void;
 
@@ -143,18 +144,23 @@ export const toAsyncIterable = <T>(source: Source<T>): SourceIterable<T> => {
             if (next) next = next(doneResult);
             ended = true;
           } else if (signal.tag === SignalKind.Start) {
+            pulled = true;
             (talkback = signal[0])(TalkbackKind.Pull);
-          } else if (next) {
-            next = next({ value: signal[0], done: false });
           } else {
-            buffer.push(signal[0]);
+            pulled = false;
+            if (next) {
+              next = next({ value: signal[0], done: false });
+            } else {
+              buffer.push(signal[0]);
+            }
           }
         });
       }
 
       if (ended && !buffer.length) {
         return doneResult;
-      } else if (!ended && buffer.length <= 1) {
+      } else if (!ended && !pulled && buffer.length <= 1) {
+        pulled = true;
         talkback(TalkbackKind.Pull);
       }
 
