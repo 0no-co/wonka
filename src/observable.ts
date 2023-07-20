@@ -1,11 +1,5 @@
 import { Source, SignalKind, TalkbackKind } from './types';
-import { push, start, talkbackPlaceholder } from './helpers';
-
-declare global {
-  interface SymbolConstructor {
-    readonly observable: symbol;
-  }
-}
+import { push, start, talkbackPlaceholder, observableSymbol } from './helpers';
 
 /** A definition of the ES Observable Subscription type that is returned by
  * {@link Observable.subscribe}
@@ -117,21 +111,6 @@ interface Observable<T> {
   /** The well-known symbol specifying the default ES Observable for an object. */
   [Symbol.observable](): Observable<T>;
 }
-
-/** Returns the well-known symbol specifying the default ES Observable.
- * @privateRemarks
- * This symbol is used to mark an object as a default ES Observable. By the specification, an object
- * that abides by the default Observable implementation must carry a method set to this well-known
- * symbol that returns the Observable implementation. It's common for this object to be an
- * Observable itself and return itself on this method.
- *
- * @see {@link https://github.com/0no-co/wonka/issues/122} for notes on the intercompatibility
- * between Observable implementations.
- *
- * @internal
- */
-const observableSymbol = (): typeof Symbol.observable =>
-  Symbol.observable || ('@@observable' as any);
 
 /** Converts an ES Observable to a {@link Source}.
  * @param input - The {@link ObservableLike} object that will be converted.
