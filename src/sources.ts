@@ -1,5 +1,11 @@
 import { Source, Sink, SignalKind, TalkbackKind, Observer, Subject, TeardownFn } from './types';
-import { push, start, talkbackPlaceholder, teardownPlaceholder } from './helpers';
+import {
+  push,
+  start,
+  talkbackPlaceholder,
+  teardownPlaceholder,
+  asyncIteratorSymbol,
+} from './helpers';
 import { share } from './operators';
 
 /** Helper creating a Source from a factory function when it's subscribed to.
@@ -45,9 +51,11 @@ export function lazy<T>(produce: () => Source<T>): Source<T> {
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_async_iterator_and_async_iterable_protocols}
  * for the JS Iterable protocol.
  */
-export function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Source<T> {
+export function fromAsyncIterable<T>(iterable: AsyncIterable<T> | AsyncIterator<T>): Source<T> {
   return sink => {
-    const iterator = iterable[Symbol.asyncIterator]();
+    const iterator: AsyncIterator<T> =
+      (iterable[asyncIteratorSymbol()] && iterable[asyncIteratorSymbol()]()) || iterable;
+
     let ended = false;
     let looping = false;
     let pulled = false;
