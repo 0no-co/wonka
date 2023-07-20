@@ -244,19 +244,19 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    const next$ = asyncIterator.next();
 
-    expect(pulls).toBe(1);
     sink!(push(0));
-    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
-    expect(pulls).toBe(2);
+    expect(await next$).toEqual({ value: 0, done: false });
+    expect(pulls).toBe(1);
 
     sink!(push(1));
     expect(await asyncIterator.next()).toEqual({ value: 1, done: false });
-    expect(pulls).toBe(3);
+    expect(pulls).toBe(2);
 
     sink!(SignalKind.End);
     expect(await asyncIterator.next()).toEqual({ done: true });
-    expect(pulls).toBe(3);
+    expect(pulls).toBe(2);
   });
 
   it('buffers actively pushed values', async () => {
@@ -273,13 +273,14 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    const next$ = asyncIterator.next();
 
     sink!(push(0));
     sink!(push(1));
     sink!(SignalKind.End);
 
     expect(pulls).toBe(1);
-    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await next$).toEqual({ value: 0, done: false });
     expect(await asyncIterator.next()).toEqual({ value: 1, done: false });
     expect(await asyncIterator.next()).toEqual({ done: true });
   });
@@ -298,6 +299,7 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    asyncIterator.next();
     expect(pulls).toBe(1);
 
     let resolved = false;
@@ -330,9 +332,10 @@ describe('toAsyncIterable', () => {
     };
 
     const asyncIterator = sinks.toAsyncIterable(source)[Symbol.asyncIterator]();
+    const next$ = asyncIterator.next();
 
     sink!(push(0));
-    expect(await asyncIterator.next()).toEqual({ value: 0, done: false });
+    expect(await next$).toEqual({ value: 0, done: false });
     expect(await asyncIterator.return!()).toEqual({ done: true });
 
     sink!(push(1));

@@ -200,3 +200,8 @@ export interface Subject<T> extends Observer<T> {
   /** The {@link Source} that issues the signals as the {@link Observer} methods are called. */
   source: Source<T>;
 }
+
+/** Async Iterable/Iterator after having converted a {@link Source}.
+ * @see {@link toAsyncIterable} for a helper that creates this structure.
+ */
+export interface SourceIterable<T> extends AsyncIterator<T>, AsyncIterable<T> {}

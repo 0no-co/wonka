@@ -1,5 +1,11 @@
 import { TalkbackFn, TeardownFn, Start, Push, SignalKind } from './types';
 
+declare global {
+  interface SymbolConstructor {
+    readonly observable: symbol;
+  }
+}
+
 /** Placeholder {@link TeardownFn | teardown functions} that's a no-op.
  * @see {@link TeardownFn} for the definition and usage of teardowns.
  * @internal
@@ -39,3 +45,24 @@ export function push<T>(value: T): Push<T> {
     0: value,
   } as Push<T>;
 }
+
+/** Returns the well-known symbol specifying the default AsyncIterator.
+ * @internal
+ */
+export const asyncIteratorSymbol = (): typeof Symbol.asyncIterator =>
+  (typeof Symbol === 'function' && Symbol.asyncIterator) || ('@@asyncIterator' as any);
+
+/** Returns the well-known symbol specifying the default ES Observable.
+ * @privateRemarks
+ * This symbol is used to mark an object as a default ES Observable. By the specification, an object
+ * that abides by the default Observable implementation must carry a method set to this well-known
+ * symbol that returns the Observable implementation. It's common for this object to be an
+ * Observable itself and return itself on this method.
+ *
+ * @see {@link https://github.com/0no-co/wonka/issues/122} for notes on the intercompatibility
+ * between Observable implementations.
+ *
+ * @internal
+ */
+export const observableSymbol = (): typeof Symbol.observable =>
+  (typeof Symbol === 'function' && Symbol.observable) || ('@@observable' as any);
