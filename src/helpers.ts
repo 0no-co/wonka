@@ -1,11 +1,5 @@
 import { TalkbackFn, TeardownFn, Start, Push, SignalKind } from './types';
 
-declare global {
-  interface SymbolConstructor {
-    readonly observable: symbol;
-  }
-}
-
 /** Placeholder {@link TeardownFn | teardown functions} that's a no-op.
  * @see {@link TeardownFn} for the definition and usage of teardowns.
  * @internal

@@ -1,6 +1,14 @@
 import { Source, SignalKind, TalkbackKind } from './types';
 import { push, start, talkbackPlaceholder, observableSymbol } from './helpers';
 
+// NOTE: This must be placed in an exported file for `rollup-plugin-dts`
+// to include it in output typings files
+declare global {
+  interface SymbolConstructor {
+    readonly observable: symbol;
+  }
+}
+
 /** A definition of the ES Observable Subscription type that is returned by
  * {@link Observable.subscribe}
  *
