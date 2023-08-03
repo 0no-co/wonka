@@ -1,5 +1,12 @@
 # wonka
 
+## 6.3.4
+
+### Patch Changes
+
+- Add missing `Symbol.observable` global declaration back to typings
+  Submitted by [@kitten](https://github.com/kitten) (See [#168](https://github.com/0no-co/wonka/pull/168))
+
 ## 6.3.3
 
 ### Patch Changes
