@@ -241,7 +241,7 @@ export function toPromise<T>(source: Source<T>): Promise<T> {
     let value: T | void;
     source(signal => {
       if (signal === SignalKind.End) {
-        Promise.resolve(value!).then(resolve);
+        resolve(value!);
       } else if (signal.tag === SignalKind.Start) {
         (talkback = signal[0])(TalkbackKind.Pull);
       } else {
