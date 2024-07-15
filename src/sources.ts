@@ -397,10 +397,8 @@ export function fromDomEvent(element: HTMLElement, event: string): Source<Event>
 export function fromPromise<T>(promise: Promise<T>): Source<T> {
   return make(observer => {
     promise.then(value => {
-      Promise.resolve(value).then(() => {
-        observer.next(value);
-        observer.complete();
-      });
+      observer.next(value);
+      observer.complete();
     });
     return teardownPlaceholder;
   });
