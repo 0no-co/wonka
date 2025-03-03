@@ -10,7 +10,7 @@ Operators in Wonka allow you to transform values from a source before they are s
 Buffers emissions from an outer source and emits a buffer array of items every time an
 inner source (notifier) emits.
 
-This operator can be used to group values into a arrays on a source. The emitted values will
+This operator can be used to group values from a source into an array. The emitted values will
 be sent when a notifier fires and will be arrays of all items before the notification event.
 
 In combination with `interval` this can be used to group values in chunks regularly.
