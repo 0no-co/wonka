@@ -97,7 +97,7 @@ const output = format => {
     dir: './dist',
     exports: 'named',
     sourcemap: true,
-    sourcemapExcludeSources: false,
+    sourcemapExcludeSources: true,
     indent: false,
     freeze: false,
     strict: false,
