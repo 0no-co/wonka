@@ -1,5 +1,12 @@
 # wonka
 
+## 6.3.5
+
+### Patch Changes
+
+- Exclude `sourcesContent` from published sourcemaps
+  Submitted by [@kitten](https://github.com/kitten) (See [`68e608f`](https://github.com/0no-co/wonka/commit/68e608f46244e82d41c952ecfa1d7f0096e168f6))
+
 ## 6.3.4
 
 ### Patch Changes
