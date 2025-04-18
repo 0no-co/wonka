@@ -118,7 +118,7 @@ export function fromAsyncIterable<T>(iterable: AsyncIterable<T> | AsyncIterator<
  * for the JS Iterable protocol.
  */
 export function fromIterable<T>(iterable: Iterable<T> | AsyncIterable<T>): Source<T> {
-  if (iterable[Symbol.asyncIterator]) return fromAsyncIterable(iterable as AsyncIterable<T>);
+  if (iterable[asyncIteratorSymbol()]) return fromAsyncIterable(iterable as AsyncIterable<T>);
   return sink => {
     const iterator = iterable[Symbol.iterator]();
     let ended = false;
