@@ -1,5 +1,12 @@
 # wonka
 
+## 6.3.6
+
+### Patch Changes
+
+- Replace for...in with for...of Object.keys() to avoid iterating inherited properties
+  Submitted by [@majgaard](https://github.com/majgaard) (See [#177](https://github.com/0no-co/wonka/pull/177))
+
 ## 6.3.5
 
 ### Patch Changes
