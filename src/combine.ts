@@ -61,7 +61,8 @@ function zip<T>(sources: Source<T>[] | Record<string, Source<T>>): Source<T[] | 
     let ended = false;
     let endCount = 0;
 
-    for (const key in sources) {
+    const keys = Object.keys(sources);
+    for (const key of keys) {
       (sources[key] as Source<T>)(signal => {
         if (signal === SignalKind.End) {
           if (endCount >= size - 1) {
@@ -77,7 +78,7 @@ function zip<T>(sources: Source<T>[] | Record<string, Source<T>>): Source<T[] | 
           filled.add(key);
           if (!gotBuffer && filled.size < size) {
             if (!gotSignal) {
-              for (const key in sources)
+              for (const key of keys)
                 if (!filled.has(key)) (talkbacks[key] || talkbackPlaceholder)(TalkbackKind.Pull);
             } else {
               gotSignal = false;
@@ -96,10 +97,10 @@ function zip<T>(sources: Source<T>[] | Record<string, Source<T>>): Source<T[] | 
           /*noop*/
         } else if (signal === TalkbackKind.Close) {
           ended = true;
-          for (const key in talkbacks) talkbacks[key](TalkbackKind.Close);
+          for (const key of Object.keys(talkbacks)) talkbacks[key](TalkbackKind.Close);
         } else if (!gotSignal) {
           gotSignal = true;
-          for (const key in talkbacks) talkbacks[key](TalkbackKind.Pull);
+          for (const key of Object.keys(talkbacks)) talkbacks[key](TalkbackKind.Pull);
         }
       })
     );
