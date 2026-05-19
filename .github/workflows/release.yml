@@ -31,11 +31,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
+          package-manager-cache: false
           node-version: 22
-          cache: 'pnpm'
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       - name: Update npm
         run: npm install -g npm@11.6
